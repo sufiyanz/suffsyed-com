@@ -1,0 +1,154 @@
+:root {
+  --ink: #17181a;
+  --paper: #faf8f4;
+  --muted: #6b6a66;
+  --line: #e4e1d9;
+  --accent: #b4472c;
+  --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --maxw: 700px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+a { color: inherit; }
+
+img { max-width: 100%; display: block; }
+
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.site-header .brand {
+  font-weight: 700;
+  text-decoration: none;
+  margin-right: auto;
+}
+
+.site-header nav { display: flex; gap: 1.5rem; }
+.site-header nav a { text-decoration: none; color: var(--muted); }
+.site-header nav a:hover { color: var(--ink); }
+
+.subscribe {
+  text-decoration: none;
+  border: 1px solid var(--ink);
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.subscribe:hover { background: var(--ink); color: var(--paper); }
+
+main {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 3rem 1.5rem 5rem;
+}
+
+.hero-home { padding-top: 2rem; }
+.hero-home h1 { font-size: 2.6rem; margin-bottom: 0.75rem; }
+.lede { color: var(--muted); font-size: 1.15rem; }
+.home-links { display: flex; flex-direction: column; gap: 0.5rem; font-family: var(--mono); font-size: 0.95rem; margin-top: 2rem; }
+.home-links a { text-decoration: none; }
+.home-links a:hover { color: var(--accent); }
+
+.page-header h1 { font-size: 2.2rem; margin-bottom: 0.5rem; }
+
+/* futurememo index grid */
+.post-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  margin-top: 2.5rem;
+}
+.post-card {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 2rem;
+}
+.post-card img { border-radius: 6px; aspect-ratio: 4/3; object-fit: cover; }
+.post-card h3 { margin: 0.25rem 0 0.4rem; font-size: 1.25rem; line-height: 1.3; }
+.post-card .excerpt { color: var(--muted); font-size: 0.95rem; margin: 0; }
+.post-card:hover h3 { color: var(--accent); }
+
+.post-meta {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0;
+}
+.post-meta a { text-decoration: none; color: var(--muted); }
+
+/* article */
+.post h1, .simple-page h1 { font-size: 2.2rem; line-height: 1.2; margin: 0.6rem 0 1.5rem; }
+.post .hero { width: 100%; border-radius: 8px; margin-bottom: 2rem; }
+.post-body p { margin: 1.2rem 0; }
+.post-body h2, .post-body h3, .post-body h4 { margin: 2rem 0 1rem; line-height: 1.3; }
+.post-body figure { margin: 2rem 0; }
+.post-body figcaption { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; }
+.post-body blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 1.5rem 0;
+  padding-left: 1.25rem;
+  color: var(--muted);
+  font-style: italic;
+}
+.post-body a { color: var(--accent); }
+.post .back { margin-top: 3rem; font-family: var(--mono); font-size: 0.9rem; }
+.post .back a { text-decoration: none; }
+
+/* gallery */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-top: 2.5rem;
+}
+.gallery img { border-radius: 4px; }
+
+.site-footer {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+.site-footer .quote { font-family: var(--serif); font-style: italic; font-size: 1.1rem; color: var(--ink); max-width: 480px; margin: 0 auto 1.5rem; }
+.site-footer .social { display: flex; gap: 1.25rem; justify-content: center; margin: 0 0 1rem; }
+.site-footer .social a { text-decoration: none; }
+.site-footer .social a:hover { color: var(--ink); }
+.site-footer .location, .site-footer .copyright { margin: 0.25rem 0; }
+
+@media (max-width: 600px) {
+  .site-header { gap: 1rem; flex-wrap: wrap; }
+  .post-card { grid-template-columns: 1fr; }
+  .gallery { grid-template-columns: 1fr 1fr; }
+}
