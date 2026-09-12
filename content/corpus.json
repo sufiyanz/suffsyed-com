@@ -1,0 +1,412 @@
+{
+  "version": 1,
+  "migrationRevision": "a0fca809ff8b76dfb5d89aed56fb4e2e7300e2c3",
+  "provenance": "Full text and local assets migrated from the previously committed static Squarespace rebuild. Dates were sitemap lastmod values or a migration fallback, not confirmed publication dates.",
+  "themes": [
+    {
+      "id": "design",
+      "name": "Design",
+      "question": "Where does creative agency go next?",
+      "face": "var(--cp-pigment-mint)",
+      "band": "var(--cp-pigment-teal)",
+      "second": "var(--cp-pigment-rose)",
+      "edge": "var(--cp-pigment-coral)"
+    },
+    {
+      "id": "builders-craft",
+      "name": "Builders & craft",
+      "question": "What can one person become?",
+      "face": "var(--cp-pigment-slate)",
+      "band": "var(--cp-pigment-teal)",
+      "second": "var(--cp-pigment-lilac)",
+      "edge": "var(--cp-pigment-mint)"
+    },
+    {
+      "id": "work-careers",
+      "name": "Work & careers",
+      "question": "What do we gain—and what do we lose?",
+      "face": "var(--cp-pigment-lemon)",
+      "band": "var(--cp-pigment-coral)",
+      "second": "var(--cp-pigment-rose)",
+      "edge": "var(--cp-pigment-orange)"
+    },
+    {
+      "id": "industry-markets",
+      "name": "Industry & markets",
+      "question": "Who gets to shape what comes next?",
+      "face": "var(--cp-pigment-mint)",
+      "band": "var(--cp-pigment-blue)",
+      "second": "var(--cp-pigment-lemon)",
+      "edge": "var(--cp-pigment-lilac)"
+    },
+    {
+      "id": "culture-hype",
+      "name": "Culture & hype",
+      "question": "What is worth believing?",
+      "face": "var(--cp-pigment-rose)",
+      "band": "var(--cp-pigment-green)",
+      "second": "var(--cp-pigment-orange)",
+      "edge": "var(--cp-pigment-teal)"
+    }
+  ],
+  "essays": [
+    {
+      "slug": "how-i-invented-claude-cowork-before-anthropic",
+      "title": "I Built Claude Cowork Before Anthropic. Here’s the Tension Every Builder Faces Today.",
+      "description": "This little experiment surfaces deep tensions everyone is feeling in the AI landscape. It's evidence that the distance between individual and institutional capability is collapsing. The structures we built careers on—tools, artifacts, execution—are becoming shackles. What comes next?",
+      "cover": "/assets/img/2ff5a7ed5ad8.webp",
+      "theme": "Builders & craft",
+      "no": 1,
+      "migrationLastmodLabel": "March 27, 2026",
+      "publicationDate": null,
+      "legacyWords": 2446,
+      "originalTextSha256": "f6d6b8ffe2b1db0375d714421c066d0c044bc8039f6d70319049dc7e1744e191"
+    },
+    {
+      "slug": "how-future-designers-will-win-in-the-age-of-ai",
+      "title": "How Future Designers Will Win in the Age of AI",
+      "description": "In Part 4 of The Future of Design Series we reveal three paths to sovereignty for designers in the AI era: Brand Sovereignty (scaling creative work independently), Product Sovereignty (building AI-native companies that replace entire workflows), and Intelligence Sovereignty (earning technical credibility to shape how AI systems behave). The window to seize these opportunities is closing in 12-18 months as vertical AI categories saturate and foundational model behaviors lock in.",
+      "cover": "/assets/img/717a44366c7b.webp",
+      "theme": "Design",
+      "no": 2,
+      "migrationLastmodLabel": "January 25, 2026",
+      "publicationDate": null,
+      "legacyWords": 7043,
+      "originalTextSha256": "c454136dfe35b2c67602c5187442ef2ea383997b86c9233511141870a13b8df8"
+    },
+    {
+      "slug": "a-new-class-of-software-builders-is-emerging",
+      "title": "A New Class of Software Builders is Emerging",
+      "description": "Generative AI is transforming software creation, empowering non-coders—creators, solopreneurs, and knowledge workers—to build complex apps without technical expertise. This article explores how AI is breaking down traditional barriers, enabling deeply personal and local software, and argues that the next wave of innovation will be driven by ordinary people, not just professional developers.",
+      "cover": "/assets/img/fab5719cd95c.webp",
+      "theme": "Builders & craft",
+      "no": 3,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 2374,
+      "originalTextSha256": "d98e551e4456287f18b51988e4c6b880b6c2e62e8e4a93849f7cde93d206d679"
+    },
+    {
+      "slug": "a-survival-playbook-for-an-ai-first-world",
+      "title": "A Survival Playbook for an AI-first World",
+      "description": "Surviving in an AI-first world requires urgency, adaptability, and self-reinvention. This article offers a practical guide for the unemployed, the employed, and new graduates, urging readers to leverage AI, build unique skills, and focus on delivering real value—because in this new era, relevance and agency belong to those who act, not those who wait.",
+      "cover": "/assets/img/15f86a44da50.webp",
+      "theme": "Work & careers",
+      "no": 4,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 1911,
+      "originalTextSha256": "2793647689253f1535bc9133069a6b415d845f7c9d5196b16cb0f3f2a95bedec"
+    },
+    {
+      "slug": "ai-doesnt-create-slop-humans-do",
+      "title": "AI Doesn’t Create Slop. Humans Do.",
+      "description": "This essay challenges the idea that AI is responsible for the wave of low-quality, soulless content online. It argues that the real problem is human misuse—poor inputs, lack of taste, and cultural incentives that reward speed over craft. The future of AI depends not on better models, but on better judgment and stewardship from its users.",
+      "cover": "/assets/img/6029bfb03666.webp",
+      "theme": "Culture & hype",
+      "no": 5,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 1668,
+      "originalTextSha256": "5e7963e64debd6b142a35500b8d75d25b4b9b6cf84c8c6d413389374d6f202d9"
+    },
+    {
+      "slug": "ai-is-making-you-faster-and-dumber",
+      "title": "AI Is Making You Faster—and Dumber",
+      "description": "AI tools are making us faster but at the cost of critical thinking and personal agency. This article examines how relying on AI for writing and decision-making can erode depth, creativity, and fulfillment, urging readers to reclaim their own process and use AI as a tool for refinement rather than a substitute for original thought.",
+      "cover": "/assets/img/5790dd02560e.webp",
+      "theme": "Work & careers",
+      "no": 6,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 796,
+      "originalTextSha256": "7373cab36b7dc4cb416d3f7b5bdc389a131c2e16d0bb892926a0bccaf524d385"
+    },
+    {
+      "slug": "ai-has-a-that-s-a-feature-not-a-product-problem",
+      "title": "AI has a ‘That’s a Feature, not a Product’ Problem",
+      "description": "AI assistants remain stuck as features, not true products—too general, impersonal, and unreliable to justify their cost for most users. This article argues that until AI moves beyond generic chat interfaces to deliver deeply personal, trustworthy, and context-aware experiences, it will struggle to become indispensable in daily life.",
+      "cover": "/assets/img/809482c34f33.webp",
+      "theme": "Industry & markets",
+      "no": 7,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 898,
+      "originalTextSha256": "ac4b7deda4fb4b88d3a8b781c287492bde2c8e57293d879cc66daa9d30147a72"
+    },
+    {
+      "slug": "ai-acceleration-org-chart-collapse",
+      "title": "AI is Collapsing How We Build — and Rewiring Org Charts",
+      "description": "AI is collapsing how companies are built and rewiring org charts. Startups are leveraging AI to generate 95% of code, achieve 10% weekly growth, and compress years of work into weeks. This “acceleration vector” is killing old hierarchies, replacing silos with agent swarms, and prioritizing compute over headcount. Enterprises must act fast—ship AI pilots, flatten workflows, and treat AI literacy as core. The org chart is being rewritten—either by you, or by an LLM.",
+      "cover": "/assets/img/ed7d39ba7586.webp",
+      "theme": "Work & careers",
+      "no": 8,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 1285,
+      "originalTextSha256": "8a892216c99e1ec6f55c46037b9194a858a2dddd2b4df4404d1a0a9fc5adb3dc"
+    },
+    {
+      "slug": "are-you-an-ai-illiterate",
+      "title": "Are you an AI Illiterate?",
+      "description": "Mastering AI is now a core career skill—yet most professionals remain stuck at surface-level use. This article breaks down the three rungs of AI literacy: Illiterate, Native, and Creationist. Learn how to upskill, boost your leverage, and stay competitive in an AI-driven job market.",
+      "cover": "/assets/img/444561350222.webp",
+      "theme": "Work & careers",
+      "no": 9,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 1731,
+      "originalTextSha256": "f7db5e12ae17c4928780a190a6633597c90eb5c08354febc71d16bdf78655dff"
+    },
+    {
+      "slug": "designers-have-to-move-from-the-surface-to-the-substrate",
+      "title": "Designers Have to Move from the Surface to the Substrate",
+      "description": "Designers once controlled 85% of user experience through interfaces and interactions. Now, with intelligence moving beneath the surface, that control has collapsed to 5%—while the real design decisions happen in training data, system prompts, and model behavior that most designers never see.",
+      "cover": "/assets/img/48d16a6b8f48.webp",
+      "theme": "Design",
+      "no": 10,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 3130,
+      "originalTextSha256": "6f92e3737e63c48cd032bb44e39456098f381437a31765e86a75b11ddd8dcdd2"
+    },
+    {
+      "slug": "designers-should-look-to-demis-hassabis-not-jony-ive",
+      "title": "Designers should look to Demis Hassabis. Not Jony Ive.",
+      "description": "Jony Ive's 1998 iMac ushered in a two-decade revolution that made design culturally dominant, teaching the world to care about curves, materials, and craft. But a new force is rising that doesn't live on surfaces at all—artificial intelligence is dissolving the interface itself, shifting design from pixels to the invisible layers of weights, prompts, and policies. The future belongs to a new archetype of design leader, exemplified by Demis Hassabis, who won a Nobel Prize not for perfecting surfaces but for designing intelligence itself.",
+      "cover": "/assets/img/14a0a069fde9.webp",
+      "theme": "Design",
+      "no": 11,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 2118,
+      "originalTextSha256": "3cdcc88206265a68fa344b2f770e37be635077a09049890e533fdd95f0814aca"
+    },
+    {
+      "slug": "qubit-teams-the-future-built-by-two-people-using-ai",
+      "title": "Qubit Teams: The Future Built by Two",
+      "description": "AI is collapsing the modern product team from eight people to just two. Qubit Teams pair a visionary and a systems architect, working in superposition with AI to imagine and build simultaneously. This new model will redefine how companies innovate, scale, and decide what only humans can do.",
+      "cover": "/assets/img/dfa98289aa23.webp",
+      "theme": "Builders & craft",
+      "no": 12,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 1606,
+      "originalTextSha256": "b0cdc74fa476c14d2b4ccdf7c413452d0a744fc41b4682cc61df2da0a6e4da5c"
+    },
+    {
+      "slug": "sour-fig-figma-s-future-is-uncertain-despite-ipo-hype",
+      "title": "Sour FIG—Figma’s Future is Uncertain Despite IPO Hype",
+      "description": "Figma’s future faces uncertainty as it prepares for its IPO. Despite strong growth and market dominance, the company struggles with costly AI investments, leadership turnover, and fierce competition from rivals like Canva and AI-native platforms. This analysis explores the challenges threatening Figma’s place at the center of software design.",
+      "cover": "/assets/img/adaa9712ed7a.webp",
+      "theme": "Industry & markets",
+      "no": 13,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 2420,
+      "originalTextSha256": "3227a7e69c7418af50fbad13891cb52fef01b06ed006ef9a68c7fb59e1036dbd"
+    },
+    {
+      "slug": "stop-confusing-vibe-coding-and-context-engineering",
+      "title": "Stop Confusing Vibe Coding with Context Engineering",
+      "description": "This article distinguishes between “vibe coding,” a fast but shallow way of using AI tools to generate code, and “context engineering,” a disciplined approach that builds deep model understanding. It argues that without structured context, AI outputs become chaotic, leading to failures in real-world applications—especially in enterprise settings. Through firsthand insights and industry examples, it shows why engineering context is essential to shipping high-quality, scalable software with AI.",
+      "cover": "/assets/img/8e77ee174b12.webp",
+      "theme": "Builders & craft",
+      "no": 14,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 2143,
+      "originalTextSha256": "b1f9f0744b7d2d975c3bdc9b8c02ef5a3aedda30d871fab3a3e199b13eb76a31"
+    },
+    {
+      "slug": "apple-buying-openai",
+      "title": "The Case for Apple Buying OpenAI for $500B",
+      "description": "Apple faces a pivotal moment as it risks falling behind in the AI revolution. The case is made for a bold $500B acquisition of OpenAI, arguing that only by owning leading AI technology and visionary leadership can Apple reclaim dominance, drive innovation, and secure its legacy in the next era of computing.",
+      "cover": "/assets/img/0d73fb53a777.webp",
+      "theme": "Industry & markets",
+      "no": 15,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 2133,
+      "originalTextSha256": "b451ee7f8da9b7b1dc7abd45e144a37d38e2fb2b5ac95156b5c594eff8a80bff"
+    },
+    {
+      "slug": "the-design-leaders-are-lying-to-you",
+      "title": "The Design Leaders Are Lying to You",
+      "description": "Design leadership clings to interface-era frameworks while AI decisions migrate to the intelligence layer. Evidence shows declining leverage: compensation gaps with AI researchers, product managers bypassing design, economic pressures. Individual designers have agency, but the window is closing.",
+      "cover": "/assets/img/c675afbe6bbc.webp",
+      "theme": "Design",
+      "no": 16,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 4580,
+      "originalTextSha256": "94efccfe1b45db562fba46d76242fc7ace64ce6416347d003ac9973325bdcc34"
+    },
+    {
+      "slug": "the-vibe-coders-are-lying-to-you",
+      "title": "The Vibe Coders are Lying to You",
+      "description": "Discover why the vibe coding hype is failing. Most AI-generated apps from platforms like Lovable and Replit are flashy demos, not real businesses. Learn why 95% of enterprise AI pilots fail, the rise of AI fatigue, and what it takes to build sustainable AI products.",
+      "cover": "/assets/img/793b0b3e105f.webp",
+      "theme": "Builders & craft",
+      "no": 17,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 1986,
+      "originalTextSha256": "26d709f780e996eae9ac35bf5d7687770a6b78a5dad2a164bbb3c5314bb2a5f1"
+    },
+    {
+      "slug": "what-most-people-are-oblivious-to",
+      "title": "What Most People are Oblivious About AI Hype",
+      "description": "AI hype headlines focus on mass layoffs, but the deeper shift is about who controls the infrastructure of intelligence. This article reveals how fear is used to centralize power, why regulation cements dominance for a few, and how AI is quietly restructuring work, breaking traditional career ladders, and creating a new economy where only those who adapt will thrive.",
+      "cover": "/assets/img/1c4a55f805d5.webp",
+      "theme": "Culture & hype",
+      "no": 18,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 1087,
+      "originalTextSha256": "7804645236d345fd0e5ac986a47832eac665508f66fe8db83ce86f65a09d8284"
+    },
+    {
+      "slug": "why-im-leaving-design",
+      "title": "Why I’m Giving Up My Design Title—And What That Says About The Future of Design",
+      "description": "Suff Syed, former Head of Product Design, announces his shift to a technical role, arguing that design has been commoditized in the AI era while technical depth is now where innovation happens. He argues design has become baseline, while innovation now lies in systems, agents, and orchestration. The future belongs to those who can wield AI—not just make things beautiful, but make them think.",
+      "cover": "/assets/img/a49ebfec761c.webp",
+      "theme": "Design",
+      "no": 19,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 3047,
+      "originalTextSha256": "18cc8e8f435b04db4e3a53e8438bc2ec6e5104f91e98dd1361376effe7de4bcc"
+    },
+    {
+      "slug": "why-people-are-buying-into-ai-doomerism",
+      "title": "Why People are buying into AI Doomerism",
+      "description": "AI is rapidly transforming white-collar work, outpacing humans in fields from medicine to law and driving mass layoffs across major industries. This article explains why widespread fear—AI doomerism—is rising, arguing that while no job is safe, adaptation and reinvention are possible for those willing to embrace change.",
+      "cover": "/assets/img/a126e33c60b3.webp",
+      "theme": "Culture & hype",
+      "no": 20,
+      "migrationLastmodLabel": "November 1, 2025",
+      "publicationDate": null,
+      "legacyWords": 906,
+      "originalTextSha256": "38a8c7fe5b26b18d856f66d3cd302f3cbbca33b0bc9f151be8a51118e7f94a84"
+    }
+  ],
+  "pages": [
+    {
+      "slug": "about-me",
+      "title": "About",
+      "description": "Suff Syed is a Head of Product & Design Member of Technical Staff building across AI Frontiers at Microsoft Research."
+    },
+    {
+      "slug": "about-the-memo",
+      "title": "For Thinkers & Future Seekers.",
+      "description": "future(memo) decodes the AI era with sharp insights, bold strategies, and practical playbooks for those building what’s next. Stay ahead of the intelligence revolution."
+    },
+    {
+      "slug": "faqs",
+      "title": "FAQs",
+      "description": "Explore FAQs on Suff Syed's approach to technology, AI in writing, and the creative process. Get insights into evolving ideas and his commitment to clear discourse."
+    },
+    {
+      "slug": "the-end-of-design-report",
+      "title": "The End of Design Report",
+      "description": "Explore Suff Syed’s report on AI and the future of design, helping leaders navigate industry shifts and harness new possibilities."
+    },
+    {
+      "slug": "store",
+      "title": "Store",
+      "description": "The shop is closed while the site moves house."
+    }
+  ],
+  "gallery": [
+    {
+      "src": "/assets/img/cb3abe783a8a.webp",
+      "alt": "Photograph 01 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/01b00759240f.webp",
+      "alt": "Photograph 02 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/787e1950d772.webp",
+      "alt": "Photograph 03 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/e09cbca70fe5.webp",
+      "alt": "Photograph 04 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/ba03f6cb36b7.webp",
+      "alt": "Photograph 05 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/ebb33381e772.webp",
+      "alt": "Photograph 06 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/3b6dfd173061.webp",
+      "alt": "Photograph 07 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/5d31dab1cad1.webp",
+      "alt": "Photograph 08 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/5183d7424a9f.webp",
+      "alt": "Photograph 09 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/f5d61b9f93f1.webp",
+      "alt": "Photograph 10 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/737b1f45784a.webp",
+      "alt": "Photograph 11 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/f6474ce11090.webp",
+      "alt": "Photograph 12 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/742a8244b8bc.webp",
+      "alt": "Photograph 13 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/2d139455a618.webp",
+      "alt": "Photograph 14 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/31f7552a9451.webp",
+      "alt": "Photograph 15 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/8898d4ebbcec.webp",
+      "alt": "Photograph 16 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/2c355e40fce3.webp",
+      "alt": "Photograph 17 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/4b1e5d100ae2.webp",
+      "alt": "Photograph 18 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/d774ad6b0d1f.webp",
+      "alt": "Photograph 19 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/3212c717ccb5.webp",
+      "alt": "Photograph 20 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/982e2cfbd7c6.webp",
+      "alt": "Photograph 21 from light(works), by Suff Syed."
+    },
+    {
+      "src": "/assets/img/e518e5ab9eed.webp",
+      "alt": "Photograph 22 from light(works), by Suff Syed."
+    }
+  ],
+  "galleryIntroduction": "Light(Works) is my escape from AI. A deliberate step away from screens and into the world. Out here in the Pacific Northwest, with a camera in hand, I'm just looking. Noticing light. Finding beauty in the ordinary."
+}

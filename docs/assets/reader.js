@@ -1,0 +1,246 @@
+const embedded = document.getElementById("essay-data");
+const normalize = value => value.toLowerCase().replaceAll("’", "'");
+const tokenPattern = () => /[A-Za-z0-9]+(?:[’'\-][A-Za-z0-9]+)*/g;
+if (embedded) initializeReader(JSON.parse(embedded.textContent));
+
+function element(tag, text, className) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  if (className) node.className = className;
+  return node;
+}
+
+function initializeReader(essay) {
+  const byId = new Map(essay.passages.map(passage => [passage.id, passage]));
+  const lens = document.getElementById("reading-lens");
+  const query = document.getElementById("term-query");
+  const scope = document.getElementById("term-scope");
+  const status = document.getElementById("term-status");
+  const results = document.getElementById("term-results");
+  const inspector = document.getElementById("passage-inspector");
+  let lastOpener = null;
+  let selectedTerm = "";
+
+  function readingPosition() {
+    const passages = [...document.querySelectorAll("#essay-body [data-passage]")];
+    const visible = passage => {
+      const rect = passage.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < innerHeight;
+    };
+    const node = passages.find(passage => `#${passage.id}` === location.hash && visible(passage))
+      || passages.find(passage => visible(passage) && passage.getBoundingClientRect().top >= 0)
+      || passages.find(visible);
+    return node ? { node, offset: node.getBoundingClientRect().top } : null;
+  }
+
+  function restorePosition(position) {
+    if (position) requestAnimationFrame(() => {
+      window.scrollBy({ top: position.node.getBoundingClientRect().top - position.offset, behavior: "instant" });
+    });
+  }
+
+  function openLens(opener, focus = true) {
+    const position = lens.hidden ? readingPosition() : null;
+    if (opener) lastOpener = opener;
+    lens.hidden = false;
+    document.body.classList.add("lens-open");
+    restorePosition(position);
+    if (focus) query.focus({ preventScroll: true });
+  }
+
+  function clearHighlights() {
+    document.querySelectorAll(".passage-text mark").forEach(mark => mark.replaceWith(...mark.childNodes));
+    document.querySelectorAll(".passage-text").forEach(passage => passage.normalize());
+  }
+
+  function clearTerm(updateUrl = true) {
+    selectedTerm = "";
+    query.value = "";
+    clearHighlights();
+    results.replaceChildren();
+    status.textContent = "";
+    document.querySelectorAll("[data-term]").forEach(button => button.setAttribute("aria-pressed", "false"));
+    if (updateUrl) {
+      const url = new URL(location.href);
+      url.searchParams.delete("term");
+      url.searchParams.delete("section");
+      history.replaceState(null, "", url);
+    }
+  }
+
+  function jump(id) {
+    const destination = document.getElementById(id);
+    if (!destination) return;
+    history.replaceState(null, "", `${location.pathname}${location.search}#${encodeURIComponent(id)}`);
+    destination.scrollIntoView({ block: "start", behavior: "instant" });
+    destination.focus({ preventScroll: true });
+  }
+
+  function highlightPassage(id, term) {
+    const root = document.getElementById(id).querySelector(".passage-text");
+    const pieces = [];
+    let text = "";
+    function visit(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        pieces.push({ node, start: text.length, end: text.length + node.textContent.length });
+        text += node.textContent;
+      } else if (node.nodeName === "BR") {
+        text += "\n";
+      } else {
+        const boundary = ["TABLE", "THEAD", "TBODY", "TR", "TD", "TH", "CAPTION"].includes(node.nodeName);
+        if (boundary) text += "\n";
+        node.childNodes.forEach(visit);
+        if (boundary) text += "\n";
+      }
+    }
+    visit(root);
+    const matches = [...text.matchAll(tokenPattern())].filter(match => normalize(match[0]) === term);
+    for (const match of matches.reverse()) {
+      const start = match.index, end = start + match[0].length;
+      for (const piece of [...pieces].reverse()) {
+        if (piece.end <= start || piece.start >= end) continue;
+        const localStart = Math.max(start, piece.start) - piece.start;
+        const localEnd = Math.min(end, piece.end) - piece.start;
+        const tail = piece.node.splitText(localEnd);
+        const middle = piece.node.splitText(localStart);
+        const mark = element("mark");
+        middle.replaceWith(mark);
+        mark.append(middle);
+        if (!tail.textContent) tail.remove();
+      }
+    }
+    return matches.length;
+  }
+
+  function inspect(id, opener) {
+    const passage = byId.get(id);
+    if (!passage) return;
+    openLens(opener, false);
+    inspector.hidden = false;
+    document.getElementById("inspected-text").textContent = passage.kind === "table" ? `Table / ${passage.label}. Read its original rows and columns in the essay.` : passage.text;
+    document.getElementById("inspector-title").textContent = passage.kind === "table" ? "A structured comparison." : "A thought in company.";
+    const link = document.getElementById("inspected-link");
+    link.href = `#${id}`;
+    link.onclick = event => { event.preventDefault(); jump(id); };
+    const list = document.getElementById("related-passages");
+    list.replaceChildren();
+    for (const match of passage.related) {
+      const item = element("li");
+      const title = element("a", match.title);
+      title.href = match.url;
+      const reason = element("small", `Shared words: ${match.shared.join(" · ")}`);
+      const excerpt = element("p", match.excerpt);
+      item.append(title, reason, excerpt);
+      list.append(item);
+    }
+    if (!passage.related.length) {
+      const nonProse = !["p", "li", "blockquote"].includes(passage.kind);
+      list.append(element("li", nonProse ? "This is a structured passage, not continuous prose. Its words remain searchable, but it is not used for prose-neighbor suggestions." : passage.words < 20 ? "This passage is too short for a reliable vocabulary comparison. Try a longer paragraph." : "No other essay shares enough distinctive vocabulary with this passage. Not every thought needs a neighbor."));
+    }
+    const fixedHeaderHeight = lens.querySelector(".lens-heading").getBoundingClientRect().height;
+    lens.scrollTop = Math.max(0, inspector.offsetTop - fixedHeaderHeight - 12);
+    const heading = document.getElementById("inspector-title");
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
+  }
+
+  function search(updateUrl = true) {
+    clearHighlights();
+    results.replaceChildren();
+    inspector.hidden = true;
+    const term = normalize(query.value.trim());
+    const pieces = [...term.matchAll(tokenPattern())];
+    if (pieces.length !== 1 || pieces[0][0] !== term) {
+      selectedTerm = "";
+      document.querySelectorAll("[data-term]").forEach(button => button.setAttribute("aria-pressed", "false"));
+      if (updateUrl) {
+        const url = new URL(location.href);
+        url.searchParams.delete("term");
+        url.searchParams.delete("section");
+        history.replaceState(null, "", url);
+      }
+      status.textContent = term ? "Use one complete word, including its apostrophe or hyphen if it has one. For a phrase, use the writing archive." : "Choose a word to see where it returns.";
+      return;
+    }
+    selectedTerm = term;
+    const chosenSection = essay.sections.find(section => section.id === scope.value);
+    const passages = essay.passages.filter(passage => !chosenSection || passage.section === chosenSection.id);
+    let total = 0, matching = 0, highlighted = 0;
+    for (const passage of passages) {
+      const count = passage.terms[term] || 0;
+      if (!count) continue;
+      total += count;
+      matching++;
+      highlighted += highlightPassage(passage.id, term);
+      const item = element("li");
+      const label = essay.sections.find(section => section.id === passage.section).title;
+      const meta = element("small", `${passage.kind === "table" ? "Table p" : "P"}assage ${passage.no} · ${label} · ${count} ${count === 1 ? "occurrence" : "occurrences"}`);
+      const link = element("a", passage.kind === "table" ? `${passage.label}. Open the original rows and columns ↗` : passage.text);
+      link.href = `#${passage.id}`;
+      link.addEventListener("click", event => { event.preventDefault(); jump(passage.id); });
+      const related = element("button", "Follow this passage’s connections ↗");
+      related.type = "button";
+      related.addEventListener("click", () => inspect(passage.id, related));
+      item.append(meta, link, related);
+      results.append(item);
+    }
+    status.textContent = `${total} ${total === 1 ? "occurrence" : "occurrences"} of “${term}” in ${matching} ${matching === 1 ? "passage" : "passages"}${chosenSection ? ` within “${chosenSection.title}”` : " across the whole essay"}.`;
+    if (highlighted !== total) {
+      status.textContent += " The highlighting does not match the text index; the source counts above remain visible.";
+      console.error("Text/index mismatch", { term, total, highlighted });
+    }
+    document.querySelectorAll("[data-term]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.term === term)));
+    if (updateUrl) {
+      const url = new URL(location.href);
+      url.searchParams.set("term", term);
+      if (chosenSection) url.searchParams.set("section", chosenSection.id);
+      else url.searchParams.delete("section");
+      history.replaceState(null, "", url);
+    }
+  }
+
+  document.querySelectorAll(".open-lens").forEach(button => button.addEventListener("click", () => openLens(button)));
+  document.querySelectorAll('a[href="#reading-lens"]').forEach(link => link.addEventListener("click", event => { event.preventDefault(); openLens(link); }));
+  document.getElementById("close-lens").addEventListener("click", () => {
+    const position = readingPosition();
+    clearTerm();
+    inspector.hidden = true;
+    lens.hidden = true;
+    document.body.classList.remove("lens-open");
+    restorePosition(position);
+    const focusTarget = lastOpener?.closest("#essay-body [data-passage]") || lastOpener;
+    focusTarget?.focus({ preventScroll: true });
+  });
+  document.getElementById("clear-term").addEventListener("click", () => clearTerm());
+  document.getElementById("term-form").addEventListener("submit", event => { event.preventDefault(); search(); });
+  scope.addEventListener("change", () => { if (selectedTerm || query.value) search(); });
+  document.querySelectorAll("[data-term]").forEach(button => button.addEventListener("click", () => {
+    query.value = button.dataset.term;
+    scope.value = "";
+    search();
+  }));
+  document.querySelectorAll("[data-inspect]").forEach(button => button.addEventListener("click", () => inspect(button.dataset.inspect, button)));
+  if (matchMedia("(max-width: 760px)").matches) document.querySelector(".contents").open = false;
+
+  const params = new URLSearchParams(location.search);
+  if (params.has("term")) {
+    query.value = params.get("term").slice(0, 80);
+    const section = params.get("section");
+    if (essay.sections.some(item => item.id === section)) scope.value = section;
+    openLens(null, false);
+    search(false);
+  }
+  if (location.hash === "#reading-lens") openLens(null, false);
+  const observer = new IntersectionObserver(entries => {
+    const entry = entries.find(item => item.isIntersecting);
+    if (!entry) return;
+    document.querySelectorAll(".contents a").forEach(link => {
+      if (link.hash === `#${entry.target.id}`) link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
+    });
+  }, { rootMargin: "-5% 0px -65% 0px" });
+  essay.sections.forEach(section => {
+    const node = document.getElementById(section.id);
+    if (node) observer.observe(node);
+  });
+}

@@ -1,424 +1,234 @@
-"""Build suffsyed.com (the atlas) from the scraped Squarespace pages in scrape/raw/.
-
-    python3 tools/build_site.py
-
-Outputs static HTML into docs/. Images are fetched once into docs/assets/img (cached by URL hash).
-"""
+"""Build the complete, offline scientific journal from committed content."""
 import html
-import os
-import re
-import sys
-import datetime
-import xml.etree.ElementTree as ET
+import json
+import shutil
+from pathlib import Path
+from urllib.parse import quote
 
-sys.path.insert(0, os.path.dirname(__file__))
-from lib import soupify, clean_title, meta, convert_blog_body, download_image
+from bs4 import BeautifulSoup
+from PIL import Image
 
-ROOT = os.path.join(os.path.dirname(__file__), "..")
-RAW = os.path.join(ROOT, "scrape", "raw")
-OUT = os.path.join(ROOT, "docs")
+from corpus import connect, measure
+from journal_home import render_home
+from journal_questions import render_margin, render_research, render_research_teaser
 
-SITE = "Suff Syed"
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / "docs"
 DOMAIN = "https://suffsyed.com"
-SUBSTACK = "https://substack.com/@suffsyed"
-SOCIAL = [("X", "https://x.com/suff_syed"), ("LinkedIn", "https://www.linkedin.com/in/suffsyed/"), ("Substack", SUBSTACK)]
 
-THEMES = {
-    "Design": ["how-future-designers-will-win-in-the-age-of-ai", "designers-have-to-move-from-the-surface-to-the-substrate",
-               "designers-should-look-to-demis-hassabis-not-jony-ive", "the-design-leaders-are-lying-to-you", "why-im-leaving-design"],
-    "Builders & craft": ["how-i-invented-claude-cowork-before-anthropic", "a-new-class-of-software-builders-is-emerging",
-                         "stop-confusing-vibe-coding-and-context-engineering", "the-vibe-coders-are-lying-to-you",
-                         "qubit-teams-the-future-built-by-two-people-using-ai"],
-    "Work & careers": ["a-survival-playbook-for-an-ai-first-world", "ai-acceleration-org-chart-collapse",
-                       "are-you-an-ai-illiterate", "ai-is-making-you-faster-and-dumber"],
-    "Industry & markets": ["apple-buying-openai", "sour-fig-figma-s-future-is-uncertain-despite-ipo-hype",
-                           "ai-has-a-that-s-a-feature-not-a-product-problem"],
-    "Culture & hype": ["ai-doesnt-create-slop-humans-do", "what-most-people-are-oblivious-to", "why-people-are-buying-into-ai-doomerism"],
-}
-THEME_OF = {slug: t for t, slugs in THEMES.items() for slug in slugs}
-START_HERE = "why-im-leaving-design"
 
-# ---------------- helpers ----------------
-def esc(s): return html.escape(s or "", quote=True)
-def n(x): return f"{x:,}"
-def mon(d): return d.strftime("%b %Y").upper()
-def longdate(d): return d.strftime("%B %-d, %Y")
+def esc(value):
+    return html.escape(str(value), quote=True)
+
+
+def safe_json(value):
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c").replace("&", "\\u0026")
+
 
 def write(path, content):
-    full = os.path.join(OUT, path.lstrip("/"))
-    os.makedirs(os.path.dirname(full), exist_ok=True)
-    with open(full, "w", encoding="utf-8") as f:
-        f.write(content)
-    print("wrote", path)
+    target = OUT / path.lstrip("/")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(content, encoding="utf-8")
 
-# sitemap lastmod dates
-_ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
-LASTMOD = {}
-for u in ET.parse(os.path.join(ROOT, "scrape", "sitemap.xml")).getroot().findall("s:url", _ns):
-    lm = u.find("s:lastmod", _ns)
-    if lm is not None:
-        LASTMOD[u.find("s:loc", _ns).text.strip()] = datetime.date.fromisoformat(lm.text.strip())
 
-# ---------------- shared chrome ----------------
-def layout(title, description, body, path, og_image=None, current=None, extra_head=""):
-    page_title = title if title == SITE else f"{title} — {SITE}"
-    og = f'<meta property="og:image" content="{DOMAIN}{og_image}">' if og_image else ""
-    cur = lambda k: ' aria-current="page"' if current == k else ""
+def image(src, alt, lazy=True, sizes="(max-width: 700px) 90vw, 70vw"):
+    with Image.open(OUT / src.lstrip("/")) as im:
+        width, height = im.size
+    stem = Path(src).stem
+    sources = [f"/assets/responsive/{stem}-{size}.webp {size}w" for size in (640, 960) if width > size]
+    sources.append(f"{src} {width}w")
+    return f'<img src="{src}" srcset="{", ".join(sources)}" sizes="{sizes}" width="{width}" height="{height}" alt="{esc(alt)}" {"loading=" + chr(34) + "lazy" + chr(34) if lazy else "fetchpriority=" + chr(34) + "high" + chr(34)} decoding="async">'
+
+
+def layout(title, description, body, path, current="", cover=None, kind="page"):
+    nav = [("Writing", "/futurememo/", "writing"), ("Light(works)", "/lightworks/", "light"), ("The unfinished", "/research/", "research"), ("About", "/about-me/", "about")]
+    links = "".join(f'<a href="{url}"{" aria-current=" + chr(34) + "page" + chr(34) if key == current else ""}>{label}</a>' for label, url, key in nav)
+    og = f'<meta property="og:image" content="{DOMAIN}{cover}">' if cover else ""
     return f'''<!doctype html>
-<html lang="en"><head>
+<html lang="en" data-theme="light">
+<head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{esc(page_title)}</title>
-<meta name="description" content="{esc(description)}">
+<title>{esc(title)} — Suff Syed</title><meta name="description" content="{esc(description)}">
 <link rel="canonical" href="{DOMAIN}{path}">
-<meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(description)}"><meta property="og:type" content="website">{og}
+<meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(description)}">
+<meta property="og:type" content="{"article" if kind == "essay" else "website"}">{og}
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:,"><link rel="stylesheet" href="/assets/atlas.css"><link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">{extra_head}
-</head><body id="top">
-<header class="mast">
-  <a class="mark" href="/" aria-label="{SITE}">S</a>
-  <a class="name" href="/">{SITE}</a>
-  <nav class="mono"><a href="/futurememo/"{cur('memo')}>future(memo)</a><a href="/about-me/"{cur('about')}>About</a><a href="/lightworks/"{cur('light')}>light(works)</a></nav>
-  <a class="pill mono arrow" href="{SUBSTACK}" target="_blank" rel="noopener">Subscribe</a>
-</header>
-{body}
-<footer class="foot mono">
-  <span>{SITE} &middot; Bangalore, London, New York &amp; Seattle</span>
-  <span class="social">{''.join(f'<a href="{u}" target="_blank" rel="noopener">{k}</a>' for k, u in SOCIAL)}</span>
-  <a href="#top">Back to top ↑</a>
-</footer>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/journal.css"><link rel="stylesheet" href="/assets/home.css"><link rel="stylesheet" href="/assets/questions.css">
+<link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">
+<script type="module" src="/assets/app.js"></script>
+</head><body id="top" class="{kind}">
+<a class="skip" href="#main">Skip to content</a>
+<div class="sheet"><header class="mast"><a class="signature" href="/" aria-label="Suff Syed, home">Suff Syed</a><nav aria-label="Main navigation">{links}</nav></header>
+<main id="main">{body}</main>
+<footer class="foot"><div><a class="signature" href="/">Suff Syed</a><p>A mind at work. A work in progress.</p></div>
+<nav aria-label="Further reading"><a href="/about-the-memo/">About the memo</a><a href="/faqs/">FAQs</a><a href="/the-end-of-design-report/">The End of Design</a><a href="/store/">A coffee, perhaps</a><a href="/methods/">How to read the data</a><a href="/futurememo/rss.xml">RSS</a></nav>
+<nav aria-label="Elsewhere"><a href="https://substack.com/@suffsyed">Substack ↗</a><a href="https://x.com/suff_syed">X ↗</a><a href="https://www.linkedin.com/in/suffsyed/">LinkedIn ↗</a><a href="#top">Back to top ↑</a></nav></footer></div>
+<div class="outside-caption"><span>SUFF SYED / NOTES FROM THE FRONTIER</span><span>Independent writing · No tracking</span></div>
+<dialog id="artwork-dialog" aria-labelledby="artwork-title"><div class="dialog-head"><h2 id="artwork-title">A closer look.</h2><button class="close" data-close-dialog aria-label="Close artwork">×</button></div>
+<figure><img id="artwork-image" alt=""><figcaption id="artwork-caption"></figcaption></figure>
+<div class="artwork-actions"><button id="artwork-prev" class="plain" aria-label="Previous photograph">← Previous</button><a id="artwork-original">Open image file ↗</a><button id="artwork-next" class="plain" aria-label="Next photograph">Next →</button></div></dialog>
 </body></html>'''
 
-def sheet(r):
-    return f'''<a class="sheet" href="/futurememo/{r['slug']}/" title="{esc(r['title'])}"><div class="pg">
-  <div class="st"><span>future(memo)</span><span>No. {r['no']:02d}</span></div>
-  <h4>{esc(r['title'])}</h4>
-  <div class="fig"><img src="{r['img']}" alt="" loading="lazy"></div>
-  <p class="body">{esc(r['first'])}</p>
-</div></a>'''
 
-def index_list(rows):
-    return '<ul class="idx">' + "".join(
-        f'<li><a href="/futurememo/{r["slug"]}/"><span class="i">{r["no"]:02d}</span><span class="t">{esc(r["title"])}</span>'
-        f'<span class="d">{mon(r["date"])}</span><span class="w">{n(r["words"])} w</span></a></li>' for r in rows) + '</ul>'
-
-# ---------------- essays ----------------
-def load_essays():
-    rows = []
-    for t_slugs in THEMES.values():
-        for slug in t_slugs:
-            soup = soupify(os.path.join(RAW, f"futurememo__{slug}.html"))
-            og_img = meta(soup, prop="og:image")
-            hero = download_image(og_img) if og_img else None
-            body_html = convert_blog_body(soup, skip_leading_image=og_img)
-            text = re.sub(r"<[^>]+>", " ", body_html)
-            paras = [re.sub(r"^[^A-Za-z0-9“\"‘']+", "", html.unescape(re.sub(r"<[^>]+>", "", p)).strip())
-                     for p in re.findall(r"<p>(.*?)</p>", body_html, re.S)]
-            buf = []
-            for p in paras:
-                if len(p) < 60: continue
-                buf.append(p)
-                if sum(map(len, buf)) >= 700: break
-            words = len(re.findall(r"[A-Za-z0-9’'\-]+", html.unescape(text)))
-            date = LASTMOD.get(f"https://www.suffsyed.com/futurememo/{slug}", datetime.date(2025, 11, 1))
-            rows.append(dict(slug=slug, title=clean_title(soup), excerpt=meta(soup, name="description") or "",
-                             img=hero or "", body=body_html, words=words, minutes=max(1, round(words / 230)),
-                             date=date, first=" ".join(buf)[:1100], theme=THEME_OF[slug]))
-    rows.sort(key=lambda r: (-r["date"].toordinal(), r["title"]))
-    for i, r in enumerate(rows, 1):
-        r["no"] = i
-    return rows
-
-def gen_essay(r, rows):
-    i = r["no"] - 1
-    prev_ = rows[i + 1] if i + 1 < len(rows) else None   # older
-    next_ = rows[i - 1] if i > 0 else None               # newer
-    same = [x for x in rows if x["theme"] == r["theme"] and x["slug"] != r["slug"]][:4]
-    hero = f'<figure class="hero-fig"><img src="{r["img"]}" alt=""><figcaption></figcaption></figure>' if r["img"] else ""
-    sep = '<span class="sep">·</span>'
-    nav_cells = ""
-    if prev_:
-        nav_cells += f'<div class="cell"><a href="/futurememo/{prev_["slug"]}/"><span class="lbl mono back">Previous essay</span><span class="t">{esc(prev_["title"])}</span></a></div>'
-    if next_:
-        nav_cells += f'<div class="cell next"><a href="/futurememo/{next_["slug"]}/"><span class="lbl mono arrow">Next essay</span><span class="t">{esc(next_["title"])}</span></a></div>'
-    more = "".join(f'<li><a href="/futurememo/{x["slug"]}/"><span class="i">{x["no"]:02d}</span><span><span class="t">{esc(x["title"])}</span><span class="d">{mon(x["date"])}</span></span><span class="c">{n(x["words"])}</span></a></li>' for x in same)
-    body = f'''
-<section class="essay-head">
-  <div class="strip mono">
-    <span>{sep.join(f'<span style="white-space:nowrap">{x}</span>' for x in [f'<span class="n num">No. {r["no"]:02d}</span>', esc(r["theme"]), mon(r["date"]), f'<span class="num">{n(r["words"])}</span>&nbsp;words', f'<span class="num">{r["minutes"]}</span>&nbsp;min'])}</span>
-    <a class="arrow" href="/futurememo/">future(memo)</a>
-  </div>
-  <h1>{esc(r['title'])}</h1>
-  <p class="dek">{esc(r['excerpt'])}</p>
-</section>
-<article class="essay">
-  {hero}
-  <div class="body">
-{r['body']}
-  </div>
-  <div class="end mono"><span>End of essay No. {r['no']:02d}</span><span>{esc(r['theme'])} &middot; {longdate(r['date'])}</span></div>
-</article>
-<div class="band nav two">{nav_cells}</div>
-<div class="band soft two">
-  <div class="cell"><div class="cell-head mono"><span>More in {esc(r['theme'])}</span><a class="more arrow" href="/futurememo/">All essays</a></div><ul class="list ranked">{more}</ul></div>
-  <div class="cell"><div class="cell-head mono"><span>Subscribe</span></div><p class="prose">Get a quarterly email from me about a curated set of topics. Your privacy and time will be respected.</p><p class="prose" style="margin-top:14px"><a class="mono arrow go" href="{SUBSTACK}" target="_blank" rel="noopener">future(memo) on Substack</a></p></div>
-</div>
-<script>
-const bar=document.createElement('div');bar.className='progress';document.body.prepend(bar);
-addEventListener('scroll',()=>{{const h=document.documentElement;bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';}},{{passive:true}});
-</script>'''
-    write(f"/futurememo/{r['slug']}/index.html", layout(r["title"], r["excerpt"], body, f"/futurememo/{r['slug']}/", r["img"], "memo"))
-
-# ---------------- home & archive ----------------
-def hero_band(rows):
-    latest, longest = rows[0], sorted(rows, key=lambda r: -r["words"])[:4]
-    themes = "".join(f'<li><a href="/futurememo/#theme-{i}"><span class="i">{i:02d}</span><span class="t">{esc(t)}</span><span class="c num">{len(sl)}</span></a></li>'
-                     for i, (t, sl) in enumerate(THEMES.items(), 1))
-    ranked = "".join(f'<li><a href="/futurememo/{r["slug"]}/"><span class="i">{i:02d}</span><span><span class="t">{esc(r["title"])}</span><span class="d">{mon(r["date"])}</span></span><span class="c">{n(r["words"])}</span></a></li>'
-                     for i, r in enumerate(longest, 1))
-    return f'''
-<div class="band hero">
-  <div class="cell"><div class="cell-head mono"><span>Browse by theme</span><a class="more arrow" href="/futurememo/">All essays</a></div><ul class="list">{themes}</ul></div>
-  <div class="cell"><div class="feat"><div>
-    <div class="k mono"><span class="red num">01</span><span>Latest essay</span></div>
-    <h2>{esc(latest['title'])}</h2><p class="dek">{esc(latest['excerpt'])}</p>
-    <a class="go mono arrow" href="/futurememo/{latest['slug']}/">Read the essay</a>
-  </div><div class="sheets-3">{''.join(sheet(r) for r in rows[:3])}</div></div></div>
-  <div class="cell"><div class="cell-head mono"><span>Longest reads</span><span class="more">Words</span></div><ul class="list ranked">{ranked}</ul></div>
-</div>'''
-
-def corpus_band(rows):
-    total, maxw = sum(r["words"] for r in rows), max(r["words"] for r in rows)
-    span = f"{mon(rows[-1]['date'])} — {mon(rows[0]['date'])}"
-    spark = "".join(f'<a href="/futurememo/{r["slug"]}/" style="height:{max(2, round(44 * r["words"] / maxw))}px" data-t="No. {r["no"]:02d} · {esc(r["title"])} · {n(r["words"])} words"></a>' for r in reversed(rows))
-    return f'''
-<div class="band corpus">
-  <div class="cell"><div class="cell-head mono"><span>The corpus, in order of publication</span><span class="more">Bar height = length</span></div>
-    <div class="spark" id="spark">{spark}</div><div class="spark-label mono" id="sparkLabel">Hover a bar</div></div>
-  <div class="cell stat"><span class="big">{n(total)}</span><span class="cap">words across {len(rows)} essays, {span.lower()}</span></div>
-</div>
-<script>const L=document.getElementById('sparkLabel');document.querySelectorAll('#spark a').forEach(a=>a.addEventListener('mouseenter',()=>L.textContent=a.dataset.t));document.getElementById('spark').addEventListener('mouseleave',()=>L.textContent='Hover a bar');</script>'''
-
-def start_card(rows):
-    s = next(r for r in rows if r["slug"] == START_HERE)
-    return f'''
-<div class="start">
-  <div><div class="star">✦</div><div class="mono muted">If you read one,<br>start here</div></div>
-  <div><div class="mono muted" style="margin-bottom:8px">Essay No. {s['no']:02d} · {mon(s['date'])} · {n(s['words'])} words</div><h3>{esc(s['title'])}</h3><p class="dek">{esc(s['excerpt'])}</p></div>
-  <div><a class="go mono arrow" href="/futurememo/{s['slug']}/">Read</a></div>
-</div>'''
-
-def gen_home(rows, about, light_imgs):
-    body = f'''
-<section class="title">
-  <h1 class="hang"><span class="p">(</span>Future memo<span class="p">)</span></h1>
-  <p class="dek">{len(rows)} long-form essays on artificial intelligence, design, and the small number of people quietly building what comes next. By Suff Syed, written from the frontier at Microsoft Research.</p>
-</section>
-{hero_band(rows)}
-{corpus_band(rows)}
-{start_card(rows)}
-<section class="sec">
-  <div class="sec-head mono"><span class="n num">02</span><span>The index</span></div>
-  <div class="sec-lead"><h2>Every essay, in order of publication.</h2><p>Each piece is written to outlast the news cycle that provoked it. Word counts are exact.</p></div>
-  {index_list(rows)}
-</section>
-<section class="sec">
-  <div class="sec-head mono"><span class="n num">03</span><span>The author</span></div>
-</section>
-<div class="band soft three" style="border-top:0">
-  <div class="cell"><div class="cell-head mono"><span>About</span><a class="more arrow" href="/about-me/">More</a></div><p class="prose">{esc(about['bio'])}</p></div>
-  <div class="cell"><div class="cell-head mono"><span>light(works)</span><a class="more arrow" href="/lightworks/">All plates</a></div>
-    <div class="sheets-3" style="grid-template-columns:repeat(4,1fr);gap:8px">{''.join(f'<a href="/lightworks/"><img src="{i}" alt="" loading="lazy" style="aspect-ratio:1;object-fit:cover;border:1px solid var(--rule-2)"></a>' for i in light_imgs[:4])}</div></div>
-  <div class="cell"><div class="cell-head mono"><span>Elsewhere</span></div><ul class="list plain">{''.join(f'<li><a href="{u}" target="_blank" rel="noopener"><span class="t">{k}</span><span class="c mono">↗</span></a></li>' for k, u in SOCIAL)}<li><a href="{about['interview_url']}" target="_blank" rel="noopener"><span class="t">Interview · The Creative Factor</span><span class="c mono">↗</span></a></li></ul></div>
-</div>'''
-    write("/index.html", layout(SITE, "Essays on AI, design, and the builders shaping what comes next, by Suff Syed.", body, "/", rows[0]["img"]))
-
-def gen_archive(rows, memo):
-    by_theme = ""
-    for i, (t, slugs) in enumerate(THEMES.items(), 1):
-        rs = [r for r in rows if r["slug"] in slugs]
-        by_theme += f'<section class="sec" id="theme-{i}"><div class="sec-head mono"><span class="n num">{i + 1:02d}</span><span>{esc(t)}</span><span class="muted" style="margin-left:auto">{len(rs)} essays</span></div>{index_list(rs)}</section>'
-    body = f'''
-<section class="title">
-  <h1 class="hang"><span class="p">(</span>Future memo<span class="p">)</span></h1>
-  <p class="dek big">{esc(memo['lede'])}</p>
-  <p class="dek">{esc(memo['p2'])} <a href="/about-the-memo/" class="mono arrow">About the memo</a></p>
-</section>
-<section class="sec" style="padding-top:36px">
-  <div class="sec-head mono"><span class="n num">01</span><span>The sheets</span><span class="muted" style="margin-left:auto">{len(rows)} essays · {n(sum(r['words'] for r in rows))} words</span></div>
-  <div class="sheet-grid">{''.join(f'<div>{sheet(r)}<div class="fig-cap"><span class="n mono">No. {r["no"]:02d} · {mon(r["date"])}</span><span class="t">{esc(r["title"])}</span></div></div>' for r in rows)}</div>
-</section>
-{by_theme}'''
-    write("/futurememo/index.html", layout("future(memo)", memo["lede"], body, "/futurememo/", rows[0]["img"], "memo"))
-
-# ---------------- other pages ----------------
-def load_about():
-    s = soupify(os.path.join(RAW, "about-me.html")); m = s.select_one("main")
-    a = next(x for x in m.select("a[href]") if "thecreativefactor" in x.get("href", ""))
-    return dict(bio=m.select_one("h2").get_text(" ", strip=True), interview_title=m.select_one("h1").get_text(" ", strip=True),
-                interview_kicker=m.select_one("h3").get_text(" ", strip=True), interview_url=a["href"],
-                desc=meta(s, name="description") or "")
-
-def gen_about(about, rows):
-    body = f'''
-<section class="title"><h1>About</h1><p class="dek big">{esc(about['bio'])}</p></section>
-<div class="band three">
-  <div class="cell"><div class="cell-head mono"><span>{esc(about['interview_kicker'])}</span></div><h3 style="font-size:24px;line-height:27px;letter-spacing:-.025em;max-width:16ch">{esc(about['interview_title'])}</h3><p class="prose" style="margin-top:14px"><a class="mono arrow go" href="{about['interview_url']}" target="_blank" rel="noopener">Full interview</a></p></div>
-  <div class="cell"><div class="cell-head mono"><span>Writes</span><a class="more arrow" href="/futurememo/">future(memo)</a></div><div class="stat"><span class="big num">{len(rows)}</span><span class="cap">essays · {n(sum(r['words'] for r in rows))} words · since {rows[-1]['date'].year}</span></div><p class="prose" style="margin-top:14px">Long-form memos on AI, design, and the people building what comes next.</p></div>
-  <div class="cell"><div class="cell-head mono"><span>Elsewhere</span></div><ul class="list plain">{''.join(f'<li><a href="{u}" target="_blank" rel="noopener"><span class="t">{k}</span><span class="c mono">↗</span></a></li>' for k, u in SOCIAL)}</ul></div>
-</div>
-<div class="band soft two">
-  <div class="cell"><div class="cell-head mono"><span>Photographs</span><a class="more arrow" href="/lightworks/">light(works)</a></div><p class="prose">Light(Works) is my escape from AI. A deliberate step away from screens and into the world. Out here in the Pacific Northwest, with a camera in hand, I'm just looking.</p></div>
-  <div class="cell"><div class="cell-head mono"><span>Questions</span><a class="more arrow" href="/faqs/">FAQs</a></div><p class="prose">Why I don’t respond to comments, and whether I use AI in my writing.</p></div>
-</div>'''
-    write("/about-me/index.html", layout("About", about["desc"] or about["bio"], body, "/about-me/", None, "about"))
-
-def load_memo():
-    s = soupify(os.path.join(RAW, "about-the-memo.html")); m = s.select_one("main")
-    ps = [p.get_text(" ", strip=True) for p in m.select("p") if p.get_text(strip=True)]
-    h3s = [h.get_text(" ", strip=True) for h in m.select("h3")]
-    # first six paragraphs are the intro; the next six are the values (one precedes its heading in source order)
-    intro, values = ps[:6], list(zip(h3s[:6], ps[6:12]))
-    return dict(lede=intro[0], p2=" ".join(intro[1:4]), intro=intro, values=values, title=m.select_one("h1").get_text(" ", strip=True), desc=meta(s, name="description") or "")
-
-def gen_memo(memo):
-    vals = "".join(f'<li><span class="i">{i:02d}</span><div><h3>{esc(h)}</h3><p>{esc(p)}</p></div></li>' for i, (h, p) in enumerate(memo["values"], 1))
-    body = f'''
-<section class="title"><h1>{esc(memo['title'])}</h1><p class="dek big">{esc(memo['intro'][0])}</p>{''.join(f'<p class="dek">{esc(p)}</p>' for p in memo['intro'][1:])}</section>
-<section class="sec" style="padding-top:8px">
-  <div class="sec-head mono"><span class="n num">01</span><span>Values that guide the writing</span></div>
-  <ul class="entries">{vals}</ul>
-</section>
-<div class="band soft two" style="margin-top:48px">
-  <div class="cell"><div class="cell-head mono"><span>Subscribe to the future(memo)</span></div><p class="prose">Get a quarterly email from me about a curated set of topics. Your privacy and time will be respected.</p><p class="prose" style="margin-top:14px"><a class="mono arrow go" href="{SUBSTACK}" target="_blank" rel="noopener">Subscribe on Substack</a></p></div>
-  <div class="cell"><div class="cell-head mono"><span>Read</span></div><p class="prose"><a class="mono arrow go" href="/futurememo/">All essays</a></p></div>
-</div>'''
-    write("/about-the-memo/index.html", layout("About the future(memo)", memo["desc"] or memo["lede"], body, "/about-the-memo/", None, "memo"))
-
-def gen_faqs():
-    s = soupify(os.path.join(RAW, "faqs.html")); m = s.select_one("main")
-    items, cur = [], None
-    for el in m.select("h4, p"):
-        t = el.get_text(" ", strip=True)
-        if not t: continue
-        if el.name == "h4":
-            cur = [t, []]; items.append(cur)
-        elif cur:
-            cur[1].append(t)
-    lis = "".join(f'<li><span class="i">{i:02d}</span><div><h3>{esc(q)}</h3>{"".join(f"<p>{esc(p)}</p>" for p in ps)}</div></li>' for i, (q, ps) in enumerate(items, 1))
-    body = f'''
-<section class="title"><h1>FAQs</h1><p class="dek">Frequently asked questions.</p></section>
-<section class="sec" style="padding-top:8px"><ul class="entries">{lis}</ul></section>'''
-    write("/faqs/index.html", layout("FAQs", meta(s, name="description") or "Frequently asked questions.", body, "/faqs/", None, "about"))
-
-def gen_report():
-    s = soupify(os.path.join(RAW, "the-end-of-design-report.html")); m = s.select_one("main")
-    ps = [p.get_text(" ", strip=True) for p in m.select("p") if len(p.get_text(strip=True)) > 40]
-    body = f'''
-<section class="title"><h1>The End of Design Report</h1>{''.join(f'<p class="dek big">{esc(p)}</p>' for p in ps[:1])}{''.join(f'<p class="dek">{esc(p)}</p>' for p in ps[1:])}</section>
-<div class="band two">
-  <div class="cell"><div class="cell-head mono"><span>Read the series</span></div><p class="prose"><a class="mono arrow go" href="/futurememo/#theme-1">Design essays in future(memo)</a></p></div>
-  <div class="cell"><div class="cell-head mono"><span>Get the memo</span></div><p class="prose"><a class="mono arrow go" href="{SUBSTACK}" target="_blank" rel="noopener">Subscribe on Substack</a></p></div>
-</div>'''
-    write("/the-end-of-design-report/index.html", layout("The End of Design Report", meta(s, name="description") or ps[0], body, "/the-end-of-design-report/", None, "memo"))
-
-def load_light():
-    s = soupify(os.path.join(RAW, "lightworks.html"))
-    imgs = []
-    for img in s.select("img"):
-        src = img.get("data-image") or img.get("data-src") or img.get("src")
-        if src and "squarespace-cdn.com" in src:
-            local = download_image(src)
-            if local and local not in imgs:
-                imgs.append(local)
-    dek = s.select_one("main h3").get_text(" ", strip=True)
-    return dict(imgs=imgs, dek=dek)
-
-def gen_light(light):
-    plates = "".join(f'<figure class="plate"><a href="{i}" target="_blank" rel="noopener"><img src="{i}" alt="" loading="lazy"></a><div class="fig-cap"><span class="n mono">Plate {k:02d}</span></div></figure>' for k, i in enumerate(light["imgs"], 1))
-    body = f'''
-<section class="title"><h1>Light<span class="p" style="color:var(--red)">(</span>works<span class="p" style="color:var(--red)">)</span></h1><p class="dek big">{esc(light['dek'])}</p></section>
-<section class="sec" style="padding-top:8px"><div class="sec-head mono"><span class="n num">01</span><span>Plates</span><span class="muted" style="margin-left:auto">{len(light['imgs'])} photographs</span></div><div class="plates">{plates}</div></section>'''
-    write("/lightworks/index.html", layout("light(works)", light["dek"], body, "/lightworks/", light["imgs"][0] if light["imgs"] else None, "light"))
+def essay_page(row, rows):
+    body = BeautifulSoup(row["body"], "html.parser")
+    for passage_number, el in enumerate(body.select("[data-passage]"), 1):
+        tools = body.new_tag("span", attrs={"class": "passage-tools"})
+        if "table-passage" in el.get("class", []):
+            hint = body.new_tag("span", attrs={"id": f"hint-{el['id']}", "class": "table-help"})
+            hint.string = "Table / Scroll horizontally to see every column."
+            tools.append(hint)
+            el.select_one(".passage-text")["aria-describedby"] = hint["id"]
+        link = body.new_tag("a", href=f"#{el['id']}", attrs={"class": "paragraph-anchor", "aria-label": f"Link to passage {passage_number}"})
+        link.string = "¶"
+        tools.append(link)
+        button = body.new_tag("button", attrs={"type": "button", "data-inspect": el["id"], "class": "inspect-passage enhanced", "aria-label": "Explore this passage and its connections"})
+        button.string = "↗"
+        tools.append(button)
+        el.append(tools)
+    for img in body.select("img"):
+        img["loading"] = "lazy"
+        if img["src"].startswith("/assets/"):
+            with Image.open(OUT / img["src"].lstrip("/")) as im:
+                img["width"], img["height"] = im.size
+    toc = "".join(f'<li><a href="#{s["id"]}"><span>{esc(s["title"])}</span><small>{s["words"]:,} w</small><span class="section-measure" style="--portion:{s["words"] / row["words"] * 100:.6f}%"></span></a></li>' for s in row["sections"])
+    ribbon = "".join(f'<a href="#{s["id"]}" style="flex-grow:{s["words"]}" aria-label="{esc(s["title"])}: {s["words"]:,} words" title="{esc(s["title"])} · {s["words"]:,} words"></a>' for s in row["sections"])
+    options = "".join(f'<option value="{s["id"]}">{esc(s["title"])}</option>' for s in row["sections"])
+    terms = "".join(f'<button type="button" data-term="{esc(t["term"])}">{esc(t["term"])} <small>{t["count"]}</small></button>' for t in row["terms"][:10])
+    next_rows = [item for item in rows if item["theme"] == row["theme"] and item["slug"] != row["slug"]][:2]
+    related = "".join(f'<a href="{item["url"]}"><span class="label">{esc(item["theme"])}</span><h3>{esc(item["title"])}</h3><span class="plain">Read the essay ↗</span></a>' for item in next_rows)
+    content = f'''
+<header class="essay-head">
+<div class="essay-kicker label"><a href="/futurememo/">future(memo)</a><span>Essay {row["no"]:02d} / {esc(row["theme"])}</span><span>{row["words"]:,} words · About {row["minutes"]} min</span></div>
+<h1>{esc(row["title"])}</h1><p class="dek">{esc(row["description"])}</p>
+<div class="head-foot"><span>By Suff Syed</span><a href="#reading">Begin reading ↓</a><a href="#reading-lens" class="enhanced">Read through a different lens ↗</a></div>
+</header>
+<figure class="essay-artwork"><a href="{row["cover"]}" class="artwork-link" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])} Shown without cropping.">{image(row["cover"], row["coverAlt"], False)}</a><figcaption><span>Frontispiece / Original essay artwork</span><a href="{row["cover"]}" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])}">Enlarge the whole image ↗</a></figcaption></figure>
+<div class="reading-intro" id="reading"><div><span class="label">A path through this essay</span><p>Read in sequence, or enter through a question.</p></div><div><div class="section-ribbon" aria-label="Sections, widths proportional to word counts">{ribbon}</div><p class="micro">Band widths follow section length, not importance. <a href="/methods/#counting">How this is counted</a></p></div></div>
+<div class="reading-layout"><aside class="reading-aside"><details class="contents" open><summary>In this essay <span class="label">{len(row["sections"])} parts</span></summary><ol>{toc}</ol></details><p class="aside-note">Every paragraph has an address. The ¶ keeps your place; the ↗ follows shared vocabulary into another essay.</p>
+<button class="plain enhanced open-lens" type="button">Open the reading lens ↗</button></aside>
+<article class="essay-body" id="essay-body" aria-label="Complete essay"><span id="introduction" tabindex="-1"></span>{body}</article>
+<aside class="reading-lens enhanced" id="reading-lens" aria-labelledby="lens-title" hidden>
+<div class="lens-heading"><span class="label">Optional / Text as data</span><button class="plain" id="close-lens" type="button">Close lens ×</button></div>
+<h2 id="lens-title">Follow a word.<br>Find another thought.</h2><p class="lens-intro">Exact words, original passages. Nothing is rewritten.</p>
+<form id="term-form"><label for="term-query">A full word or hyphenated term</label><div class="search-line"><input id="term-query" name="term" type="search" maxlength="80" autocomplete="off" placeholder="Try judgment"><button type="submit">Find</button></div><label for="term-scope">Look within</label><select id="term-scope"><option value="">The whole essay</option>{options}</select></form>
+<div class="term-chips" aria-label="Recurring words in this essay">{terms}</div><p class="micro">Numbers are exact occurrences in the full body, including headings and captions.</p>
+<div class="lens-actions"><button type="button" id="clear-term" class="plain">Clear highlights</button><a href="/methods/#connections">About these connections ↗</a></div>
+<p id="term-status" class="lens-status" role="status"></p><ol id="term-results" class="passage-results"></ol>
+<section id="passage-inspector" hidden aria-labelledby="inspector-title"><span class="label">One passage / Other possibilities</span><h3 id="inspector-title">A thought in company.</h3><blockquote id="inspected-text"></blockquote><a id="inspected-link">Return to the passage ↗</a><p class="micro">Lexical neighbors, not agreement or evidence. Ranked by shared, less-common words. Short passages may have no match.</p><ol id="related-passages" class="passage-results"></ol></section>
+</aside></div>
+<div class="essay-end"><span class="label">End of essay {row["no"]:02d}</span><p>Keep the question open.</p><a href="/futurememo/">Return to the whole collection ↗</a></div>
+<section class="next-reading"><div><span class="label">Still in this preoccupation</span><h2>One thought leads<br>to another.</h2></div>{related}</section>
+<details class="provenance"><summary>A note on the archive</summary><p>The complete migrated text is preserved. The migration assigned the date label “{esc(row["migrationLastmodLabel"])}” using sitemap last-modified values or a fallback; it is not a confirmed publication date. <a href="/methods/">Text and measurement notes.</a></p></details>
+<script id="essay-data" type="application/json">{safe_json({k: v for k, v in row.items() if k != "body"})}</script>'''
+    write(f"{row['url']}index.html", layout(row["title"], row["description"], content, row["url"], "writing", row["cover"], "essay"))
 
 
-# ---------------- no-404 hardening ----------------
-def redirect_stub(from_path, to_path):
-    """Client-side redirect for URLs that existed on the Squarespace site (GitHub Pages has no server redirects)."""
-    page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Redirecting…</title>
-<link rel="canonical" href="{DOMAIN}{to_path}"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url={to_path}">
-<script>location.replace({to_path!r})</script></head>
-<body style="font-family:Georgia,serif;padding:2rem"><p>This page has moved to <a href="{to_path}">suffsyed.com{to_path}</a>.</p></body></html>"""
-    write(from_path.rstrip("/") + "/index.html", page)
+def archive_page(rows, data):
+    theme_links = "".join(f'<a href="#theme-{i}" data-filter-theme="{esc(t["name"])}">{esc(t["name"])}</a>' for i, t in enumerate(data["themes"], 1))
+    entries = ""
+    for row in rows:
+        entries += f'''<li class="archive-entry" data-slug="{row["slug"]}" data-theme="{esc(row["theme"])}"><span class="entry-number label">{row["no"]:02d}</span>
+<a class="archive-art artwork-link" href="{row["cover"]}" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])}">{image(row["cover"], row["coverAlt"], sizes="(max-width: 700px) 36vw, 220px")}</a>
+<div class="entry-copy"><div class="label">{esc(row["theme"])} <span>· {row["words"]:,} words</span></div><h2><a href="{row["url"]}">{esc(row["title"])}</a></h2><p>{esc(row["description"])}</p><div class="entry-thread"><span class="label">A word to follow</span><a href="{row["url"]}?term={quote(row["terms"][0]["term"])}#reading-lens">{esc(row["terms"][0]["term"])} <small>{row["terms"][0]["count"]} occurrences ↗</small></a></div><div class="archive-matches"></div></div>
+<a class="entry-read" href="{row["url"]}" aria-label="Read {esc(row["title"])}">↗</a></li>'''
+    groups = ""
+    for i, theme in enumerate(data["themes"], 1):
+        rs = [row for row in rows if row["theme"] == theme["name"]]
+        links = "".join(f'<li><a href="{r["url"]}">{esc(r["title"])}</a><small>{r["words"]:,} w</small></li>' for r in rs)
+        groups += f'<section class="theme-list" id="theme-{i}"><div><span class="label">Preoccupation {i:02d}</span><h2>{esc(theme["name"])}</h2><p>{esc(theme["question"])}</p></div><ol>{links}</ol></section>'
+    body = f'''<header class="page-opening"><span class="label">The complete collection / future(memo)</span><h1>Following the<br>same restlessness.</h1><div class="page-dek"><p>Twenty essays about intelligence, creative work, and what remains ours to do.</p><p>Read the covers. Follow a word. Enter anywhere.<br><a href="/about-the-memo/">A note on the memo ↗</a></p></div></header>
+<section class="archive-tools enhanced" aria-label="Explore the writing"><form id="archive-search"><label for="archive-query">Search every written passage</label><div class="search-line"><input id="archive-query" type="search" placeholder="A word, a phrase, a question…" maxlength="180"><button type="submit">Search</button></div><p class="micro">Case-insensitive phrase search across the full text. No network search, no generated summaries.</p></form><div><label for="archive-theme">A preoccupation</label><select id="archive-theme"><option value="">All five themes</option>{"".join(f'<option>{esc(t["name"])}</option>' for t in data["themes"])}</select><div class="archive-view"><button id="archive-list-toggle" type="button" aria-pressed="false" class="plain">Compact reading list</button><button id="archive-reset" type="button" class="plain">Reset</button></div></div></section>
+<div class="archive-meta"><p id="archive-status" role="status">{len(rows)} essays · {sum(r["words"] for r in rows):,} words</p><a href="#by-preoccupation">Browse by preoccupation ↓</a></div><ol id="archive-entries" class="archive-entries">{entries}</ol>
+<section id="by-preoccupation"><header class="section-heading"><span class="label">An alternative index</span><h2>Five preoccupations.</h2><p>Editorial groupings, not machine-inferred categories.</p></header><nav class="theme-jumps" aria-label="Theme index">{theme_links}</nav>{groups}</section>'''
+    write("/futurememo/index.html", layout("future(memo)", "The complete collection of essays by Suff Syed.", body, "/futurememo/", "writing"))
 
-def gen_redirects():
-    for src, dst in [("/home", "/"), ("/member-site-homepage-1", "/"), ("/futurememo/tag", "/futurememo/"),
-                     ("/futurememo/tag/June+2024+Edition", "/futurememo/"),
-                     ("/store/p/buy-me-a-coffee", "/store/"), ("/store/p/chemex", "/store/"),
-                     ("/store/p/iced-coffee", "/store/"), ("/store/p/pour-over", "/store/")]:
-        redirect_stub(src, dst)
 
-def gen_store():
-    body = f"""
-<section class="title"><h1>Store</h1><p class="dek big">The shop is closed while the site moves house.</p><p class="dek">If you came here to buy me a coffee — thank you. The best way to support the writing right now is to subscribe.</p></section>
-<div class="band two">
-  <div class="cell"><div class="cell-head mono"><span>Subscribe</span></div><p class="prose"><a class="mono arrow go" href="{SUBSTACK}" target="_blank" rel="noopener">future(memo) on Substack</a></p></div>
-  <div class="cell"><div class="cell-head mono"><span>Read</span></div><p class="prose"><a class="mono arrow go" href="/futurememo/">All essays</a></p></div>
-</div>"""
-    write("/store/index.html", layout("Store", "The shop is closed while the site moves house.", body, "/store/"))
+def gallery_page(data):
+    plates = ""
+    for i, photo in enumerate(data["gallery"], 1):
+        plates += f'<figure class="photograph" id="plate-{i:02d}"><a class="artwork-link" data-artwork data-gallery data-caption="Plate {i:02d} / {esc(photo["alt"])}" href="{photo["src"]}">{image(photo["src"], photo["alt"], i != 1, "(max-width: 700px) 86vw, 46vw")}</a><figcaption><a href="#plate-{i:02d}" class="label">Plate {i:02d}</a><a href="{photo["src"]}" data-artwork data-caption="{esc(photo["alt"])}">Look closer ↗</a></figcaption></figure>'
+    body = f'<header class="page-opening photo-opening"><span class="label">A deliberate step away</span><h1>Light(works).</h1><div class="page-dek"><p>{esc(data["galleryIntroduction"])}</p><p>22 photographs. No inferred locations or dates.<br>Take your time. Nothing here needs optimizing.</p></div></header><div class="photographs">{plates}</div><div class="photo-end"><p>Just looking.</p><a href="/futurememo/">When you’re ready, back to the words ↗</a></div>'
+    write("/lightworks/index.html", layout("light(works)", data["galleryIntroduction"], body, "/lightworks/", "light", data["gallery"][0]["src"], "photography"))
 
-def gen_404(rows):
-    recent = "".join(f'<li><a href="/futurememo/{r["slug"]}/"><span class="i">{r["no"]:02d}</span><span class="t">{esc(r["title"])}</span><span class="c mono">{mon(r["date"])}</span></a></li>' for r in rows[:6])
-    slugs = [r["slug"] for r in rows]
-    body = f"""
-<section class="title"><h1>Not found</h1><p class="dek big" id="nf-msg">There's nothing at this address.</p><p class="dek">The site recently moved off Squarespace; a few old links didn't survive the trip. Everything that was published is still here.</p></section>
-<div class="band two">
-  <div class="cell"><div class="cell-head mono"><span>Recent essays</span><a class="more arrow" href="/futurememo/">All {len(rows)}</a></div><ul class="list">{recent}</ul></div>
-  <div class="cell"><div class="cell-head mono"><span>Elsewhere on the site</span></div><ul class="list plain">
-    <li><a href="/"><span class="t">Home</span><span class="c mono">→</span></a></li>
-    <li><a href="/futurememo/"><span class="t">future(memo) — every essay</span><span class="c mono">→</span></a></li>
-    <li><a href="/about-me/"><span class="t">About</span><span class="c mono">→</span></a></li>
-    <li><a href="/lightworks/"><span class="t">light(works)</span><span class="c mono">→</span></a></li></ul></div>
-</div>
-<script>
-// If the requested path looks like an old essay URL, guess the closest current one.
-const slugs={slugs!r};const p=location.pathname.replace(/\\/+$/,'').split('/').pop().toLowerCase();
-if(p){{const score=s=>{{const a=new Set(p.split('-')),b=new Set(s.split('-'));let n=0;a.forEach(x=>b.has(x)&&n++);return n/Math.max(a.size,b.size);}};
-const best=slugs.map(s=>[score(s),s]).sort((x,y)=>y[0]-x[0])[0];
-if(best&&best[0]>=0.5){{document.getElementById('nf-msg').innerHTML='Did you mean <a href="/futurememo/'+best[1]+'/" style="text-decoration:underline;text-underline-offset:3px">this essay</a>?';}}}}
-</script>"""
-    write("/404.html", layout("Not found", "There's nothing at this address.", body, "/404.html"))
 
-def gen_feeds(rows):
-    import email.utils, time
-    def rfc(d): return email.utils.format_datetime(datetime.datetime(d.year, d.month, d.day, 12, tzinfo=datetime.timezone.utc))
-    items = "".join(f"""<item><title>{esc(r['title'])}</title><link>{DOMAIN}/futurememo/{r['slug']}/</link><guid isPermaLink="true">{DOMAIN}/futurememo/{r['slug']}/</guid>
-<pubDate>{rfc(r['date'])}</pubDate><description>{esc(r['excerpt'])}</description></item>\n""" for r in rows)
-    rss = f"""<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>
-<title>future(memo)</title><link>{DOMAIN}/futurememo/</link><description>Essays on AI, design, and the builders shaping what comes next, by Suff Syed.</description>
-<atom:link href="{DOMAIN}/futurememo/rss.xml" rel="self" type="application/rss+xml"/>
-{items}</channel></rss>"""
-    write("/futurememo/rss.xml", rss); write("/rss.xml", rss)
-    urls = ["/", "/futurememo/", "/about-me/", "/about-the-memo/", "/faqs/", "/the-end-of-design-report/", "/lightworks/", "/store/"] + [f"/futurememo/{r['slug']}/" for r in rows]
-    today = datetime.date.today().isoformat()
-    sm = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + "".join(f"<url><loc>{DOMAIN}{u}</loc><lastmod>{today}</lastmod></url>" for u in urls) + "</urlset>"
-    write("/sitemap.xml", sm)
+def methods_page(rows):
+    total = sum(row["words"] for row in rows)
+    passages = sum(len(row["passages"]) for row in rows)
+    body = f'''<header class="page-opening"><span class="label">Colophon / Measurement notes</span><h1>A drawing, not<br>a verdict.</h1><div class="page-dek"><p>The data is here to make the writing more navigable, not to tell you what to think.</p></div></header><article class="document-prose">
+<h2 id="counting">What gets counted</h2><p>The current collection contains {len(rows)} complete essays, {total:,} words and {passages:,} addressable text passages. Headings, paragraphs, list items, captions and nonempty quotations are counted once. A word is a run of English letters or digits, with an internal apostrophe or hyphen allowed. Curly and straight apostrophes are equivalent for search; plurals are not stemmed. Punctuation alone is not a word.</p><p>The previous migration’s counter reported 45,308 words using a looser HTML-based rule. Differences from that number reflect tokenization, not abridgement. The original text is preserved and checked against its migration fingerprint. Reading time is an estimate at 230 words per minute, rounded up.</p>
+<h2 id="sections">An essay has a shape</h2><p>Each heading begins a section. The opening before the first heading is “Opening.” Section lengths include their heading and all following passages up to the next heading. The reading band’s widths are proportional to those counts. The adjacent text index is the keyboard and touch alternative. Paragraph addresses are stored in the source, so an unrelated edit does not move every anchor.</p>
+<h2 id="connections">Shared words, not shared beliefs</h2><p>Connections compare prose paragraphs, list items and quotations of at least 20 words from different essays. Tables, headings, captions and code remain counted and searchable, but are not suggested as prose neighbors. Four tables flattened by the previous migration have their original rows and columns restored without changing their text or passage IDs.</p><p>Common function words and “AI” are excluded. A candidate must share at least two eligible words. Shared words that occur in fewer passages receive more weight: squared log(1 + eligible passage count / passages containing the word), summed and divided by the geometric mean of the two vocabulary sizes. Ties use the essay slug and passage ID. At most three different essays are suggested.</p><p>The displayed words are the reasons for a connection. These are lexical neighbors, not semantic similarity scores, fact checks, influence claims, endorsements, or evidence of agreement. A match may be illuminating precisely because the arguments differ. Short passages and passages with no qualifying neighbors say so.</p>
+<h2>The illustrated collection</h2><p>The five preoccupations are editorial categories inherited from the original collection. Colored bands identify them. The engraving’s lobes follow the number of essays in a theme; its fine lines and decorative motion are expressive, not measurements. Each tally above the plate represents one hundred words, rounded up. Covers and photographs come from the existing site and can be opened without cropping.</p>
+<h2>Privacy, dates and unfinished work</h2><p>Reading and searching happen locally. Only optional reader marks are stored in this browser, with a visible reset. There is no analytics endpoint, live poll or tracking pixel. The research cycle is an authored demonstration, not a running agent system, and gathers no external evidence. The archive’s historical dates came from a sitemap’s last-modified field; unverified publication dates are not presented as publication dates or put into RSS pubDate fields.</p><p>The complete site is static HTML. Reading, section navigation, images and the alternative theme index work without JavaScript. Search and the optional reading lens require JavaScript; no API key or backend is required.</p></article>'''
+    write("/methods/index.html", layout("How to read the data", "Transparent notes on this collection's measurements, links and local interactions.", body, "/methods/"))
+
+
+def feeds(rows, pages):
+    items = "".join(f'<item><title>{esc(row["title"])}</title><link>{DOMAIN}{row["url"]}</link><guid isPermaLink="true">{DOMAIN}{row["url"]}</guid><description>{esc(row["description"])}</description></item>' for row in rows)
+    rss = f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>future(memo)</title><link>{DOMAIN}/futurememo/</link><description>Essays by Suff Syed. Publication dates are unverified in the migrated archive.</description><atom:link href="{DOMAIN}/futurememo/rss.xml" rel="self" type="application/rss+xml"/>{items}</channel></rss>'
+    write("/rss.xml", rss)
+    write("/futurememo/rss.xml", rss)
+    paths = ["/", "/futurememo/", "/lightworks/", "/research/", "/methods/"] + [row["url"] for row in rows] + [f'/{page["slug"]}/' for page in pages]
+    write("/sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + "".join(f"<url><loc>{DOMAIN}{path}</loc></url>" for path in paths) + "</urlset>")
     write("/robots.txt", f"User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n")
-    open(os.path.join(OUT, ".nojekyll"), "w").close()
+    write("/.nojekyll", "")
 
-# ---------------- main ----------------
+
+def main():
+    data = json.loads((ROOT / "content/corpus.json").read_text())
+    cover_descriptions = json.loads((ROOT / "content/cover-descriptions.json").read_text())
+    descriptions = json.loads((ROOT / "content/photograph-descriptions.json").read_text())
+    if len(descriptions) != len(data["gallery"]):
+        raise ValueError("Every photograph requires a description")
+    for photo, description in zip(data["gallery"], descriptions):
+        photo["alt"] = description
+        with Image.open(OUT / photo["src"].lstrip("/")) as im:
+            photo["width"], photo["height"] = im.size
+    rows = [measure(row, ROOT) for row in data["essays"]]
+    for row in rows:
+        row["coverAlt"] = cover_descriptions[row["slug"]]
+    connect(rows)
+    # Asset originals are committed migration inputs; the build never fetches.
+    (OUT / "assets/responsive").mkdir(parents=True, exist_ok=True)
+    sources = {row["cover"] for row in rows} | {photo["src"] for photo in data["gallery"]}
+    for src in sorted(sources):
+        with Image.open(OUT / src.lstrip("/")) as im:
+            for width in [640, 960]:
+                if im.width > width:
+                    target = OUT / "assets/responsive" / f"{Path(src).stem}-{width}.webp"
+                    resized = im.resize((width, round(im.height * width / im.width)), Image.Resampling.LANCZOS)
+                    resized.save(target, "WEBP", quality=82, method=6)
+    for source in sorted((ROOT / "site").iterdir()):
+        if source.is_file():
+            shutil.copyfile(source, OUT / "assets" / source.name)
+    for row in rows:
+        essay_page(row, rows)
+    public_rows = [{key: value for key, value in row.items() if key not in {"body", "passages"}} for row in rows]
+    home = render_home(public_rows, data["themes"], data["gallery"]) + render_margin() + render_research_teaser()
+    write("/index.html", layout("Reading a mind at work", "An incomplete field guide to intelligence, creative work, and the things that make us human.", home, "/", cover=rows[11]["cover"], kind="home"))
+    archive_page(rows, data)
+    gallery_page(data)
+    for page in data["pages"]:
+        content = (ROOT / "content/pages" / f'{page["slug"]}.html').read_text()
+        if page["slug"] == "about-me":
+            content = content.replace("45,308 words", f'{sum(row["words"] for row in rows):,} words')
+        write(f'/{page["slug"]}/index.html', layout(page["title"], page["description"], f'<div class="legacy-document">{content}</div>', f'/{page["slug"]}/', "about" if page["slug"] in {"about-me", "faqs"} else "writing"))
+    write("/research/index.html", layout("The unfinished", "An open notebook and an authored example of a research practice. No live agents.", render_research(public_rows), "/research/", "research"))
+    methods_page(rows)
+    index = [{"slug": row["slug"], "title": row["title"], "theme": row["theme"], "url": row["url"], "passages": [{"id": p["id"], "text": p["text"], "kind": p["kind"], "label": p["label"]} for p in row["passages"]]} for row in rows]
+    write("/assets/search-index.json", safe_json(index))
+    not_found = '<header class="page-opening"><span class="label">404 / An unexpected turning</span><h1>A loose thread.</h1><div class="page-dek"><p>This address doesn’t lead to a page.<br>The collection is still here.</p><p><a href="/futurememo/">Find an essay in the complete index ↗</a><br><a href="/">Return to the opening collection ↗</a></p></div></header><section class="lost-links"><h2>Another way in.</h2>' + "".join(f'<p><a href="{row["url"]}">{esc(row["title"])}</a></p>' for row in rows[:5]) + '</section>'
+    write("/404.html", layout("Not found", "Find a path back into the writing.", not_found, "/404.html"))
+    for src, dest in [("/home", "/"), ("/member-site-homepage-1", "/"), ("/futurememo/tag", "/futurememo/"), ("/futurememo/tag/June+2024+Edition", "/futurememo/"), *[(f"/store/p/{slug}", "/store/") for slug in ["buy-me-a-coffee", "chemex", "iced-coffee", "pour-over"]]]:
+        body = f'<section class="page-opening"><span class="label">A change of address</span><h1>This way.</h1><p>This page has moved. <a href="{dest}">Continue to its new home ↗</a></p></section>'
+        page = layout("This page has moved", "A preserved route from the original site.", body, dest)
+        page = page.replace("</head>", f'<meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url={dest}"></head>')
+        write(src + "/index.html", page)
+    feeds(rows, data["pages"])
+    print(f"Built {len(rows)} complete essays / {sum(row['words'] for row in rows):,} measured words / {len(data['gallery'])} photographs. CNAME unchanged.")
+
+
 if __name__ == "__main__":
-    rows = load_essays()
-    about, memo, light = load_about(), load_memo(), load_light()
-    for r in rows:
-        gen_essay(r, rows)
-    gen_home(rows, about, light["imgs"])
-    gen_archive(rows, memo)
-    gen_about(about, rows)
-    gen_memo(memo)
-    gen_faqs()
-    gen_report()
-    gen_light(light)
-    gen_redirects(); gen_store(); gen_404(rows); gen_feeds(rows)
-    with open(os.path.join(OUT, "CNAME"), "w") as f:
-        f.write("suffsyed.com\n")
-    print(f"\nDone: {len(rows)} essays, {sum(r['words'] for r in rows):,} words, {len(light['imgs'])} plates.")
+    main()

@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "kind": "authored-simulation",
+  "description": "A committed description of the fixed research demonstration, not a research feed, ingestion job, or evidence of a completed study.",
+  "startingPosition": {
+    "sourceUrl": "/futurememo/qubit-teams-the-future-built-by-two-people-using-ai/",
+    "title": "Qubit Teams: The Future Built by Two",
+    "provenance": "An existing essay in this site's committed corpus, used as an argument to examine, not as empirical evidence."
+  },
+  "roles": ["scout", "skeptic", "synthesist"],
+  "stageDurationMs": 2200,
+  "publicEvidence": [],
+  "publicEvidenceSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Proposed manually reviewed public-source record",
+    "description": "Documentation only. No records have been retrieved. A future build-time importer must enforce formats, validate provenance, and render all strings as escaped text; validation alone does not establish source reliability.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["sourceUrl", "title", "retrievedAt", "excerpt"],
+    "properties": {
+      "sourceUrl": {
+        "type": "string",
+        "format": "uri",
+        "pattern": "^https://",
+        "maxLength": 2048,
+        "description": "The public source URL, never a javascript:, data:, or executable URL."
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 400,
+        "description": "The source's actual title, rendered as plain text."
+      },
+      "retrievedAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Actual ISO 8601 retrieval timestamp with timezone, not an authored or inferred date."
+      },
+      "excerpt": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000,
+        "description": "A rights-cleared plain-text excerpt. Never interpreted as HTML."
+      }
+    }
+  },
+  "boundary": {
+    "networkRequests": false,
+    "externalJobs": false,
+    "credentials": false,
+    "htmlInput": false,
+    "review": "Future additions require deliberate build-time validation and editorial review. The current page does not load or fetch this file. An empty publicEvidence array means no public-source records are available, not that a search returned no results."
+  }
+}
