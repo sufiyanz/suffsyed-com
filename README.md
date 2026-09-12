@@ -6,6 +6,10 @@ Python builds plain HTML, CSS, SVG and small JavaScript modules. GitHub Pages
 serves `main` / `docs`; there is no application server, tracking, model API or
 runtime dependency on Squarespace.
 
+The shared page shell is edge-to-edge ivory, without an inset sheet, viewport
+surround, or outer shadow. Responsive inner padding and narrow essay measures
+keep the full-width layout readable.
+
 ## Source of truth
 
 | Path | Purpose |
@@ -143,6 +147,8 @@ links work without JavaScript; search and local instruments require it.
 .venv/bin/python tools/test_instruments.py \
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_home.py
+.venv/bin/python tools/test_shell.py \
+  --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/capture_review.py \
   --artifacts /absolute/path/to/session-artifacts
 ```
