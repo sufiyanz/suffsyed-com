@@ -7,19 +7,22 @@ The domain stays registered/managed at Squarespace; only DNS is pointed here so 
 ## Structure
 
 - `docs/` — the generated static site. This is what gets served (GitHub Pages point-of-truth is the `docs/` folder on `main`).
-- `tools/generate.py` — regenerates `docs/` from the raw scraped HTML in `scrape/raw/` (not committed — see below).
-- `tools/lib.py` — HTML-block-to-clean-HTML conversion + image downloader/optimizer (converts images to WebP, resizes to max 1600px wide).
+- `docs/assets/atlas.css` — the one stylesheet. Design language ("the atlas"): system serif (Iowan Old Style / Baskerville), system mono for micro-labels, one vermillion accent, hairline-ruled cells, tabular figures, every essay also rendered as a miniature typeset sheet.
+- `tools/build_site.py` — builds every page in `docs/` from the raw scraped HTML in `scrape/raw/` (not committed — see below). Essay themes, the "start here" pick, and social links live at the top of this file.
+- `tools/lib.py` — Squarespace-block-to-clean-HTML conversion + image downloader/optimizer (WebP, max 1600px wide, cached by URL hash).
 - `scrape/` — raw scraped pages from the live Squarespace site, used as generator input. Gitignored (large, and only needed for regeneration).
 
 ## Adding or editing a post
 
-The generator reads from `scrape/raw/*.html`, which were one-time snapshots of the live Squarespace pages. There's no ongoing dependency on Squarespace — going forward, the simplest path is to hand-edit the generated HTML in `docs/futurememo/<slug>/index.html` directly (it's plain HTML/CSS, `.post-body` holds the article), or extend `tools/generate.py` with a markdown-based post source if you want a nicer authoring flow later.
+The builder reads from `scrape/raw/*.html`, one-time snapshots of the live Squarespace pages, so there's no ongoing dependency on Squarespace. For a new essay, the cleanest path is to add a markdown/HTML source and a small loader to `tools/build_site.py` (the essay template is `gen_essay`); until then, a new essay can be hand-written as `docs/futurememo/<slug>/index.html` using any existing essay as the template. Remember to add its slug to `THEMES` so it appears in the index, sheets, and theme lists.
+
+Dates shown on the site are the sitemap `lastmod` from the migration (most read Nov 2025). Real publish dates can be restored from a Squarespace content export and dropped into `LASTMOD` in the builder.
 
 To regenerate from scratch (re-run the whole scrape → build pipeline):
 
 ```bash
 pip3 install --user beautifulsoup4 lxml Pillow
-python3 tools/generate.py
+python3 tools/build_site.py
 ```
 
 ## Local preview

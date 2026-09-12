@@ -108,10 +108,11 @@ def convert_blog_body(soup, root_selector=".blog-item-content", skip_leading_ima
             img = block.select_one("img")
             if img:
                 src = img.get("data-image") or img.get("data-src") or img.get("src")
-                local = download_image(src)
-                if local and not skipped_hero and skip_leading_image and local == skip_leading_image:
+                if (not skipped_hero and skip_leading_image and src
+                        and os.path.basename(clean_url(src)) == os.path.basename(clean_url(skip_leading_image))):
                     skipped_hero = True
                     continue
+                local = download_image(src)
                 if local:
                     caption = block.select_one("figcaption")
                     cap_text = caption.get_text(strip=True) if caption else ""
