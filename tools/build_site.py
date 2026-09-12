@@ -72,7 +72,7 @@ def layout(title, description, body, path, og_image=None, current=None, extra_he
 <link rel="canonical" href="{DOMAIN}{path}">
 <meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(description)}"><meta property="og:type" content="website">{og}
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:,"><link rel="stylesheet" href="/assets/atlas.css">{extra_head}
+<link rel="icon" href="data:,"><link rel="stylesheet" href="/assets/atlas.css"><link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">{extra_head}
 </head><body id="top">
 <header class="mast">
   <a class="mark" href="/" aria-label="{SITE}">S</a>
@@ -340,6 +340,71 @@ def gen_light(light):
 <section class="sec" style="padding-top:8px"><div class="sec-head mono"><span class="n num">01</span><span>Plates</span><span class="muted" style="margin-left:auto">{len(light['imgs'])} photographs</span></div><div class="plates">{plates}</div></section>'''
     write("/lightworks/index.html", layout("light(works)", light["dek"], body, "/lightworks/", light["imgs"][0] if light["imgs"] else None, "light"))
 
+
+# ---------------- no-404 hardening ----------------
+def redirect_stub(from_path, to_path):
+    """Client-side redirect for URLs that existed on the Squarespace site (GitHub Pages has no server redirects)."""
+    page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Redirecting…</title>
+<link rel="canonical" href="{DOMAIN}{to_path}"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url={to_path}">
+<script>location.replace({to_path!r})</script></head>
+<body style="font-family:Georgia,serif;padding:2rem"><p>This page has moved to <a href="{to_path}">suffsyed.com{to_path}</a>.</p></body></html>"""
+    write(from_path.rstrip("/") + "/index.html", page)
+
+def gen_redirects():
+    for src, dst in [("/home", "/"), ("/member-site-homepage-1", "/"), ("/futurememo/tag", "/futurememo/"),
+                     ("/futurememo/tag/June+2024+Edition", "/futurememo/"),
+                     ("/store/p/buy-me-a-coffee", "/store/"), ("/store/p/chemex", "/store/"),
+                     ("/store/p/iced-coffee", "/store/"), ("/store/p/pour-over", "/store/")]:
+        redirect_stub(src, dst)
+
+def gen_store():
+    body = f"""
+<section class="title"><h1>Store</h1><p class="dek big">The shop is closed while the site moves house.</p><p class="dek">If you came here to buy me a coffee — thank you. The best way to support the writing right now is to subscribe.</p></section>
+<div class="band two">
+  <div class="cell"><div class="cell-head mono"><span>Subscribe</span></div><p class="prose"><a class="mono arrow go" href="{SUBSTACK}" target="_blank" rel="noopener">future(memo) on Substack</a></p></div>
+  <div class="cell"><div class="cell-head mono"><span>Read</span></div><p class="prose"><a class="mono arrow go" href="/futurememo/">All essays</a></p></div>
+</div>"""
+    write("/store/index.html", layout("Store", "The shop is closed while the site moves house.", body, "/store/"))
+
+def gen_404(rows):
+    recent = "".join(f'<li><a href="/futurememo/{r["slug"]}/"><span class="i">{r["no"]:02d}</span><span class="t">{esc(r["title"])}</span><span class="c mono">{mon(r["date"])}</span></a></li>' for r in rows[:6])
+    slugs = [r["slug"] for r in rows]
+    body = f"""
+<section class="title"><h1>Not found</h1><p class="dek big" id="nf-msg">There's nothing at this address.</p><p class="dek">The site recently moved off Squarespace; a few old links didn't survive the trip. Everything that was published is still here.</p></section>
+<div class="band two">
+  <div class="cell"><div class="cell-head mono"><span>Recent essays</span><a class="more arrow" href="/futurememo/">All {len(rows)}</a></div><ul class="list">{recent}</ul></div>
+  <div class="cell"><div class="cell-head mono"><span>Elsewhere on the site</span></div><ul class="list plain">
+    <li><a href="/"><span class="t">Home</span><span class="c mono">→</span></a></li>
+    <li><a href="/futurememo/"><span class="t">future(memo) — every essay</span><span class="c mono">→</span></a></li>
+    <li><a href="/about-me/"><span class="t">About</span><span class="c mono">→</span></a></li>
+    <li><a href="/lightworks/"><span class="t">light(works)</span><span class="c mono">→</span></a></li></ul></div>
+</div>
+<script>
+// If the requested path looks like an old essay URL, guess the closest current one.
+const slugs={slugs!r};const p=location.pathname.replace(/\\/+$/,'').split('/').pop().toLowerCase();
+if(p){{const score=s=>{{const a=new Set(p.split('-')),b=new Set(s.split('-'));let n=0;a.forEach(x=>b.has(x)&&n++);return n/Math.max(a.size,b.size);}};
+const best=slugs.map(s=>[score(s),s]).sort((x,y)=>y[0]-x[0])[0];
+if(best&&best[0]>=0.5){{document.getElementById('nf-msg').innerHTML='Did you mean <a href="/futurememo/'+best[1]+'/" style="text-decoration:underline;text-underline-offset:3px">this essay</a>?';}}}}
+</script>"""
+    write("/404.html", layout("Not found", "There's nothing at this address.", body, "/404.html"))
+
+def gen_feeds(rows):
+    import email.utils, time
+    def rfc(d): return email.utils.format_datetime(datetime.datetime(d.year, d.month, d.day, 12, tzinfo=datetime.timezone.utc))
+    items = "".join(f"""<item><title>{esc(r['title'])}</title><link>{DOMAIN}/futurememo/{r['slug']}/</link><guid isPermaLink="true">{DOMAIN}/futurememo/{r['slug']}/</guid>
+<pubDate>{rfc(r['date'])}</pubDate><description>{esc(r['excerpt'])}</description></item>\n""" for r in rows)
+    rss = f"""<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>
+<title>future(memo)</title><link>{DOMAIN}/futurememo/</link><description>Essays on AI, design, and the builders shaping what comes next, by Suff Syed.</description>
+<atom:link href="{DOMAIN}/futurememo/rss.xml" rel="self" type="application/rss+xml"/>
+{items}</channel></rss>"""
+    write("/futurememo/rss.xml", rss); write("/rss.xml", rss)
+    urls = ["/", "/futurememo/", "/about-me/", "/about-the-memo/", "/faqs/", "/the-end-of-design-report/", "/lightworks/", "/store/"] + [f"/futurememo/{r['slug']}/" for r in rows]
+    today = datetime.date.today().isoformat()
+    sm = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + "".join(f"<url><loc>{DOMAIN}{u}</loc><lastmod>{today}</lastmod></url>" for u in urls) + "</urlset>"
+    write("/sitemap.xml", sm)
+    write("/robots.txt", f"User-agent: *\nAllow: /\nSitemap: {DOMAIN}/sitemap.xml\n")
+    open(os.path.join(OUT, ".nojekyll"), "w").close()
+
 # ---------------- main ----------------
 if __name__ == "__main__":
     rows = load_essays()
@@ -353,6 +418,7 @@ if __name__ == "__main__":
     gen_faqs()
     gen_report()
     gen_light(light)
+    gen_redirects(); gen_store(); gen_404(rows); gen_feeds(rows)
     with open(os.path.join(OUT, "CNAME"), "w") as f:
         f.write("suffsyed.com\n")
     print(f"\nDone: {len(rows)} essays, {sum(r['words'] for r in rows):,} words, {len(light['imgs'])} plates.")
