@@ -118,6 +118,11 @@ references. The builder derives a white reversed version for the dark cover by
 changing only the SVG's root color; the traced path geometry and source master
 are unchanged. The image has an empty alt to avoid repeating the heading's
 accessible text. The supplied validated master is preserved byte-for-byte.
+In forced-colors mode, the same SVG supplies an alpha mask painted with the
+user's `CanvasText` color. The image keeps its layout space but is not painted.
+Only the mask preserves its explicit system-color fill; the page retains normal
+forced-color adjustment. Both light and dark high-contrast schemes therefore
+show the same signature and accessible heading without changing the normal theme.
 The current master uses the approved balanced fountain-pen refinement: lighter
 broad strokes with the hairlines, entry/exit tips and natural width variation
 retained. Its source framing is unchanged; there is no CSS thinning,
@@ -277,6 +282,8 @@ links work without JavaScript; search and local instruments require it.
 .venv/bin/python tools/test_home.py
 .venv/bin/python tools/test_cover.py \
   --artifacts /absolute/path/to/session-artifacts
+.venv/bin/python tools/test_forced_colors.py \
+  --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_shell.py \
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_hierarchy.py \
@@ -309,6 +316,10 @@ keyboard/touch, back/scroll restoration, direct
 fragments, resize, and smooth/reduced motion at six widths with and without
 JavaScript. It captures readable desktop/phone openings, boundary transitions,
 the header over the story and reading plate, and the restored top state.
+The forced-colors check samples actual screenshots in light/dark schemes,
+verifies black/white signature contrast and compares the painted silhouette with
+the normal SVG at four widths. It also checks the heading's accessible name and
+confirms that page-wide forced-color adjustment remains enabled.
 Capture utilities scroll to load every lazy image before saving full pages,
 readable viewport studies and individual home chapter crops; `--devices desktop
 phone` limits capture to those two sizes.
