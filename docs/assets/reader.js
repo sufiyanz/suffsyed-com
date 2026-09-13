@@ -231,16 +231,29 @@ function initializeReader(essay) {
     search(false);
   }
   if (location.hash === "#reading-lens") openLens(null, false);
-  const observer = new IntersectionObserver(entries => {
-    const entry = entries.find(item => item.isIntersecting);
-    if (!entry) return;
-    document.querySelectorAll(".contents a").forEach(link => {
-      if (link.hash === `#${entry.target.id}`) link.setAttribute("aria-current", "location");
+  const sectionNodes = essay.sections.map(section => document.getElementById(section.id)).filter(Boolean);
+  const contentsLinks = [...document.querySelectorAll(".contents a")];
+  let orientationQueued = false;
+  function updateOrientation() {
+    orientationQueued = false;
+    let current = sectionNodes[0];
+    for (const node of sectionNodes) {
+      if (node.getBoundingClientRect().top > Math.min(140, innerHeight * .2)) break;
+      current = node;
+    }
+    contentsLinks.forEach(link => {
+      if (link.hash === `#${current.id}`) link.setAttribute("aria-current", "location");
       else link.removeAttribute("aria-current");
     });
-  }, { rootMargin: "-5% 0px -65% 0px" });
-  essay.sections.forEach(section => {
-    const node = document.getElementById(section.id);
-    if (node) observer.observe(node);
-  });
+  }
+  // A jump can skip every heading; font and lens reflow can also move them.
+  function scheduleOrientation() {
+    if (orientationQueued) return;
+    orientationQueued = true;
+    requestAnimationFrame(updateOrientation);
+  }
+  window.addEventListener("scroll", scheduleOrientation, { passive: true });
+  window.addEventListener("resize", scheduleOrientation);
+  new ResizeObserver(scheduleOrientation).observe(document.getElementById("essay-body"));
+  scheduleOrientation();
 }

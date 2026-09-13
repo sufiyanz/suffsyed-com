@@ -54,6 +54,8 @@ def layout(title, description, body, path, current="", cover=None, kind="page"):
 <meta property="og:type" content="{"article" if kind == "essay" else "website"}">{og}
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/newsreader-roman.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/dm-mono-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/journal.css"><link rel="stylesheet" href="/assets/home.css"><link rel="stylesheet" href="/assets/questions.css">
 <link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">
 <script type="module" src="/assets/app.js"></script>
@@ -61,7 +63,7 @@ def layout(title, description, body, path, current="", cover=None, kind="page"):
 <a class="skip" href="#main">Skip to content</a>
 <div class="sheet"><header class="mast"><a class="signature" href="/" aria-label="Suff Syed, home">Suff Syed</a><nav aria-label="Main navigation">{links}</nav></header>
 <main id="main">{body}</main>
-<footer class="foot"><div><a class="signature" href="/">Suff Syed</a><p>A mind at work. A work in progress.</p></div>
+<footer class="foot"><div><a class="signature" href="/">Suff Syed</a><p>A mind at work. A work in progress.</p><p><a href="/about-me/">About the person behind these questions ↗</a></p></div>
 <nav aria-label="Further reading"><a href="/about-the-memo/">About the memo</a><a href="/faqs/">FAQs</a><a href="/the-end-of-design-report/">The End of Design</a><a href="/store/">A coffee, perhaps</a><a href="/methods/">How to read the data</a><a href="/futurememo/rss.xml">RSS</a></nav>
 <nav aria-label="Elsewhere"><a href="https://substack.com/@suffsyed">Substack ↗</a><a href="https://x.com/suff_syed">X ↗</a><a href="https://www.linkedin.com/in/suffsyed/">LinkedIn ↗</a><a href="#top">Back to top ↑</a></nav></footer></div>
 <div class="outside-caption"><span>SUFF SYED / NOTES FROM THE FRONTIER</span><span>Independent writing · No tracking</span></div>
@@ -200,13 +202,16 @@ def main():
                     target = OUT / "assets/responsive" / f"{Path(src).stem}-{width}.webp"
                     resized = im.resize((width, round(im.height * width / im.width)), Image.Resampling.LANCZOS)
                     resized.save(target, "WEBP", quality=82, method=6)
-    for source in sorted((ROOT / "site").iterdir()):
+    for source in sorted((ROOT / "site").rglob("*")):
         if source.is_file():
-            shutil.copyfile(source, OUT / "assets" / source.name)
+            target = OUT / "assets" / source.relative_to(ROOT / "site")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
     for row in rows:
         essay_page(row, rows)
     public_rows = [{key: value for key, value in row.items() if key not in {"body", "passages"}} for row in rows]
-    home = render_home(public_rows, data["themes"], data["gallery"]) + render_margin() + render_research_teaser()
+    perspective = '<details class="perspective-disclosure"><summary><span>Leave your perspective</span><small>Optional / This browser only</small></summary>' + render_margin() + '</details>'
+    home = render_home(public_rows, data["themes"], data["gallery"]) + render_research_teaser() + perspective
     write("/index.html", layout("Reading a mind at work", "An incomplete field guide to intelligence, creative work, and the things that make us human.", home, "/", cover=rows[11]["cover"], kind="home"))
     archive_page(rows, data)
     gallery_page(data)

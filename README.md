@@ -21,7 +21,7 @@ keep the full-width layout readable.
 | `content/photograph-descriptions.json` | Descriptions of visible photographs, in original gallery order; not inferred locations or dates. |
 | `content/research-example.json` | Public-data record schema and empty evidence register; no live ingestion. |
 | `docs/assets/img/` | **Committed source image originals from the migration.** The builder reads these; do not delete this directory when rebuilding. |
-| `site/` | Authored CSS, ES modules and favicon, copied to `docs/assets/`. |
+| `site/` | Authored CSS, ES modules, favicon and self-hosted font assets, copied recursively to `docs/assets/`. |
 | `tools/corpus.py` | Deterministic passage extraction, word counts and lexical-neighbor ranking. |
 | `tools/build_site.py` | All routes, responsive images, searchable corpus, RSS and sitemap. |
 | `tools/journal_home.py`, `tools/journal_questions.py` | Opening artwork and local question/research instruments. |
@@ -54,6 +54,71 @@ The build has no network access or current-clock inputs. All twenty full bodies
 and image originals remain local. Responsive 640px and 960px derivatives are
 generated from committed originals with Pillow. Repeating the build with the
 pinned Python dependencies produces the same output bytes.
+
+## Type and editorial structure
+
+**Newsreader** supplies editorial text, introductions and long-form reading;
+**DM Mono** supplies restrained technical labels, counts and data controls.
+The distributable build also uses Newsreader for display. Both are self-hosted,
+openly licensed faces. There are no runtime font CDN or foundry requests.
+
+`site/journal.css` centralizes `--font-display`, `--font-reading`, `--font-ui`
+and `--font-technical`. Newsreader has a real 400–700 variable range in
+both roman and italic, preserving its optical-size axis with automatic optical
+sizing. DM Mono uses actual 400 and 500 roman faces.
+`font-synthesis: none` prevents imitation bold/italic, and `font-display: swap`
+keeps reading available during loading. Four subset WOFF2 files total about
+347 KiB.
+
+The exact upstream revision, source/output SHA256 hashes and processing are in
+`site/fonts/provenance.json`. Both SIL OFL 1.1 licenses accompany the fonts in
+source and generated output. The ordinary build copies these committed assets
+offline. To explicitly reimport the pinned Google Fonts sources (requires
+network access, only when updating fonts):
+
+```sh
+.venv/bin/pip install -r requirements-fonts.txt
+.venv/bin/python tools/prepare_fonts.py
+```
+
+Home follows a deliberate sequence: one featured thought with an original cover
+and primary reading action; an optional connection instrument; a photographic
+pause; then one unfinished research question. All twenty selections synchronize
+the opening cover, drawing, title and explicit reading destination. The drawing
+key and reader perspective are native disclosures. The phone theme selector is
+also a disclosure, fully expanded without JavaScript. The original scientific
+drawings, full-bleed paper and full essay text remain.
+
+The selected story is the opening's dominant headline; the site statement is
+quiet editorial context. A full-width mint ground groups the connection
+instrument, and a localized deep-ink photographic chapter separates the gallery
+from the ivory reading/research areas. These are chapter grounds, not an outer
+page frame. The composition was informed by the published
+[Frontend Design Review](https://github.com/microsoft/skills/tree/main/.github/skills/frontend-design-review)
+framework's frictionless action, craft and trustworthy-behavior principles.
+There is no Figma design system or claim of Figma compliance.
+
+### Private Kyoto purchase evaluation
+
+The supplied PP Kyoto free/personal-use EULA permits private purchase evaluation,
+**not a public website or public font redistribution**. The optional loopback
+preview uses unmodified, user-supplied Kyoto Medium, Medium Italic and Extrabold
+OTFs for display. It does not install them system-wide. Museum is not used.
+Only use this mode with authorized local inputs and never expose or tunnel it:
+
+```sh
+python3 tools/private_fonts.py --kyoto '/absolute/path/to/PP_Kyoto_-_Free_for_Personal_Use_v1.0.zip'
+python3 tools/serve.py --port 8766 --private-fonts
+```
+
+The importer checks the supplied license and records hashes in ignored
+`.private-preview/fonts/`. The server binds only to `127.0.0.1`, rejects other
+Host names and cross-site font requests, and applies `tools/preview_typography.css`
+only to in-memory responses. Private responses are not cached. Proprietary
+binaries and evaluation CSS never enter `docs/`; the normal build has no dependency
+on them. The local preview explicitly labels the evaluation. A proper web license
+and a deliberate production integration are required before publishing Kyoto.
+Keep `.private-preview/` ignored and do not copy it into public assets.
 
 ## Editing and adding writing
 
@@ -137,6 +202,7 @@ links work without JavaScript; search and local instruments require it.
 
 ```sh
 .venv/bin/python tools/test_site.py
+.venv/bin/python tools/test_preview.py
 
 # Optional browser suite (install into your own environment):
 .venv/bin/pip install -r requirements-browser.txt
@@ -148,6 +214,8 @@ links work without JavaScript; search and local instruments require it.
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_home.py
 .venv/bin/python tools/test_shell.py \
+  --artifacts /absolute/path/to/session-artifacts
+.venv/bin/python tools/test_hierarchy.py \
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/capture_review.py \
   --artifacts /absolute/path/to/session-artifacts
@@ -162,8 +230,17 @@ no-JavaScript reading, and missing assets/browser errors. Additional instrument
 checks exercise corrupt/denied storage, keyboard/touch axes, research playback,
 pause/resume/reset and reduced motion. The home suite traverses all twenty
 selections and verifies their exact tallies, covers, canonical links and
-offscreen/paused motion. Capture utilities scroll to load every lazy image before
-saving full-page and readable viewport studies.
+offscreen/paused motion. The hierarchy suite verifies actual custom-font glyph
+rendering, the four public font files (plus three Kyoto faces when explicitly
+run with `--private-fonts`), controls, current-section orientation and all
+twenty selections at 320/390/820/1600/1920px, plus 200%/400% zoom-equivalent CSS
+viewport and device-scale reflow (not browser-toolbar zoom automation).
+It also checks the initial phone reading action/artwork and synchronized selected
+destinations. Preview tests check public/private isolation, rejected embedding,
+hash-identical evaluation bytes and nonpersistent response injection.
+Capture utilities scroll to load every lazy image before saving full pages,
+readable viewport studies and individual home chapter crops; `--devices desktop
+phone` limits capture to those two sizes.
 
 ## Publishing
 

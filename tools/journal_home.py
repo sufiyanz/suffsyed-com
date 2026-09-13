@@ -203,13 +203,15 @@ def _photographs(gallery):
         alt = str(image.get("alt") or "A photograph from light(works)")
         width, height = _integer(image.get("width")), _integer(image.get("height"))
         dimensions = f' width="{width}" height="{height}"' if width and height else ""
+        sizes = ("(max-width: 760px) calc(100vw - 40px), (max-width: 900px) 50vw, 58vw"
+                 if not figures else
+                 "(max-width: 760px) calc((100vw - 56px) / 2), (max-width: 900px) 24vw, 21vw")
         figures.append(
             '<figure><a class="artwork-link" '
             f'href="{_text(src)}" data-artwork="{_text(src)}" data-caption="{_text(alt)}" '
             f'aria-label="Inspect photograph: {_text(alt)}">'
             f'<img src="{_text(src)}" srcset="{_text(_srcset(src))}" '
-            'sizes="(max-width: 580px) calc(100vw - 64px), '
-            '(max-width: 900px) 40vw, 26vw" '
+            f'sizes="{sizes}" '
             f'alt="{_text(alt)}"{dimensions} loading="lazy" decoding="async">'
             f'<span class="home-inspect" aria-hidden="true">↗</span></a>'
             f'<figcaption>{_text(alt)}</figcaption></figure>'
@@ -249,6 +251,7 @@ def render_home(rows, themes, gallery):
             "url": _essay_url(row["slug"], row.get("url")),
             "title": str(row["title"]),
             "description": str(row.get("description") or ""),
+            "excerpt": re.split(r"(?<=[.!?])\s+", str(row.get("description") or ""), maxsplit=1)[0],
             "cover": cover,
             "coverAlt": str(row.get("coverAlt") or f'Original cover illustration for {row["title"]}'),
             "srcset": _srcset(cover) if cover else "",
@@ -303,83 +306,99 @@ def render_home(rows, themes, gallery):
     return f"""
 <div class="journal-opening" data-home-root data-motion="paused">
   <section class="opening" aria-labelledby="home-title">
-    <div><h1 id="home-title">Reading a mind at work.</h1>
-      <p class="subtitle">An incomplete field guide to intelligence, creative work,<br class="home-desktop-break">
-        and the things that make us human.</p></div>
-    <p class="opening-note"><em>A personal collection, made legible.</em>
-      {collection_count} essays. {theme_count} recurring preoccupations.<br>
-      Not a theory of everything—just a way of seeing how the questions fit together.</p>
+    <header class="opening-copy"><h1 id="home-title">Reading a mind at work.</h1>
+      <p class="subtitle">Essays on intelligence, creative work, and what remains human.</p></header>
+    <article class="featured" aria-labelledby="home-essay-title">
+      <div class="featured-copy">
+        <p class="label">One thought to start with</p>
+        <h2 id="home-essay-title"><a data-home-title href="{_text(essay["url"])}">{_text(essay["title"])}</a></h2>
+        <p data-home-excerpt>{_text(essay["excerpt"])}</p>
+        <div class="featured-meta">
+          <a class="primary-link" data-home-essay-link href="{_text(essay["url"])}">Read this essay ↗</a>
+          <a class="secondary-link" href="#connections">Explore the connections ↓</a>
+        </div>
+      </div>
+      <a class="cover-button artwork-link" data-home-artwork href="{_text(essay["cover"])}"
+         data-artwork="{_text(essay["cover"])}" data-caption="Original cover illustration for {_text(essay["title"])}"
+         aria-label="Inspect original cover illustration for {_text(essay["title"])}"{cover_hidden}>
+        <img data-home-cover {cover_source} sizes="(max-width: 760px) calc(100vw - 40px), 52vw"
+             alt="{_text(essay["coverAlt"])}" fetchpriority="high" decoding="async">
+        <span class="enlarge" aria-hidden="true">↗</span>
+      </a>
+    </article>
   </section>
-  <section class="plate" id="reading" aria-label="An annotated portrait of the writing">
-    <aside class="margin-notes" aria-label="How to read the artwork">
-      <p class="eyebrow">On reading this collection</p>
-      <div class="annotation"><span class="number">01</span><h2>A recurring preoccupation</h2>
-        <p>The colored bands identify the theme. Choose another below to see a different part of the collection.</p>
-        <div class="swatches" data-home-swatches aria-hidden="true">{swatches}</div></div>
-      <div class="annotation"><span class="number">02</span><h2>Time spent in a thought</h2>
-        <p>The black tally above the drawing follows the selected essay’s length.
-          One bar for each hundred words, rounded up.</p>
-        <div class="mini-scale" aria-hidden="true"><span style="--bar:12px"></span><span style="--bar:17px"></span>
-          <span style="--bar:23px"></span><span style="--bar:29px"></span><span style="--bar:35px"></span><span style="--bar:42px"></span></div>
-        <span class="scale-caption">Length, not importance.</span></div>
-      <div class="annotation"><span class="number">03</span><h2>A pattern, not a verdict</h2>
-        <p>The engraved face gives each theme a visual character. The number of lobes follows its essay count;
-          the fine lines are expressive, not measured evidence.</p></div>
-    </aside>
+  <section class="exploration chapter" id="connections" aria-labelledby="connections-title">
+    <header class="chapter-heading">
+      <div><p class="label chapter-number">The collection / {collection_count} essays</p>
+        <h2 id="connections-title">Follow a thought further.</h2></div>
+      <div class="chapter-purpose"><p>Choose a theme to change the opening essay and drawing.</p>
+        <p class="micro">Editorial paths, not machine-inferred connections.</p>
+        <a class="secondary-link" href="/futurememo/">Explore the complete archive ↗</a></div>
+    </header>
+    <div class="collection-instrument">
+      <details class="theme-selector" data-home-theme-selector open>
+        <summary><span data-home-current-theme>{_text(theme["name"])}</span><span class="theme-toggle-label">Change theme</span></summary>
+      <section class="themes" id="preoccupations" aria-labelledby="home-themes-title">
+        <div><h3 id="home-themes-title">{theme_count} preoccupations.</h3>
+          <p class="theme-help"><span data-home-theme-help>Follow a pattern into the essay archive.</span>
+            <noscript>The diagram below depicts {_text(theme["name"])}. Each pattern links to its essays.</noscript></p></div>
+        <div class="theme-options" data-home-theme-options aria-label="The preoccupations">{"".join(options)}</div>
+      </section>
+      </details>
+      <div class="plate" id="reading" aria-label="An annotated portrait of the writing">
     <figure class="instrument">
       <div class="instrument-top"><span class="label muted" data-home-plate-label>Plate {active + 1:02d} / {_text(theme["name"])}</span>
         <button class="home-plain" data-home-motion type="button" aria-pressed="false" hidden>Pause the motion</button></div>
       <div data-home-drawing>{_plate(theme, len(items), essay["words"], "home-active")}</div>
       <figcaption class="instrument-caption">
         <span data-home-count>{total_words:,} words across this theme.</span>
-        <span><em>Read the image. Follow the question.</em><br>Decorative motion, not live telemetry.</span>
+        <span>Decorative motion, not live telemetry.</span>
       </figcaption>
+      <details class="reading-key" id="reading-key">
+        <summary>How to read this drawing</summary>
+        <div class="margin-notes">
+      <div class="annotation"><span class="number">01 / Theme</span><h4>A recurring preoccupation</h4>
+        <p>The colored bands identify the selected theme.</p>
+        <div class="swatches" data-home-swatches aria-hidden="true">{swatches}</div></div>
+      <div class="annotation"><span class="number">02 / Length</span><h4>Time spent in a thought</h4>
+        <p>One black bar per hundred words, rounded up. Length, not importance.</p></div>
+      <div class="annotation"><span class="number">03 / Face</span><h4>A pattern, not a verdict</h4>
+        <p>Each lobe stands for an essay. The fine lines are expressive, not measured evidence.</p></div>
+        </div>
+      </details>
     </figure>
-    <article class="featured" aria-labelledby="home-essay-title">
-      <div class="featured-top"><p class="eyebrow">One way into the question</p>
-        <span class="label" data-home-position>{selected + 1} / {len(items)}</span></div>
-      <a class="cover-button artwork-link" data-home-artwork href="{_text(essay["cover"])}"
-         data-artwork="{_text(essay["cover"])}" data-caption="Original cover illustration for {_text(essay["title"])}"
-         aria-label="Inspect original cover illustration for {_text(essay["title"])}"{cover_hidden}>
-        <img data-home-cover {cover_source}
-             sizes="(max-width: 580px) calc(100vw - 64px), (max-width: 900px) 36vw, 280px"
-             alt="{_text(essay["coverAlt"])}" fetchpriority="high" decoding="async">
-        <span class="enlarge" aria-hidden="true">↗</span>
-      </a>
-      <h2 id="home-essay-title"><a data-home-title href="{_text(essay["url"])}">{_text(essay["title"])}</a></h2>
-      <p data-home-excerpt>{_text(essay["description"])}</p>
-      <div class="featured-meta"><a data-home-essay-link href="{_text(essay["url"])}">Read the essay ↗</a>
-        <span class="browse-controls" data-home-browse hidden>
-          <button type="button" data-home-previous aria-label="Previous essay in this theme">←</button>
-          <button type="button" data-home-next aria-label="Next essay in this theme">→</button>
-        </span></div>
-      <span class="home-sr-only" data-home-length>{essay["words"]:,} words; {essay["minutes"]} minute read.</span>
-    </article>
+    <div class="exploration-reading">
+      <section class="selected-path" aria-labelledby="selected-path-title">
+        <div class="selection-top"><p class="label" id="selected-path-title">Selected essay</p>
+          <span class="label" data-home-position>{selected + 1} / {len(items)}</span></div>
+        <h3><a data-home-selection-link data-home-selection-title href="{_text(essay["url"])}">{_text(essay["title"])}</a></h3>
+        <span class="featured-length" data-home-length>{essay["words"]:,} words; {essay["minutes"]} minute read.</span>
+        <div class="selection-actions"><div class="selection-links">
+          <a class="primary-link" data-home-selection-link href="{_text(essay["url"])}">Read selected essay ↗</a>
+          <a class="secondary-link" href="#home-essay-title">See cover above ↑</a></div>
+          <span class="browse-controls" data-home-browse hidden>
+            <button type="button" data-home-previous aria-label="Previous essay in this theme">←</button>
+            <button type="button" data-home-next aria-label="Next essay in this theme">→</button>
+          </span></div>
+      </section>
+      <section class="index-strip" aria-labelledby="home-index-title">
+        <div><h3 id="home-index-title">Other ways into this question</h3>
+          <p data-home-index-description>{len(items)} essays in {_text(theme["name"])}.</p></div>
+        <ol class="essay-index" data-home-index aria-label="Essays in the selected theme">{_index(items, selected)}</ol>
+        <a class="secondary-link" data-home-archive href="{theme["archive"]}">Browse this theme ↗</a>
+      </section>
+    </div>
+    </div>
+    </div>
   </section>
-  <section class="themes" id="preoccupations" aria-labelledby="home-themes-title">
-    <div><h2 id="home-themes-title">{theme_count} preoccupations.</h2>
-      <p class="theme-help"><span data-home-theme-help>Follow a pattern into the essay archive.</span>
-        <noscript>The diagram above depicts {_text(theme["name"])}. Each pattern links to its essays.</noscript></p></div>
-    <div class="theme-options" data-home-theme-options aria-label="The preoccupations">{"".join(options)}</div>
-  </section>
-  <section class="index-strip" aria-labelledby="home-index-title">
-    <div><h2 id="home-index-title">Other ways into<br>the same question</h2>
-      <p data-home-index-description>{len(items)} essays in {_text(theme["name"])}.</p>
-      <p><a data-home-archive href="{theme["archive"]}">Browse this theme ↗</a></p></div>
-    <ol class="essay-index" data-home-index aria-label="Essays in the selected theme">{_index(items, selected)}</ol>
-  </section>
-  <section class="home-photography" aria-labelledby="home-photography-title">
-    <div class="home-gateway-intro"><span class="label muted">Notes made with light</span>
-      <h2 id="home-photography-title">Outside the screen.</h2>
-      <p>Looking is another way of thinking. A photographic notebook of the world as it is found.</p>
-      <a href="/lightworks/">Explore light(works) ↗</a></div>
+  <section class="home-photography chapter" id="lightworks" aria-labelledby="home-photography-title">
+    <header class="chapter-heading">
+      <div><p class="label chapter-number">Light(works) / A photographic notebook</p>
+        <h2 id="home-photography-title">Step outside.</h2></div>
+      <div class="chapter-purpose"><p>For a moment, just looking.</p>
+        <a class="primary-link" href="/lightworks/">Enter the gallery ↗</a></div>
+    </header>
     <div class="home-photo-grid">{photos or '<p class="home-photo-empty">The photographic notebook continues in light(works).</p>'}</div>
-  </section>
-  <section class="home-about" aria-labelledby="home-about-title">
-    <h2 id="home-about-title">The person<br>behind the questions.</h2>
-    <p>An ongoing collection of essays, images, and open questions by Suff Syed.
-      Not a finished argument. A place to think in public, and to keep looking.</p>
-    <a href="/about-me/">A little about me ↗</a>
   </section>
   <div class="home-sr-only" role="status" aria-live="polite" aria-atomic="true" data-home-status></div>
   {"".join(templates)}

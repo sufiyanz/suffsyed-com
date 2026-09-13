@@ -96,10 +96,10 @@ def render_margin() -> str:
           </div>
         </section>""")
     return f"""
-    <section class="reader-margin" id="readers-margin" data-reader-margin
+    <section class="reader-margin chapter" id="readers-margin" data-reader-margin
              aria-labelledby="margin-title">
       <header class="margin-heading">
-        <div><p class="question-label">Reader’s margin / an invitation</p>
+        <div><p class="question-label chapter-number">Reader’s margin / Optional</p>
           <h2 id="margin-title">Where do you find yourself?</h2></div>
         <p>These questions have no correct position. Leave a mark, move it,
           change your mind. Or leave the page untouched.</p>
@@ -178,15 +178,20 @@ def _role_mark(role: str) -> str:
 def render_research_teaser() -> str:
     """A home-page invitation; the actual study lives at /research/."""
     return f"""
-    <section class="research-teaser" aria-labelledby="research-teaser-title">
-      <div><p class="question-label">A proposed research practice</p>
-        <h2 id="research-teaser-title">The unfinished.</h2></div>
-      <div class="teaser-roles" aria-hidden="true">
-        {_role_mark("scout")}{_role_mark("skeptic")}{_role_mark("synthesist")}
+    <section class="research-teaser chapter" id="unfinished" aria-labelledby="research-teaser-title">
+      <header class="chapter-heading">
+        <div><p class="question-label chapter-number">The unfinished / A research notebook</p>
+          <h2 id="research-teaser-title">What happens after the impressive first demo?</h2></div>
+        <div class="chapter-purpose">
+          <p class="research-teaser-note">Follow a two-person team question through one authored example.
+            No live agents or new findings.</p>
+          <a class="primary-link" href="/research/">Open the research notebook ↗</a></div>
+      </header>
+      <div class="teaser-roles">
+        <figure>{_role_mark("scout")}<figcaption><strong>Scout</strong>A possibility.</figcaption></figure>
+        <figure>{_role_mark("skeptic")}<figcaption><strong>Skeptic</strong>A counterpoint.</figcaption></figure>
+        <figure>{_role_mark("synthesist")}<figcaption><strong>Synthesist</strong>A better question.</figcaption></figure>
       </div>
-      <div><p>A possibility, a counterpoint, a better question.
-        Follow one authored example—not live agents or new findings.</p>
-        <a href="/research/">Open the research notebook ↗</a></div>
     </section>"""
 
 

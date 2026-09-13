@@ -1,0 +1,12 @@
+/* Private Kyoto evaluation only; this file is never copied into docs. */
+@font-face { font-family: "PP Kyoto"; src: url("/__private/fonts/display-medium") format("opentype"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "PP Kyoto"; src: url("/__private/fonts/display-strong") format("opentype"); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "PP Kyoto"; src: url("/__private/fonts/display-italic") format("opentype"); font-weight: 500; font-style: italic; font-display: swap; }
+:root { --font-display: "PP Kyoto", Georgia, serif; }
+body#top :is(h1, h2, h3, h4) { font-family: var(--font-display); font-weight: 500; }
+body#top h1 { font-weight: 800; letter-spacing: -.04em; }
+body#top #home-title { font-family: var(--font-ui); font-weight: 400; letter-spacing: 0; }
+body#top .featured h2 { font-weight: 800; }
+body#top :is(h1, h2, h3, h4) :is(strong, b, .passage-text) { font-weight: inherit; }
+body#top .signature { font-weight: 500; }
+body#top .teaser-roles strong { font-family: var(--font-display); font-weight: 500; }

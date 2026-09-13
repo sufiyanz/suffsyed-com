@@ -27,6 +27,32 @@ class JournalTests(unittest.TestCase):
     def setUpClass(cls):
         cls.pages = {p: load(p) for p in sorted(OUT.rglob("*.html"))}
 
+    def test_self_hosted_font_provenance(self):
+        fonts = ROOT / "site/fonts"
+        manifest = json.loads((fonts / "provenance.json").read_text())
+        self.assertEqual(len(manifest["fonts"]), 4)
+        self.assertEqual({font["family"] for font in manifest["fonts"]}, {"Newsreader", "DM Mono"})
+        for font in manifest["fonts"]:
+            binary = (fonts / font["file"]).read_bytes()
+            self.assertEqual(binary[:4], b"\x00\x01\x00\x00" if font["file"].endswith(".ttf") else b"wOF2")
+            self.assertEqual(hashlib.sha256(binary).hexdigest(), font["sha256"])
+            self.assertEqual(binary, (OUT / "assets/fonts" / font["file"]).read_bytes())
+            self.assertIn(manifest["revision"], font["source"])
+        for family in ["Newsreader", "DMMono"]:
+            license_text = (fonts / f"OFL-{family}.txt").read_text()
+            self.assertIn("SIL OPEN FONT LICENSE Version 1.1", license_text)
+            self.assertIn("Copyright", license_text)
+        self.assertFalse(list(OUT.rglob("*.otf")))
+        self.assertFalse(list((ROOT / "site").rglob("*.otf")))
+        self.assertEqual({p.name for p in fonts.iterdir()},
+                         {font["file"] for font in manifest["fonts"]} |
+                         {"OFL-Newsreader.txt", "OFL-DMMono.txt", "provenance.json"})
+        self.assertEqual({p.name for p in fonts.iterdir()},
+                         {p.name for p in (OUT / "assets/fonts").iterdir()})
+        for soup in self.pages.values():
+            self.assertNotIn("/__private/", str(soup))
+            self.assertIsNone(soup.html.get("data-font-mode"))
+
     def test_full_bodies_and_stable_anchors(self):
         self.assertEqual(len(DATA["essays"]), 20)
         for row in DATA["essays"]:

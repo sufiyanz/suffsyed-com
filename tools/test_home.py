@@ -31,12 +31,16 @@ def main():
             page.keyboard.press("Enter")
             group = [row for row in rows if row["theme"] == theme["name"]]
             for _ in group:
-                title = page.locator(".featured h2").inner_text()
+                title = page.locator("#home-essay-title").inner_text()
                 row = next(row for row in group if row["title"] == title)
                 visited.add(row["slug"])
                 assert page.locator(".engraving .word-bar").count() == math.ceil(row["words"] / 100)
                 links = page.locator(".featured a").evaluate_all("els => els.map(el=>el.getAttribute('href'))")
                 assert row["url"] in links, (title, links)
+                destination = page.locator("[data-home-selection-link]")
+                assert destination.count() == 2
+                assert destination.evaluate_all("els => els.map(el => el.getAttribute('href'))") == [row["url"]] * 2
+                assert page.locator("[data-home-selection-title]").inner_text() == title
                 image = page.locator(".featured img")
                 assert image.get_attribute("src") == row["cover"]
                 assert image.get_attribute("alt")
@@ -54,15 +58,23 @@ def main():
         page.wait_for_timeout(200)
         assert page.locator(".running-ring").evaluate("el=>getComputedStyle(el).animationPlayState") == "paused"
         page.reload(wait_until="networkidle")
-        assert page.locator(".featured h2").inner_text()
+        assert page.locator("#home-essay-title").inner_text()
         touch = browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
         mobile = touch.new_page()
         mobile.goto(args.url, wait_until="networkidle")
+        mobile.locator(".theme-selector > summary").tap()
         mobile.locator("[data-home-theme]").nth(2).tap()
         assert mobile.locator("[data-home-theme]").nth(2).get_attribute("aria-pressed") == "true"
-        title = mobile.locator(".featured h2").inner_text()
+        assert not mobile.locator(".theme-selector").evaluate("el => el.open")
+        assert mobile.locator(".theme-selector > summary").evaluate("el => el === document.activeElement")
+        title = mobile.locator("#home-essay-title").inner_text()
         mobile.get_by_role("button", name="Next essay in this theme").tap()
-        assert mobile.locator(".featured h2").inner_text() != title
+        assert mobile.locator("#home-essay-title").inner_text() != title
+        read_selected = mobile.get_by_role("link", name="Read selected essay")
+        destination = read_selected.get_attribute("href")
+        read_selected.tap()
+        mobile.wait_for_url("**" + destination)
+        assert mobile.url.endswith(destination)
         touch.close()
         browser.close()
     print("PASS: all 20 home selections, exact tally counts, covers, real links, theme deep links, pause and offscreen motion.")

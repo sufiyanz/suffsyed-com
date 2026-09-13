@@ -27,6 +27,16 @@ function enhanceHome(root, data) {
   const remembered = new Map([[activeTheme, selectedIndex]]);
   const themeButtons = [];
   const themeOptions = find("theme-options");
+  const themeDisclosure = find("theme-selector");
+  const narrowThemes = window.matchMedia("(max-width: 580px)");
+  function sizeThemeSelector() {
+    themeDisclosure.open = !narrowThemes.matches;
+    if (narrowThemes.matches && themeDisclosure.contains(document.activeElement)) {
+      themeDisclosure.querySelector("summary").focus({ preventScroll: true });
+    }
+  }
+  sizeThemeSelector();
+  narrowThemes.addEventListener("change", sizeThemeSelector);
 
   themeOptions.setAttribute("role", "group");
   for (const link of themeOptions.querySelectorAll("[data-home-theme]")) {
@@ -39,7 +49,13 @@ function enhanceHome(root, data) {
     button.style.setProperty("--tone", themes[index].band);
     button.setAttribute("aria-pressed", String(index === activeTheme));
     button.append(...link.childNodes);
-    button.addEventListener("click", () => select(index, remembered.get(index) ?? 0, true, true));
+    button.addEventListener("click", () => {
+      select(index, remembered.get(index) ?? 0, true, true);
+      if (narrowThemes.matches) {
+        themeDisclosure.open = false;
+        themeDisclosure.querySelector("summary").focus({ preventScroll: true });
+      }
+    });
     link.replaceWith(button);
     themeButtons.push(button);
   }
@@ -110,6 +126,7 @@ function enhanceHome(root, data) {
     selectedIndex = essayIndex;
     remembered.set(index, essayIndex);
     const theme = themes[index];
+    find("current-theme").textContent = theme.name;
 
     if (changedTheme) {
       find("drawing").replaceChildren(templates[index].content.cloneNode(true));
@@ -137,7 +154,11 @@ function enhanceHome(root, data) {
     }
     find("title").textContent = essay.title;
     find("title").href = essay.url;
-    find("excerpt").textContent = essay.description;
+    find("selection-title").textContent = essay.title;
+    root.querySelectorAll("[data-home-selection-link]").forEach((link) => {
+      link.href = essay.url;
+    });
+    find("excerpt").textContent = essay.excerpt;
     find("essay-link").href = essay.url;
     find("length").textContent = `${format.format(essay.words)} words; ${essay.minutes} minute read.`;
     find("browse").hidden = items.length < 2;

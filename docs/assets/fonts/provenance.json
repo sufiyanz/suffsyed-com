@@ -1,0 +1,44 @@
+{
+  "source": "Google Fonts upstream, pinned revision",
+  "revision": "809e4d8b8d7e9364a914909bb777679606c178b8",
+  "license": "SIL Open Font License 1.1",
+  "processing": "FontTools 4.59.2 + Brotli 1.1.0; Latin/Latin-extended, Greek and typographic symbols; Newsreader weights 400\u2013700 with its optical-size axis preserved; timestamps preserved.",
+  "fonts": [
+    {
+      "file": "newsreader-roman.woff2",
+      "family": "Newsreader",
+      "style": "normal",
+      "weight": "400 700",
+      "source": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/newsreader/Newsreader%5Bopsz%2Cwght%5D.ttf",
+      "sourceSha256": "8a08d13f8a6c0d51be379a60af84f945f65369a67e509ee3c3bdcc421254d7c1",
+      "sha256": "eb01f98a6d8ed1ad3ade604f1c5b79ea3731c9f227c4f214558f5c3c9da7d0b7"
+    },
+    {
+      "file": "newsreader-italic.woff2",
+      "family": "Newsreader",
+      "style": "italic",
+      "weight": "400 700",
+      "source": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/newsreader/Newsreader-Italic%5Bopsz%2Cwght%5D.ttf",
+      "sourceSha256": "796668611f80b64d5adf182fde3b6f29ed83b4e7cbec7b96937e84ac01364792",
+      "sha256": "be5026a968e27389413574ff99df921c2affc1d11945c482d1fcc1e1110a56c5"
+    },
+    {
+      "file": "dm-mono-regular.woff2",
+      "family": "DM Mono",
+      "style": "normal",
+      "weight": "400",
+      "source": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/dmmono/DMMono-Regular.ttf",
+      "sourceSha256": "55b4c98f123daebb3ed27947ba47b2af00554fc6284d639a540bcef5e6258ad2",
+      "sha256": "7af60a553109bf06b9a1615f14666a435194b376adf7c3d6ccaf4fa3b691840c"
+    },
+    {
+      "file": "dm-mono-medium.woff2",
+      "family": "DM Mono",
+      "style": "normal",
+      "weight": "500",
+      "source": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/dmmono/DMMono-Medium.ttf",
+      "sourceSha256": "fd327daf461db87b44a87def475d251bf03b997f7c07d9680592d75dbbfaad0b",
+      "sha256": "4ec8c9024f8b89972c32651f022642c5126106f43949b72a8176ebfb8e2e5e45"
+    }
+  ]
+}

@@ -221,7 +221,7 @@ def main():
             assert not view.locator(".reading-lens").is_visible()
             assert view.locator(".contents a").count() > 0
         view.goto(args.url)
-        assert view.locator(".featured h2").inner_text()
+        assert view.locator("#home-essay-title").inner_text()
         assert view.locator('a[href^="/futurememo/"]').count() > 5
         no_js.close()
         browser.close()

@@ -18,6 +18,9 @@ def main():
         page = context.new_page()
         page.goto(args.url, wait_until="networkidle")
         assert page.locator("[data-margin-axis]").count() == 3
+        assert not page.locator(".perspective-disclosure").evaluate("el => el.open")
+        page.locator(".perspective-disclosure > summary").focus()
+        page.keyboard.press("Enter")
         assert page.evaluate(f"localStorage.getItem({json.dumps(KEY)})") is None
         axis = page.locator("[data-margin-axis] input[type=range]").first
         axis.focus()
@@ -25,14 +28,17 @@ def main():
         assert page.evaluate(f"localStorage.getItem({json.dumps(KEY)})") is not None
         saved = page.evaluate(f"localStorage.getItem({json.dumps(KEY)})")
         page.reload(wait_until="networkidle")
+        page.locator(".perspective-disclosure > summary").click()
         assert page.evaluate(f"localStorage.getItem({json.dumps(KEY)})") == saved
         page.locator("[data-margin-reset]").click()
         page.reload(wait_until="networkidle")
+        page.locator(".perspective-disclosure > summary").click()
         assert "No mark" in page.locator("[data-margin-output]").first.inner_text()
 
         for corrupt in ["not-json", '{"x":2}', "[null]", "[101,null,null]", '["50",null,null]', "[0.5,null,null]"]:
             page.evaluate("([key,value]) => localStorage.setItem(key,value)", [KEY, corrupt])
             page.reload(wait_until="networkidle")
+            page.locator(".perspective-disclosure > summary").click()
             notice = page.locator("[data-margin-notice]").inner_text()
             assert notice, corrupt
             assert page.locator("[data-storage-problem]").count(), corrupt
@@ -43,6 +49,7 @@ def main():
         denied.add_init_script("""Object.defineProperty(window, 'localStorage', {get() { throw new DOMException('Denied for test', 'SecurityError'); }});""")
         view = denied.new_page()
         view.goto(args.url, wait_until="networkidle")
+        view.locator(".perspective-disclosure > summary").tap()
         assert view.locator("[data-storage-problem]").count()
         view.locator("[data-margin-middle]").first.tap()
         assert view.locator("[data-margin-notice]").inner_text()
