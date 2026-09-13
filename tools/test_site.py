@@ -50,11 +50,15 @@ class JournalTests(unittest.TestCase):
     def test_signature_is_the_validated_vector(self):
         vector = (ROOT / "site/suff-syed-signature.svg").read_bytes()
         self.assertEqual(hashlib.sha256(vector).hexdigest(),
-                         "fdd0c91089963d8584f7c05b5a478473878fb4ad5e45801ac8a136385ed50d67")
+                         "60e67da798d9be5bc743cc65adf46c6c236266f2f7cdc085f2914aae70695084")
         self.assertEqual(vector, (OUT / "assets/suff-syed-signature.svg").read_bytes())
         svg = ET.fromstring(vector)
         self.assertEqual(svg.attrib["viewBox"], "0 0 350 148")
         self.assertEqual(svg.attrib["color"], "#1B2915")
+        paths = svg.findall("{http://www.w3.org/2000/svg}path")
+        self.assertEqual(len(paths), 1)
+        self.assertEqual(paths[0].attrib["d"].count("M"), 1)
+        self.assertTrue(paths[0].attrib["d"].rstrip().endswith("Z"))
         for element in svg.iter():
             self.assertIn(element.tag.split("}")[-1], {"svg", "title", "path"})
             self.assertFalse(any(key.lower().startswith("on") or key.lower().endswith("href") for key in element.attrib))

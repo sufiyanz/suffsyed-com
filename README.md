@@ -115,6 +115,11 @@ references. The builder derives a white reversed version for the dark cover by
 changing only the SVG's root color; the traced path geometry and source master
 are unchanged. It is decorative in context because the adjacent typed name
 already identifies the author. The supplied validated master is preserved byte-for-byte.
+The current master uses the approved balanced fountain-pen refinement: lighter
+broad strokes with the hairlines, entry/exit tips and natural width variation
+retained. Its framing and displayed size are unchanged; there is no CSS thinning,
+opacity reduction or uniform-width stroke. Commit `5d440a7` preserves the previous
+heavier master for comparison.
 
 Below the cover, home keeps its deliberate sequence: one featured thought with an original cover
 and primary reading action; an optional connection instrument; a photographic
