@@ -118,7 +118,7 @@ def main():
                 page.keyboard.press("Enter")
                 assert page.locator(".reading-key").evaluate("el => el.open")
                 page.keyboard.press("Tab")
-                assert page.evaluate("document.activeElement.hasAttribute('data-home-selection-link')")
+                assert page.evaluate("document.activeElement.hasAttribute('data-trace-section')")
                 assert page.evaluate("getComputedStyle(document.activeElement).outlineStyle") == "solid"
             context.close()
 

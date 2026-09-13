@@ -45,7 +45,7 @@ def main():
                 assert state["left"] == 0 and state["top"] == 0, (width, route, state)
                 assert abs(state["right"] - state["viewport"]) < 1, (width, route, state)
                 assert not state["overflow"], (width, route)
-                assert state["background"] == state["paper"] == "rgb(255, 250, 243)"
+                assert state["background"] == state["paper"] == "rgb(239, 237, 230)"
                 assert state["maxWidth"] == state["captionMaxWidth"] == "none"
                 assert state["margins"] == state["borders"] == ["0px"] * 4
                 assert state["shadow"] == "none" and state["padding"] >= 20

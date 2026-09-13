@@ -7,6 +7,8 @@ from html import escape
 from pathlib import PurePosixPath
 from urllib.parse import quote, unquote, urlsplit
 
+from corpus import TOKEN
+
 
 def _text(value):
     return escape(str(value), quote=True)
@@ -164,8 +166,8 @@ def _plate(theme, count, words, prefix):
         <path class="leader" d="M171 67H44V205H17"/>
         <text x="16" y="220" class="technical">02 / LENGTH</text>
         <path d="M470 126L481 135V447L470 438Z" fill="{theme["edge"]}"/>
-        <g filter="url(#{prefix}-shadow)"><rect x="150" y="126" width="320" height="320" fill="var(--cp-surface)"/></g>
-        <rect x="150" y="126" width="320" height="320" fill="var(--cp-surface)" filter="url(#{prefix}-grain)"/>
+        <g filter="url(#{prefix}-shadow)"><rect x="150" y="126" width="320" height="320" fill="var(--cp-figure)"/></g>
+        <rect x="150" y="126" width="320" height="320" fill="var(--cp-figure)" filter="url(#{prefix}-grain)"/>
         {_engraving(theme, count)}
         <g class="running-ring">{"".join(border)}</g>
         <g class="running-light"><path d="M310 136A146 146 0 0 1 448 234"
@@ -194,6 +196,44 @@ def _index(items, selected):
     )
 
 
+def _marked_text(text, term):
+    parts, cursor = [], 0
+    for match in TOKEN.finditer(text):
+        if match.group().lower().replace("’", "'") != term:
+            continue
+        parts.extend([_text(text[cursor:match.start()]), f"<mark>{_text(match.group())}</mark>"])
+        cursor = match.end()
+    return "".join(parts) + _text(text[cursor:])
+
+
+def _trace_rows(word):
+    maximum = word["sections"][0]["count"]
+    return "".join(
+        f'<li><a href="{_text(section["url"])}" data-trace-section="{_text(section["id"])}">'
+        f'<span>{_text(section["title"])}</span><span class="trace-count">{section["count"]}</span>'
+        f'<span class="trace-rule" style="--portion:{section["count"] / maximum * 100:.6f}%" aria-hidden="true"></span></a></li>'
+        for section in word["sections"][:3]
+    )
+
+
+def _plate_terms(plate):
+    return "".join(
+        f'<a class="plate-term" data-plate-term="{_text(word["term"])}" href="{_text(word["url"])}"'
+        f'{" data-selected=true" if index == 0 else ""}>'
+        f'{_text(word["term"])} <small>{word["count"]}</small></a>'
+        for index, word in enumerate(plate["terms"])
+    )
+
+
+def _neighbor(plate):
+    if not plate["related"]:
+        return '<p>No qualifying prose neighbor for this passage.</p>'
+    match = plate["related"][0]
+    return (f'<a href="{_text(match["url"])}">{_text(match["title"])}</a>'
+            f'<p>Shared words: {_text(" · ".join(match["shared"]))}.</p>'
+            '<p>Shared vocabulary, not agreement or evidence.</p>')
+
+
 def _photographs(gallery):
     figures = []
     for image in gallery:
@@ -214,7 +254,7 @@ def _photographs(gallery):
             f'sizes="{sizes}" '
             f'alt="{_text(alt)}"{dimensions} loading="lazy" decoding="async">'
             f'<span class="home-inspect" aria-hidden="true">↗</span></a>'
-            f'<figcaption>{_text(alt)}</figcaption></figure>'
+            f'<figcaption><span class="photo-plate-number">Plate {len(figures) + 1:02d}</span>{_text(alt)}</figcaption></figure>'
         )
         if len(figures) == 3:
             break
@@ -224,9 +264,10 @@ def _photographs(gallery):
 def render_home(rows, themes, gallery):
     """Return body HTML only; the caller owns the shell, CSS/JS links and lightbox.
 
-    ``rows`` is the metadata-only essay list, ``themes`` the ordered theme/color
+    ``rows`` supplies essay metadata and derived reading plates, ``themes`` the ordered theme/color
     definitions, and ``gallery`` the original local photographs with dimensions.
-    No input objects are mutated. The embedded home-data contains no essay bodies.
+    No input objects are mutated. The embedded home-data contains selected whole
+    prose passages, not duplicate full essay bodies.
     """
     palette = []
     for index, theme in enumerate(themes):
@@ -259,6 +300,7 @@ def render_home(rows, themes, gallery):
             "minutes": _integer(row.get("minutes"), max(1, math.ceil(words / 220))),
             "theme": str(row["theme"]),
             "no": str(row.get("no", index + 1)).zfill(2),
+            "readingPlate": row["readingPlate"],
         })
     groups = [[row for row in essays if row["theme"] == theme["name"]] for theme in palette]
     active = next(
@@ -270,6 +312,8 @@ def render_home(rows, themes, gallery):
         raise ValueError("render_home requires an essay in one of its themes")
     selected = next((index for index, row in enumerate(items) if "qubit-teams" in row["slug"].lower()), 0)
     essay, theme = items[selected], palette[active]
+    plate = essay["readingPlate"]
+    passage, word = plate["passage"], plate["terms"][0]
     total_words = sum(row["words"] for row in items)
     swatches = "".join(
         f'<span style="--swatch:{theme[key]}"></span>' for key in ("band", "second", "edge")
@@ -331,63 +375,77 @@ def render_home(rows, themes, gallery):
     <header class="chapter-heading">
       <div><p class="label chapter-number">The collection / {collection_count} essays</p>
         <h2 id="connections-title">Follow a thought further.</h2></div>
-      <div class="chapter-purpose"><p>Choose a theme to change the opening essay and drawing.</p>
-        <p class="micro">Editorial paths, not machine-inferred connections.</p>
-        <a class="secondary-link" href="/futurememo/">Explore the complete archive ↗</a></div>
+      <div class="chapter-purpose"><p>Read a whole passage. Follow a word through the essay around it.</p>
+        <a class="secondary-link" href="/methods/#reading-plates">How to read this plate ↗</a></div>
     </header>
     <div class="collection-instrument">
       <details class="theme-selector" data-home-theme-selector open>
         <summary><span data-home-current-theme>{_text(theme["name"])}</span><span class="theme-toggle-label">Change theme</span></summary>
       <section class="themes" id="preoccupations" aria-labelledby="home-themes-title">
-        <div><h3 id="home-themes-title">{theme_count} preoccupations.</h3>
+        <div><h3 id="home-themes-title">{theme_count} preoccupations</h3>
           <p class="theme-help"><span data-home-theme-help>Follow a pattern into the essay archive.</span>
             <noscript>The diagram below depicts {_text(theme["name"])}. Each pattern links to its essays.</noscript></p></div>
         <div class="theme-options" data-home-theme-options aria-label="The preoccupations">{"".join(options)}</div>
       </section>
       </details>
-      <div class="plate" id="reading" aria-label="An annotated portrait of the writing">
-    <figure class="instrument">
-      <div class="instrument-top"><span class="label muted" data-home-plate-label>Plate {active + 1:02d} / {_text(theme["name"])}</span>
-        <button class="home-plain" data-home-motion type="button" aria-pressed="false" hidden>Pause the motion</button></div>
-      <div data-home-drawing>{_plate(theme, len(items), essay["words"], "home-active")}</div>
-      <figcaption class="instrument-caption">
-        <span data-home-count>{total_words:,} words across this theme.</span>
-        <span>Decorative motion, not live telemetry.</span>
-      </figcaption>
-      <details class="reading-key" id="reading-key">
-        <summary>How to read this drawing</summary>
-        <div class="margin-notes">
-      <div class="annotation"><span class="number">01 / Theme</span><h4>A recurring preoccupation</h4>
-        <p>The colored bands identify the selected theme.</p>
-        <div class="swatches" data-home-swatches aria-hidden="true">{swatches}</div></div>
-      <div class="annotation"><span class="number">02 / Length</span><h4>Time spent in a thought</h4>
-        <p>One black bar per hundred words, rounded up. Length, not importance.</p></div>
-      <div class="annotation"><span class="number">03 / Face</span><h4>A pattern, not a verdict</h4>
-        <p>Each lobe stands for an essay. The fine lines are expressive, not measured evidence.</p></div>
-        </div>
-      </details>
-    </figure>
+      <div class="plate" id="reading" aria-label="Original prose beside its measured reading plate">
     <div class="exploration-reading">
       <section class="selected-path" aria-labelledby="selected-path-title">
-        <div class="selection-top"><p class="label" id="selected-path-title">Selected essay</p>
+        <div class="selection-top"><p class="label" id="selected-path-title">Fig. 01 / A passage to follow</p>
           <span class="label" data-home-position>{selected + 1} / {len(items)}</span></div>
         <h3><a data-home-selection-link data-home-selection-title href="{_text(essay["url"])}">{_text(essay["title"])}</a></h3>
-        <span class="featured-length" data-home-length>{essay["words"]:,} words; {essay["minutes"]} minute read.</span>
+        <p class="plate-source" data-home-source>Passage {passage["no"]} / {_text(plate["sectionTitle"])} · {passage["words"]} words, unabridged.</p>
+        <blockquote class="plate-quote" data-home-passage-text cite="{_text(plate["url"])}">{_marked_text(passage["text"], word["term"])}</blockquote>
         <div class="selection-actions"><div class="selection-links">
-          <a class="primary-link" data-home-selection-link href="{_text(essay["url"])}">Read selected essay ↗</a>
+          <a class="primary-link" data-home-selection-link data-home-context href="{_text(plate["url"])}">Read in context ↗</a>
           <a class="secondary-link" href="#home-essay-title">See cover above ↑</a></div>
           <span class="browse-controls" data-home-browse hidden>
             <button type="button" data-home-previous aria-label="Previous essay in this theme">←</button>
             <button type="button" data-home-next aria-label="Next essay in this theme">→</button>
           </span></div>
+        <div class="plate-vocabulary">
+          <p class="label" id="plate-word-label">A word from this passage</p>
+          <div class="plate-terms" data-home-terms aria-labelledby="plate-word-label">{_plate_terms(plate)}</div>
+          <p class="micro" data-home-word-status role="status">“{_text(word["term"])}”: {word["here"]} here · {word["count"]} across the full essay.</p>
+          <noscript><p class="micro">The word links open the original passage. With JavaScript, they also open the essay’s filtered reading lens.</p></noscript>
+        </div>
+        <details class="passage-neighbor"><summary>A shared-word detour</summary><div data-home-neighbor>{_neighbor(plate)}</div></details>
       </section>
-      <section class="index-strip" aria-labelledby="home-index-title">
-        <div><h3 id="home-index-title">Other ways into this question</h3>
-          <p data-home-index-description>{len(items)} essays in {_text(theme["name"])}.</p></div>
+      <details class="index-strip">
+        <summary id="home-index-title">Other essays in this preoccupation</summary>
+          <p data-home-index-description>{len(items)} essays in {_text(theme["name"])}.</p>
         <ol class="essay-index" data-home-index aria-label="Essays in the selected theme">{_index(items, selected)}</ol>
         <a class="secondary-link" data-home-archive href="{theme["archive"]}">Browse this theme ↗</a>
-      </section>
+      </details>
     </div>
+    <figure class="instrument">
+      <div class="instrument-top"><span class="label muted" data-home-plate-label>Fig. 02 / {_text(theme["name"])}</span>
+        <button class="home-plain" data-home-motion type="button" aria-pressed="false" hidden>Pause the motion</button></div>
+      <div data-home-drawing>{_plate(theme, len(items), essay["words"], "home-active")}</div>
+      <figcaption class="instrument-caption">
+        <span data-home-length>The quoted passage belongs to a {essay["words"]:,}-word essay; about {essay["minutes"]} minutes to read.</span>
+        <span data-home-count>{total_words:,} words across this theme.</span>
+      </figcaption>
+      <details class="reading-key" id="reading-key">
+        <summary>How to read this drawing</summary>
+        <div class="margin-notes">
+      <div class="annotation"><span class="number">01 / Theme</span><h4>A recurring preoccupation</h4>
+        <p>The colored bands identify the selected editorial theme.</p>
+        <div class="swatches" data-home-swatches aria-hidden="true">{swatches}</div></div>
+      <div class="annotation"><span class="number">02 / Length</span><h4>Time spent in a thought</h4>
+        <p>One black bar per hundred essay words, rounded up. Length, not importance.</p></div>
+      <div class="annotation"><span class="number">03 / Face</span><h4>A pattern, not a verdict</h4>
+        <p>Each lobe stands for an essay. Fine lines and motion are expressive, not measured evidence or live telemetry.</p></div>
+        </div>
+      </details>
+      <div class="word-trace" aria-labelledby="word-trace-title">
+        <p class="label" id="word-trace-title">Fig. 03 / Where the word returns</p>
+        <p class="trace-title" data-home-trace-title>“{_text(word["term"])}” through the essay</p>
+        <ol class="trace-sections" data-home-trace-sections>{_trace_rows(word)}</ol>
+        <p class="micro" data-home-trace-note>Occurrences by section, including headings and captions. Showing {min(3, len(word["sections"]))} of {len(word["sections"])} matching sections, most frequent first.</p>
+        <a class="secondary-link" data-home-word-link href="{_text(word["url"])}">Find all {word["count"]} occurrences in context ↗</a>
+      </div>
+    </figure>
     </div>
     </div>
   </section>

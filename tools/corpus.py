@@ -4,7 +4,7 @@ import math
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlencode, urlsplit
 
 from bs4 import BeautifulSoup, NavigableString
 
@@ -172,6 +172,47 @@ def connect(rows):
             })
             if len(used) == 3:
                 break
+
+
+def reading_plate(essay):
+    """One whole prose passage and exact recurrence, never a generated summary."""
+    recurring = [item for item in essay["terms"] if item["count"] >= 2 and not item["term"].isdigit()]
+    candidates = []
+    for passage in essay["passages"]:
+        found = [item for item in recurring if passage["terms"].get(item["term"])]
+        if passage["kind"] in PROSE and passage["words"] >= 20 and found:
+            candidates.append((passage, found))
+    preferred = [(p, terms) for p, terms in candidates
+                 if p["kind"] == "p" and 35 <= p["words"] <= 100 and len(terms) >= 3]
+    if not candidates:
+        raise ValueError(f'{essay["slug"]}: no complete prose passage with recurring vocabulary')
+    passage, recurring = min(preferred or candidates,
+                             key=lambda item: (-min(len(item[1]), 4), abs(item[0]["words"] - 65), item[0]["no"]))
+    sections = {section["id"]: section for section in essay["sections"]}
+    words = []
+    for item in recurring[:4]:
+        term = item["term"]
+        traces = []
+        for section in essay["sections"]:
+            matches = [p for p in essay["passages"] if p["section"] == section["id"] and p["terms"].get(term)]
+            if matches:
+                traces.append({
+                    "id": section["id"], "title": section["title"],
+                    "count": sum(p["terms"][term] for p in matches),
+                    "url": f'{essay["url"]}?{urlencode({"term": term, "section": section["id"]})}#{quote(matches[0]["id"])}',
+                })
+        words.append({
+            **item, "here": passage["terms"][term],
+            "url": f'{essay["url"]}?{urlencode({"term": term})}#{quote(passage["id"])}',
+            "sections": sorted(traces, key=lambda trace: -trace["count"]),
+        })
+    return {
+        "passage": {key: passage[key] for key in ["id", "no", "kind", "text", "words", "section"]},
+        "sectionTitle": sections[passage["section"]]["title"],
+        "url": f'{essay["url"]}#{quote(passage["id"])}',
+        "terms": words,
+        "related": passage["related"][:1],
+    }
 
 
 def content_digest(fragment):

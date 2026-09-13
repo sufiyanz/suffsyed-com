@@ -7,6 +7,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
+TOKEN = re.compile(r"[A-Za-z0-9]+(?:[’'\-][A-Za-z0-9]+)*")
 
 
 def main():
@@ -39,11 +40,24 @@ def main():
                 assert row["url"] in links, (title, links)
                 destination = page.locator("[data-home-selection-link]")
                 assert destination.count() == 2
-                assert destination.evaluate_all("els => els.map(el => el.getAttribute('href'))") == [row["url"]] * 2
+                plate = next(essay for essay in page.locator("#home-data").evaluate("el => JSON.parse(el.textContent).essays") if essay["slug"] == row["slug"])["readingPlate"]
+                assert destination.evaluate_all("els => els.map(el => el.getAttribute('href'))") == [row["url"], plate["url"]]
                 assert page.locator("[data-home-selection-title]").inner_text() == title
                 image = page.locator(".featured img")
                 assert image.get_attribute("src") == row["cover"]
                 assert image.get_attribute("alt")
+                image.evaluate("el => el.decode()")
+                assert page.locator("[data-home-root]").get_attribute("data-selected-word") == plate["terms"][0]["term"]
+                for term_index, word in enumerate(plate["terms"]):
+                    page.locator("[data-plate-term]").nth(term_index).click()
+                    assert page.locator("[data-home-passage-text]").text_content() == plate["passage"]["text"]
+                    expected_marks = [match.group() for match in TOKEN.finditer(plate["passage"]["text"])
+                                      if match.group().lower().replace("’", "'") == word["term"]]
+                    assert page.locator("[data-home-passage-text] mark").all_text_contents() == expected_marks
+                    assert len(expected_marks) == word["here"]
+                    assert page.locator("[data-home-word-status]").inner_text() == f'“{word["term"]}”: {word["here"]} here · {word["count"]} across the full essay.'
+                    assert page.locator("[data-home-word-link]").get_attribute("href") == word["url"]
+                    assert page.locator("[data-trace-section]").evaluate_all("els => els.map(el => el.getAttribute('href'))") == [section["url"] for section in word["sections"][:3]]
                 page.get_by_role("button", name="Next essay in this theme").click()
         assert len(visited) == 20
         page.evaluate("scrollTo({top:0,behavior:'instant'})")
@@ -70,14 +84,14 @@ def main():
         title = mobile.locator("#home-essay-title").inner_text()
         mobile.get_by_role("button", name="Next essay in this theme").tap()
         assert mobile.locator("#home-essay-title").inner_text() != title
-        read_selected = mobile.get_by_role("link", name="Read selected essay")
+        read_selected = mobile.get_by_role("link", name="Read in context")
         destination = read_selected.get_attribute("href")
         read_selected.tap()
         mobile.wait_for_url("**" + destination)
         assert mobile.url.endswith(destination)
         touch.close()
         browser.close()
-    print("PASS: all 20 home selections, exact tally counts, covers, real links, theme deep links, pause and offscreen motion.")
+    print("PASS: all 20 home selections, original passages, exact word highlights/counts/section links, reset state, covers, context links, keyboard/touch and paused/offscreen motion.")
 
 
 if __name__ == "__main__":

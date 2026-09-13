@@ -6,12 +6,12 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 import xml.etree.ElementTree as ET
 
 from bs4 import BeautifulSoup
 
-from corpus import content_digest, flat_text, tokens
+from corpus import content_digest, flat_text, reading_plate, tokens
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs"
@@ -144,6 +144,37 @@ class JournalTests(unittest.TestCase):
             soup = self.pages[OUT / "futurememo" / essay["slug"] / "index.html"]
             model = json.loads(soup.select_one("#essay-data").string)
             self.assertEqual(essay["passages"], [{"id": p["id"], "text": p["text"], "kind": p["kind"], "label": p["label"]} for p in model["passages"]])
+
+    def test_reading_plates_are_original_and_exact(self):
+        home = self.pages[OUT / "index.html"]
+        entries = json.loads(home.select_one("#home-data").string)["essays"]
+        self.assertEqual(len(entries), 20)
+        for entry in entries:
+            model = json.loads(self.pages[OUT / "futurememo" / entry["slug"] / "index.html"].select_one("#essay-data").string)
+            plate = entry["readingPlate"]
+            self.assertEqual(plate, reading_plate(model))
+            passage = next(p for p in model["passages"] if p["id"] == plate["passage"]["id"])
+            self.assertIn(passage["kind"], {"p", "li", "blockquote"})
+            self.assertEqual(plate["passage"]["text"], passage["text"])
+            self.assertEqual(plate["url"], entry["url"] + "#" + passage["id"])
+            for word in plate["terms"]:
+                self.assertEqual(word["here"], passage["terms"][word["term"]])
+                self.assertEqual(word["count"], sum(p["terms"].get(word["term"], 0) for p in model["passages"]))
+                self.assertEqual(sum(section["count"] for section in word["sections"]), word["count"])
+                self.assertEqual(parse_qs(urlsplit(word["url"]).query), {"term": [word["term"]]})
+                for section in word["sections"]:
+                    parsed = urlsplit(section["url"])
+                    self.assertEqual(parse_qs(parsed.query), {"term": [word["term"]], "section": [section["id"]]})
+                    first = next(p for p in model["passages"] if p["section"] == section["id"] and p["terms"].get(word["term"]))
+                    self.assertEqual(parsed.fragment, first["id"])
+                    self.assertEqual(section["count"], sum(p["terms"].get(word["term"], 0) for p in model["passages"] if p["section"] == section["id"]))
+            for neighbor in plate["related"]:
+                destination = json.loads(self.pages[OUT / "futurememo" / neighbor["slug"] / "index.html"].select_one("#essay-data").string)
+                target = next(p for p in destination["passages"] if p["id"] == neighbor["id"])
+                self.assertIn(target["kind"], {"p", "li", "blockquote"})
+                self.assertTrue(set(neighbor["shared"]) <= passage["terms"].keys() & target["terms"].keys())
+        initial = next(entry["readingPlate"] for entry in entries if "qubit-teams" in entry["slug"])
+        self.assertEqual(home.select_one("[data-home-passage-text]").get_text(), initial["passage"]["text"])
 
     def test_original_tables_restored(self):
         tables = [table for path, soup in self.pages.items() if "/futurememo/" in str(path) for table in soup.select("#essay-body table")]

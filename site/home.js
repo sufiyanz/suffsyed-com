@@ -59,7 +59,70 @@ function enhanceHome(root, data) {
     link.replaceWith(button);
     themeButtons.push(button);
   }
-  find("theme-help").textContent = "Select a pattern. The drawing, artwork, and reading path change together.";
+  find("theme-help").textContent = "The passage, artwork, and measures change together.";
+
+  function node(tag, text, className) {
+    const element = document.createElement(tag);
+    if (text !== undefined) element.textContent = text;
+    if (className) element.className = className;
+    return element;
+  }
+
+  function showWord(word) {
+    const plate = groups[activeTheme][selectedIndex].readingPlate;
+    root.dataset.selectedWord = word.term;
+    find("passage-text").replaceChildren(markedText(plate.passage.text, word.term));
+    find("word-status").textContent = `“${word.term}”: ${word.here} here · ${word.count} across the full essay.`;
+    find("trace-title").textContent = `“${word.term}” through the essay`;
+    find("trace-note").textContent = `Occurrences by section, including headings and captions. Showing ${Math.min(3, word.sections.length)} of ${word.sections.length} matching sections, most frequent first.`;
+    find("word-link").href = word.url;
+    find("word-link").textContent = `Find all ${word.count} occurrences in context ↗`;
+    const maximum = word.sections[0].count;
+    const traces = word.sections.slice(0, 3).map(section => {
+      const item = node("li");
+      const link = node("a");
+      link.href = section.url;
+      link.dataset.traceSection = section.id;
+      const rule = node("span", undefined, "trace-rule");
+      rule.style.setProperty("--portion", `${section.count / maximum * 100}%`);
+      rule.setAttribute("aria-hidden", "true");
+      link.append(node("span", section.title), node("span", String(section.count), "trace-count"), rule);
+      item.append(link);
+      return item;
+    });
+    find("trace-sections").replaceChildren(...traces);
+    find("terms").querySelectorAll("[data-plate-term]").forEach(button => {
+      button.setAttribute("aria-pressed", String(button.dataset.plateTerm === word.term));
+    });
+  }
+
+  function showReadingPlate(essay) {
+    const plate = essay.readingPlate;
+    root.dataset.platePassage = plate.passage.id;
+    find("source").textContent = `Passage ${plate.passage.no} / ${plate.sectionTitle} · ${plate.passage.words} words, unabridged.`;
+    find("passage-text").cite = plate.url;
+    find("terms").replaceChildren(...plate.terms.map(word => {
+      const button = node("button", word.term + " ");
+      button.type = "button";
+      button.className = "plate-term";
+      button.dataset.plateTerm = word.term;
+      button.append(node("small", String(word.count)));
+      button.addEventListener("click", () => showWord(word));
+      return button;
+    }));
+    const match = plate.related[0];
+    const neighbor = find("neighbor");
+    neighbor.replaceChildren();
+    if (match) {
+      const link = node("a", match.title);
+      link.href = match.url;
+      neighbor.append(link, node("p", `Shared words: ${match.shared.join(" · ")}.`),
+        node("p", "Shared vocabulary, not agreement or evidence."));
+    } else {
+      neighbor.append(node("p", "No qualifying prose neighbor for this passage."));
+    }
+    showWord(plate.terms[0]);
+  }
 
   function updateBars(essay, count) {
     const drawing = find("drawing");
@@ -133,7 +196,7 @@ function enhanceHome(root, data) {
       makeIndex(items);
     }
     updateBars(essay, items.length);
-    find("plate-label").textContent = `Plate ${String(index + 1).padStart(2, "0")} / ${theme.name}`;
+    find("plate-label").textContent = `Fig. 02 / ${theme.name}`;
     find("count").textContent = `${format.format(items.reduce((sum, item) => sum + item.words, 0))} words across this theme.`;
     find("position").textContent = `${essayIndex + 1} / ${items.length}`;
     const cover = find("cover");
@@ -156,11 +219,12 @@ function enhanceHome(root, data) {
     find("title").href = essay.url;
     find("selection-title").textContent = essay.title;
     root.querySelectorAll("[data-home-selection-link]").forEach((link) => {
-      link.href = essay.url;
+      link.href = link.hasAttribute("data-home-context") ? essay.readingPlate.url : essay.url;
     });
     find("excerpt").textContent = essay.excerpt;
     find("essay-link").href = essay.url;
-    find("length").textContent = `${format.format(essay.words)} words; ${essay.minutes} minute read.`;
+    find("length").textContent = `The quoted passage belongs to a ${format.format(essay.words)}-word essay; about ${essay.minutes} minutes to read.`;
+    showReadingPlate(essay);
     find("browse").hidden = items.length < 2;
     find("index-description").textContent = `${items.length} ${items.length === 1 ? "essay" : "essays"} in ${theme.name}.`;
     find("archive").href = theme.archive;
@@ -242,3 +306,4 @@ function enhanceHome(root, data) {
   }
   updateMotion();
 }
+import { markedText } from "./text.js";

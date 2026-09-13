@@ -6,9 +6,14 @@ Python builds plain HTML, CSS, SVG and small JavaScript modules. GitHub Pages
 serves `main` / `docs`; there is no application server, tracking, model API or
 runtime dependency on Squarespace.
 
-The shared page shell is edge-to-edge ivory, without an inset sheet, viewport
+The shared page shell is full-bleed paper, without an inset sheet, viewport
 surround, or outer shadow. Responsive inner padding and narrow essay measures
-keep the full-width layout readable.
+keep the full-width layout readable. Six exact core colors are centralized in
+`site/journal.css`: forest `#1B2915`, green `#305831`, stone `#D7CDB8`, paper
+`#EFEDE6`, white `#FFFFFF`, and ink `#191919`. Existing semantic `--cp-*` aliases
+use those sources. Stone-on-paper is decorative, never an important text or
+control boundary. Engraved theme pigments may vary; original cover and
+photograph pixels are never recolored or filtered.
 
 ## Source of truth
 
@@ -90,13 +95,32 @@ also a disclosure, fully expanded without JavaScript. The original scientific
 drawings, full-bleed paper and full essay text remain.
 
 The selected story is the opening's dominant headline; the site statement is
-quiet editorial context. A full-width mint ground groups the connection
-instrument, and a localized deep-ink photographic chapter separates the gallery
-from the ivory reading/research areas. These are chapter grounds, not an outer
+quiet editorial context. A warm stone field groups the reading plate,
+and a localized forest photographic chapter separates the gallery
+from the paper reading/research areas. These are chapter grounds, not an outer
 page frame. The composition was informed by the published
 [Frontend Design Review](https://github.com/microsoft/skills/tree/main/.github/skills/frontend-design-review)
 framework's frictionless action, craft and trustworthy-behavior principles.
 There is no Figma design system or claim of Figma compliance.
+
+The reading plate follows the illustrated-field-guide principle of placing a
+figure beside the prose it helps navigate, rather than treating every
+illustration as an independent feature. It reuses the original engraving and
+essay analysis, not another site's assets, code or fonts.
+
+`corpus.reading_plate()` deterministically selects one complete prose passage per
+essay. It prefers 35–100-word paragraphs containing at least three recurring
+eligible terms; it favors up to four distinct terms, then length nearest 65
+words, then the earliest passage. The fallback is eligible prose of at least
+20 words. This is a mechanical entry point, not a generated summary. Up to four
+words reuse the full essay's ranked vocabulary. A selection highlights the
+original casing, shows exact passage/full-body counts, and traces the three most
+frequent matching sections. Section links carry the exact word, section and first
+matching passage into the existing lens; the full-count link carries the word and
+quoted passage. The optional detour reuses the existing lexical-neighbor model.
+All states change with the selected essay. A no-JavaScript visitor still gets
+the whole quoted passage, measurements and native original-source links.
+`site/text.js` shares token normalization with the essay reader.
 
 ### Private Kyoto purchase evaluation
 
@@ -229,8 +253,9 @@ at desktop, tablet and phone sizes, full-word/query safety, reduced motion,
 no-JavaScript reading, and missing assets/browser errors. Additional instrument
 checks exercise corrupt/denied storage, keyboard/touch axes, research playback,
 pause/resume/reset and reduced motion. The home suite traverses all twenty
-selections and verifies their exact tallies, covers, canonical links and
-offscreen/paused motion. The hierarchy suite verifies actual custom-font glyph
+selections and their measured words, verifying original-case passage highlights,
+exact counts, section/source links, selection resets, covers and offscreen/paused
+motion. The hierarchy suite verifies actual custom-font glyph
 rendering, the four public font files (plus three Kyoto faces when explicitly
 run with `--private-fonts`), controls, current-section orientation and all
 twenty selections at 320/390/820/1600/1920px, plus 200%/400% zoom-equivalent CSS

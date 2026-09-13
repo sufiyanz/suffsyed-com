@@ -47,6 +47,13 @@ def main():
                         (".research-teaser", "unfinished-chapter"),
                     ]:
                         page.locator(selector).screenshot(path=str(args.artifacts / f"home-{name}-{label}.png"))
+                    if page.locator("[data-plate-term]").count():
+                        page.locator(".selected-path").screenshot(path=str(args.artifacts / f"home-{name}-source-passage.png"))
+                        page.locator("[data-plate-term]").nth(1).click()
+                        page.locator(".selected-path").screenshot(path=str(args.artifacts / f"home-{name}-selected-word.png"))
+                        page.locator(".word-trace").screenshot(path=str(args.artifacts / f"home-{name}-word-trace.png"))
+                        page.locator(".passage-neighbor > summary").click()
+                        page.locator(".passage-neighbor").screenshot(path=str(args.artifacts / f"home-{name}-shared-word-detour.png"))
                     page.locator(".perspective-disclosure > summary").click()
                     page.locator(".reader-margin").screenshot(path=str(args.artifacts / f"home-{name}-reader-participation.png"))
                     if name == "phone":

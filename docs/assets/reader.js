@@ -1,6 +1,6 @@
+import { normalize, tokenPattern } from "./text.js";
+
 const embedded = document.getElementById("essay-data");
-const normalize = value => value.toLowerCase().replaceAll("’", "'");
-const tokenPattern = () => /[A-Za-z0-9]+(?:[’'\-][A-Za-z0-9]+)*/g;
 if (embedded) initializeReader(JSON.parse(embedded.textContent));
 
 function element(tag, text, className) {
@@ -119,6 +119,8 @@ function initializeReader(essay) {
     inspector.hidden = false;
     document.getElementById("inspected-text").textContent = passage.kind === "table" ? `Table / ${passage.label}. Read its original rows and columns in the essay.` : passage.text;
     document.getElementById("inspector-title").textContent = passage.kind === "table" ? "A structured comparison." : "A thought in company.";
+    document.getElementById("inspected-source").textContent =
+      `Passage ${passage.no} / ${essay.sections.find(section => section.id === passage.section).title}`;
     const link = document.getElementById("inspected-link");
     link.href = `#${id}`;
     link.onclick = event => { event.preventDefault(); jump(id); };

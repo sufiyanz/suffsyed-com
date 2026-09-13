@@ -9,7 +9,7 @@
 .research-teaser a:focus-visible { outline: 2px solid var(--cp-accent); outline-offset: 4px; }
 .question-nojs { font-size: 14px; font-style: italic; color: var(--cp-text-muted); }
 
-.reader-margin { padding: 32px 40px 24px; border-top-color: var(--cp-pigment-teal); background: var(--cp-accent-soft); }
+.reader-margin { padding: 32px 40px 24px; border-top-color: var(--cp-accent); background: var(--cp-accent-soft); }
 .margin-heading { display: flex; justify-content: space-between; align-items: end; gap: 48px; }
 .margin-heading h2 { margin: 16px 0 0; max-width: 650px; font-size: clamp(36px, 3.3vw, 52px); font-weight: 600; letter-spacing: -.035em; line-height: 1.12; }
 .margin-heading > p { max-width: 430px; font: 400 21px/1.45 var(--sans); color: var(--cp-text-muted); }
@@ -110,7 +110,7 @@
 .research-log li > p:last-child { font-size: 18px; line-height: 1.75; max-width: 720px; color: var(--cp-text-muted); }
 .research-result-link { display: inline-block; padding: 13px 0; margin-top: 10px; font: 700 18px/1.4 var(--sans); }
 .research-artifact { padding: 36px 0 46px; border-top: 1px solid var(--cp-border-strong); scroll-margin-top: 28px; }
-.research-side .artifact-stamp { margin: 20px 0; padding-left: 13px; border-left: 2px solid var(--cp-pigment-teal); font-style: italic; color: var(--cp-text); }
+.research-side .artifact-stamp { margin: 20px 0; padding-left: 13px; border-left: 2px solid var(--cp-accent); font-style: italic; color: var(--cp-text); }
 .artifact-body { min-width: 0; max-width: 800px; }
 .artifact-body h2 { font-size: 44px; line-height: 1.15; letter-spacing: -.03em; }
 .artifact-question { margin: 24px 0; font-size: 23px; line-height: 1.55; }
