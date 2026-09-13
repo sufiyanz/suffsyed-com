@@ -198,6 +198,7 @@ function setupPlayground(cover) {
     const hadFocus = record.root.contains(document.activeElement);
     teardown();
     shell.dataset.state = "error";
+    viewport.setAttribute("aria-busy", "false");
     feedback.hidden = false;
     feedbackText.textContent = message;
     retry.hidden = false;
@@ -225,7 +226,8 @@ function setupPlayground(cover) {
     heading.textContent = experience.title;
     if (focusWasInside) heading.focus({ preventScroll: true });
     shell.dataset.state = "loading";
-    status.textContent = "";
+    viewport.setAttribute("aria-busy", "true");
+    status.textContent = `Opening ${experience.title.toLowerCase()}.`;
     feedback.hidden = false;
     feedbackText.textContent = `Opening ${experience.title.toLowerCase()}…`;
     retry.hidden = true;
@@ -276,6 +278,10 @@ function setupPlayground(cover) {
       root.inert = false;
       feedback.hidden = true;
       shell.dataset.state = "ready";
+      viewport.setAttribute("aria-busy", "false");
+      if (status.textContent === `Opening ${experience.title.toLowerCase()}.`) {
+        status.textContent = `${experience.title} is ready.`;
+      }
       updateActive();
     } catch (error) {
       if (stillCurrent(record)) fail(record, `Could not open ${experience.title.toLowerCase()}. Retry or choose another experiment.`, error);

@@ -26,8 +26,8 @@
 .pg-feedback { position: absolute; inset: 0; padding: 18px; overflow: auto; background: var(--cp-bg); }
 .pg-feedback p { max-width: 65ch; margin-bottom: 12px; }
 .pg-footer { display: flex; justify-content: space-between; align-items: end; gap: 8px; flex: none; }
-.pg-status { font: 400 12px/1.4 var(--font-technical); max-height: 3em; overflow: auto; }
-.pg-ephemeral { flex: none; font: 400 10px/1.4 var(--font-technical); color: var(--cp-text-muted); }
+.pg-status { min-width: 0; flex: 1; font: 400 12px/1.4 var(--font-technical); max-height: 3em; overflow: auto; overflow-wrap: anywhere; }
+.pg-ephemeral { flex: none; max-width: 55%; text-align: right; font: 400 10px/1.4 var(--font-technical); color: var(--cp-text-muted); }
 @media (max-width: 760px) {
   .pg-shell { padding-top: 10px; gap: 6px; }
   .pg-toolbar { gap: 8px; }

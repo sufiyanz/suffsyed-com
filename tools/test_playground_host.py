@@ -96,6 +96,7 @@ def browser_checks(args):
                 assert box["width"] >= 44 and box["height"] >= 44
             page.get_by_role("button", name="Test action").click()
             assert page.locator(".pg-status").inner_text() == "A real fixture action."
+            assert page.locator(".pg-footer").evaluate("el => el.scrollWidth <= el.clientWidth")
             page.screenshot(path=str(args.artifacts / f"{width}-host-fixture.png"))
             page.evaluate("scrollTo(0, document.querySelector('.home-cover').offsetHeight + 5)")
             page.wait_for_function("pgFixtures[0].calls.filter(([k])=>k==='active').at(-1)[1] === false")
