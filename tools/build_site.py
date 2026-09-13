@@ -46,6 +46,7 @@ def layout(title, description, body, path, current="", cover=None, kind="page"):
     links = "".join(f'<a href="{url}"{" aria-current=" + chr(34) + "page" + chr(34) if key == current else ""}>{label}</a>' for label, url, key in nav)
     opening = render_cover() if kind == "home" else ""
     cover_script = '<script src="/assets/home-cover-init.js"></script>\n' if kind == "home" else ""
+    playground_style = '<link rel="stylesheet" href="/assets/playground.css">' if kind == "home" else ""
     og = f'<meta property="og:image" content="{DOMAIN}{cover}">' if cover else ""
     return f'''<!doctype html>
 <html lang="en" data-theme="light">
@@ -59,7 +60,7 @@ def layout(title, description, body, path, current="", cover=None, kind="page"):
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/assets/fonts/newsreader-roman.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/dm-mono-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/journal.css"><link rel="stylesheet" href="/assets/home.css"><link rel="stylesheet" href="/assets/questions.css">
+<link rel="stylesheet" href="/assets/journal.css"><link rel="stylesheet" href="/assets/home.css"><link rel="stylesheet" href="/assets/questions.css">{playground_style}
 <link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">
 <script type="module" src="/assets/app.js"></script>
 </head><body id="top" class="{kind}">
@@ -219,6 +220,24 @@ def main():
         essay_page(row, rows)
     public_rows = [{**{key: value for key, value in row.items() if key not in {"body", "passages"}},
                     "readingPlate": reading_plate(row)} for row in rows]
+    playground_photos = []
+    for index, photo in enumerate(data["gallery"], 1):
+        src = photo["src"]
+        if photo["width"] > 960:
+            src = f'/assets/responsive/{Path(src).stem}-960.webp'
+        with Image.open(OUT / src.lstrip("/")) as im:
+            width, height = im.size
+        playground_photos.append({"id": f"plate-{index:02d}", "src": src, "alt": photo["alt"],
+                                  "title": f"Light(works) / Plate {index:02d}", "width": width, "height": height})
+    playground_passages = []
+    for row in public_rows:
+        passage = row["readingPlate"]["passage"]
+        playground_passages.append({"id": f'{row["slug"]}:{passage["id"]}', "text": passage["text"],
+                                    "title": row["title"], "href": f'{row["url"]}#{passage["id"]}'})
+    write("/assets/playground-data.json", safe_json({
+        "signature": {"src": "/assets/suff-syed-signature.svg", "viewBox": [0, 0, 350, 148]},
+        "photos": playground_photos, "passages": playground_passages,
+    }))
     perspective = '<details class="perspective-disclosure"><summary><span>Leave your perspective</span><small>Optional / This browser only</small></summary>' + render_margin() + '</details>'
     home = render_home(public_rows, data["themes"], data["gallery"]) + render_research_teaser() + perspective
     write("/index.html", layout("Reading a mind at work", "An incomplete field guide to intelligence, creative work, and the things that make us human.", home, "/", cover=rows[11]["cover"], kind="home"))

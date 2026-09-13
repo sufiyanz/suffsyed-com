@@ -1,4 +1,5 @@
 import "./signature.js";
+import "./playground.js";
 
 const root = document.querySelector("[data-home-root]");
 const dataElement = document.getElementById("home-data");

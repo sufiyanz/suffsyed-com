@@ -266,6 +266,7 @@ def render_cover():
 <section class="home-cover" id="home-title" aria-labelledby="cover-title">
   <div class="cover-identity">
     <h1 id="cover-title"><span class="sr-only">Suff Syed</span><img class="cover-signature" src="/assets/suff-syed-signature-reversed.svg" width="350" height="148" alt="" decoding="async"></h1>
+    <button class="signature-entry" type="button" aria-label="Open cover experiments" aria-controls="cover-playground" aria-expanded="false" hidden><span>A little room to play ↗</span></button>
     <p class="cover-role">Suff Syed is a Member of Technical Staff building across AI frontiers at Microsoft.</p>
   </div>
   <div class="cover-invitation">

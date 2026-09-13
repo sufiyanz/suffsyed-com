@@ -144,6 +144,33 @@ The original image remains until the local font and mask are ready. Reduced
 motion, forced colors and printing use the static vector with no active control;
 unsupported or failed initialization retains it and emits a diagnostic warning.
 
+### A little room to play
+
+The signature is also a native, keyboard-accessible entry into ten ephemeral
+cover experiments. `site/playground.js` owns the single registry and host;
+`site/playground-api.js` documents the fixed v1 module contract. Opening replaces
+only the cover's visible content. The original introduction remains an inert,
+invisible layout spacer, preserving its responsive height; the rest of the site
+is neither locked nor made inert. Close or Escape returns focus to the signature.
+The chooser selects any experiment directly; Another uses a nonrepeating,
+in-memory shuffle bag. Closing or switching discards the current work.
+
+Only the selected module and its scoped CSS load on entry. The separately fetched
+`playground-data.json` contains all 22 actual gallery photographs at screen-sized
+resolution and one complete original reading-plate passage per essay, with real
+source anchors. The builder preserves the corpus's inline punctuation and text
+joins; it neither fabricates passages nor changes the originals. Material passed
+to modules is deeply frozen. No photo, audio, Worker or experience payload is
+requested by the host before entry, and it uses no storage or backend.
+
+Each fresh mount gets an AbortSignal, seeded PRNG, palette, material and explicit
+status/error callbacks. Controllers start inactive; the host distributes available
+dimensions, preferences and visibility. Switch/Close abort pending fetches and
+mounts, deactivate and destroy the old controller, and dispose any controller that
+arrives after cancellation. Loading failures are visible with Retry and Close.
+The signature is suspended separately while the host is open, preserving its
+own user-pause choice. Only loaded code and styles are retained between instances.
+
 Below the cover, home keeps its deliberate sequence: one featured thought with an original cover
 and primary reading action; an optional connection instrument; a photographic
 pause; then one unfinished research question. All twenty selections synchronize
@@ -301,6 +328,8 @@ links work without JavaScript; search and local instruments require it.
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_signature.py \
   --artifacts /absolute/path/to/session-artifacts
+.venv/bin/python tools/test_playground_host.py \
+  --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_shell.py \
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_hierarchy.py \
@@ -349,6 +378,12 @@ must still pass in a capable engine. `test_signature.py --widths 320 1600
 --no-captures` runs focused phone/desktop lifecycle, painted-shape and fallback
 checks without recapturing all viewport studies; `--fallbacks-only` limits it to
 initialization failures, static preferences, no-JS and deep-link suspension.
+The playground host runner validates source material and payload budgets, then
+uses explicitly test-only route fixtures to exercise cover geometry, the complete
+registry, focus/IME/Escape, signature-pause preservation, nonrepeating selection,
+late-mount disposal, retry and no-JS. Fixtures are never shipped or registered as
+finished experiences. `--static-only` and `--browser-only` allow separate Python
+environments; module-specific tests exercise the actual creative tools.
 Capture utilities scroll to load every lazy image before saving full pages,
 readable viewport studies and individual home chapter crops; `--devices desktop
 phone` limits capture to those two sizes.

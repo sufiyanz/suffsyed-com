@@ -27,6 +27,7 @@ function enhanceSignature(image) {
   let context, mask, maskContext, observer, sizes;
   let ready = false, loading = false, failed = false, paused = false;
   let inView = false, away = false, timer = null, lastTick = 0, elapsed = 0;
+  let covered = false;
   let width = 0, height = 0, ratio = 0, color, font, cells = [], mutable = [];
   let seed = 89173;
 
@@ -47,7 +48,7 @@ function enhanceSignature(image) {
   }
 
   function canTick() {
-    return ready && !failed && !disabled() && !paused && inView && !away && !document.hidden;
+    return ready && !failed && !disabled() && !paused && !covered && inView && !away && !document.hidden;
   }
 
   function fail(error) {
@@ -189,7 +190,7 @@ function enhanceSignature(image) {
       if (document.activeElement === button) button.blur();
       return;
     }
-    if (!inView || away || document.hidden) {
+    if (!inView || away || covered || document.hidden) {
       cover.dataset.signatureState = paused ? "paused" : "suspended";
       return;
     }
@@ -217,6 +218,10 @@ function enhanceSignature(image) {
     }
     const options = { signal: listeners.signal };
     button.addEventListener("click", () => { paused = !paused; sync(); }, options);
+    cover.addEventListener("playgroundchange", event => {
+      covered = event.detail.open;
+      sync();
+    }, options);
     for (const preference of [reduced, forced, print]) preference.addEventListener("change", sync, options);
     document.addEventListener("visibilitychange", sync, options);
     window.addEventListener("resize", sync, options);
