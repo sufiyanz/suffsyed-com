@@ -87,7 +87,7 @@ network access, only when updating fonts):
 .venv/bin/python tools/prepare_fonts.py
 ```
 
-Home opens with a personal identity cover: the name, the supplied Microsoft role,
+Home opens with a personal identity cover: the signature, the supplied Microsoft role,
 and an inline invitation into writing, the reading plate, photography and open
 research. `journal_home.render_cover()` owns that introduction; the shared layout
 places its single global header immediately below it on home only. The cover
@@ -104,20 +104,23 @@ type or viewport dimensions change; CSS provides responsive fallback clearances.
 The header itself is excluded from those offsets, so focusing its links does not
 push it away. Other routes retain their ordinary header.
 
-The cover alone has an edge-to-edge forest ground, white display/link/focus
+The cover alone has an edge-to-edge forest ground, white signature/link/focus
 accents and warm paper/stone supporting text. The story and normal header keep
 their light paper ground. Cover hover/visited states are scoped to remain legible.
-The autograph sits in the existing cover sign-off region without replacing the
-typed name or enlarging the cover. Its 350×148 viewBox and explicit image
+The autograph is the sole visible masthead inside `h1#cover-title`, with no kicker
+or duplicate sign-off mark. The heading retains the accessible name “Suff Syed”
+using the existing visually hidden text pattern; the unchanged role sentence
+also gives the readable full name. Responsive sizing enlarges the signature
+without stretching or cropping it. Its 350×148 viewBox and explicit image
 dimensions preserve proportions and avoid a load-time shift. The local SVG has
 one compound outline, forest/currentColor ink, and no raster, scripts or external
 references. The builder derives a white reversed version for the dark cover by
 changing only the SVG's root color; the traced path geometry and source master
-are unchanged. It is decorative in context because the adjacent typed name
-already identifies the author. The supplied validated master is preserved byte-for-byte.
+are unchanged. The image has an empty alt to avoid repeating the heading's
+accessible text. The supplied validated master is preserved byte-for-byte.
 The current master uses the approved balanced fountain-pen refinement: lighter
 broad strokes with the hairlines, entry/exit tips and natural width variation
-retained. Its framing and displayed size are unchanged; there is no CSS thinning,
+retained. Its source framing is unchanged; there is no CSS thinning,
 opacity reduction or uniform-width stroke. Commit `5d440a7` preserves the previous
 heavier master for comparison.
 
@@ -303,7 +306,7 @@ hash-identical evaluation bytes and nonpersistent response injection.
 The cover suite verifies the exact introductory copy, the visible start of the
 featured story, gap-free header reveal/inert states, four section invitations,
 keyboard/touch, back/scroll restoration, direct
-fragments, resize, and smooth/reduced motion at five widths with and without
+fragments, resize, and smooth/reduced motion at six widths with and without
 JavaScript. It captures readable desktop/phone openings, boundary transitions,
 the header over the story and reading plate, and the restored top state.
 Capture utilities scroll to load every lazy image before saving full pages,

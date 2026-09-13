@@ -52,7 +52,7 @@ def main():
                 assert page.locator("h1").first.evaluate("el => getComputedStyle(el).fontStyle") == "normal"
                 assert page.locator("body").evaluate("el => getComputedStyle(el).fontSynthesis") == "none"
                 assert (page.locator("html").get_attribute("data-font-mode") == "private-evaluation") == args.private_fonts
-                display_font = actual_font(page, "#cover-title" if route == "/" else "h1",
+                display_font = actual_font(page, "#home-essay-title" if route == "/" else "h1",
                                            "PP Kyoto" if args.private_fonts else "Newsreader")
                 if route == "/":
                     page.evaluate("scrollTo({top:document.querySelector('.home-cover').offsetHeight + 2,behavior:'instant'})")
@@ -86,7 +86,9 @@ def main():
                         "Follow a thought further.", "Step outside.", "What happens after the impressive first demo?"]
                     assert not page.locator(".perspective-disclosure").evaluate("el => el.open")
                     assert page.locator(".featured-meta .primary-link").count() == 1
-                    assert page.locator("#cover-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") > 2.5 * page.locator(".cover-role").evaluate("el => parseFloat(getComputedStyle(el).fontSize)")
+                    assert page.get_by_role("heading", name="Suff Syed", exact=True).count() == 1
+                    assert page.locator("#cover-title > .cover-signature").count() == 1
+                    assert not page.locator(".cover-kicker").count()
                     for chapter in [".exploration", ".home-photography"]:
                         bounds = page.locator(chapter).bounding_box()
                         assert abs(bounds["x"]) < 1 and abs(bounds["width"] - width) < 1, (width, chapter, bounds)

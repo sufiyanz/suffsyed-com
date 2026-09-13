@@ -31,6 +31,11 @@ class JournalTests(unittest.TestCase):
         home = self.pages[OUT / "index.html"]
         cover = home.select_one(".home-cover")
         self.assertEqual(cover.h1.get_text(), "Suff Syed")
+        self.assertEqual(cover.h1["id"], "cover-title")
+        self.assertEqual(cover.h1.span["class"], ["sr-only"])
+        self.assertEqual(len(cover.select(".cover-signature")), 1)
+        self.assertIs(cover.select_one(".cover-signature").parent, cover.h1)
+        self.assertIsNone(cover.select_one(".cover-kicker"))
         self.assertEqual(cover.select_one(".cover-role").get_text(),
                          "Suff Syed is a Member of Technical Staff building across AI frontiers at Microsoft.")
         self.assertEqual(cover.select_one(".cover-description").get_text(),

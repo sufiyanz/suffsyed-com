@@ -9,8 +9,7 @@ html:has(body.home) { --home-header-height: 65px; scroll-padding-top: 0; }
 .home-cover a,.home-cover a:visited { color: var(--cp-reverse); }
 .home-cover a:hover { color: var(--cp-surface); }
 .home-cover a:focus-visible { outline-color: var(--cp-reverse); }
-.cover-kicker { color: var(--cp-surface); }
-.home-cover h1 { font: 700 clamp(72px,11vw,180px)/.95 var(--font-display); letter-spacing: -.04em; text-wrap: balance; overflow-wrap: normal; color: var(--cp-reverse); }
+.home-cover h1 { position: relative; line-height: 1; color: var(--cp-reverse); }
 .cover-role { max-width: 950px; margin-top: 18px; font: 400 clamp(22px,1.75vw,30px)/1.35 var(--font-reading); }
 .cover-invitation { display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr); align-items: start; gap: 80px; padding-top: 24px; border-top: 1px solid var(--cp-surface); }
 .cover-description { max-width: 540px; font: 400 clamp(24px,2vw,30px)/1.35 var(--font-reading); }
@@ -18,10 +17,8 @@ html:has(body.home) { --home-header-height: 65px; scroll-padding-top: 0; }
 .cover-path a { color: var(--cp-reverse); text-decoration-thickness: 1px; }
 .cover-path a:hover { color: var(--cp-surface); text-decoration-thickness: 2px; }
 .cover-path sup { margin-left: 4px; font: 400 12px/1 var(--font-technical); }
-.cover-signoff { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.cover-signature { width: 140px; height: auto; flex-shrink: 0; }
+.cover-signature { width: clamp(340px,42vw,560px); max-width: 100%; height: auto; }
 .cover-continue { display: inline-flex; align-items: center; align-self: start; gap: 24px; min-height: 44px; font: 500 19px/1.4 var(--font-reading); text-decoration: none; }
-.cover-signoff .cover-continue { align-self: center; }
 .cover-continue > span:first-child { text-decoration: underline; text-underline-offset: 6px; }
 .cover-continue > span:last-child { font-size: 30px; }
 .journal-opening { color: var(--cp-text); }
@@ -160,12 +157,11 @@ html:has(body.home) { --home-header-height: 65px; scroll-padding-top: 0; }
   html:has(body.home) { --home-header-height: 102px; }
   .home .mast { gap: 8px; }
   .home-cover { gap: 16px; padding-top: 20px; }
-  .home-cover h1 { font-size: clamp(56px,18vw,124px); }
   .cover-role { margin-top: 16px; font-size: 20px; }
   .cover-invitation { grid-template-columns: 1fr; gap: 12px; padding-top: 16px; }
   .cover-description { font-size: 20px; }
   .cover-path { font-size: 18px; line-height: 1.55; }
-  .cover-signature { width: min(26vw,112px); }
+  .cover-signature { width: clamp(260px,78vw,300px); }
   .cover-continue { font-size: 18px; gap: 12px; }
   .cover-continue > span:last-child { font-size: 26px; }
   .opening { display: block; padding: 22px 0 32px; }

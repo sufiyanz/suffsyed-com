@@ -31,6 +31,14 @@ def no_overflow(page):
 
 def cover_state(page, height):
     assert page.locator("#cover-title").inner_text() == "Suff Syed"
+    assert page.get_by_role("heading", name="Suff Syed", exact=True).count() == 1
+    assert page.locator(".cover-signature").count() == 1
+    assert page.locator("#cover-title > .cover-signature").count() == 1
+    assert not page.locator(".cover-kicker").count()
+    assert page.locator("#cover-title > .sr-only").evaluate("""el => {
+      const rect = el.getBoundingClientRect();
+      return rect.width <= 1 && rect.height <= 1 && getComputedStyle(el).clipPath === 'inset(50%)';
+    }""")
     assert page.locator(".cover-role").inner_text() == ROLE
     assert page.locator(".cover-description").inner_text() == DESCRIPTION
     assert page.locator(".mast").count() == 1
@@ -42,7 +50,6 @@ def cover_state(page, height):
     assert page.locator("body").evaluate("el => getComputedStyle(el).backgroundColor") == "rgb(239, 237, 230)"
     assert page.locator("#cover-title").evaluate("el => getComputedStyle(el).color") == "rgb(255, 255, 255)"
     assert page.locator(".cover-role").evaluate("el => getComputedStyle(el).color") == "rgb(239, 237, 230)"
-    assert page.locator(".cover-kicker").evaluate("el => getComputedStyle(el).color") == "rgb(215, 205, 184)"
     assert page.locator(".cover-path a").first.evaluate("el => getComputedStyle(el).color") in ["rgb(255, 255, 255)", "rgb(215, 205, 184)"]
     assert height * .59 <= cover["height"] <= height * .70, (cover, height)
     enhanced = page.locator("html").evaluate("el => el.classList.contains('cover-navigation')")
@@ -59,7 +66,9 @@ def cover_state(page, height):
         bounds = page.locator(selector).bounding_box()
         assert bounds["y"] >= 0 and bounds["y"] + bounds["height"] <= cover["height"] + 1, (selector, bounds, height)
     signature = page.locator(".cover-signature").bounding_box()
-    assert signature["width"] >= 80 and signature["height"] >= 30
+    width = page.evaluate("innerWidth")
+    assert signature["width"] >= (250 if width <= 760 else 330)
+    assert signature["y"] <= (20 if width <= 760 else 28) + 1
     assert abs(signature["width"] / signature["height"] - 350 / 148) < .01
     assert signature["y"] + signature["height"] <= cover["height"]
     no_overflow(page)
@@ -100,7 +109,7 @@ def main():
     errors, external, missing, states = [], [], [], []
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        for width, height in [(320, 740), (390, 844), (820, 1180), (1600, 1000), (1920, 1120)]:
+        for width, height in [(320, 740), (390, 844), (820, 1180), (1028, 900), (1600, 1000), (1920, 1120)]:
             for javascript in [True, False]:
                 print(f"Cover: {width}px / JavaScript {javascript}", flush=True)
                 context = browser.new_context(viewport={"width": width, "height": height},
@@ -119,8 +128,8 @@ def main():
                 assert page.locator(".cover-path a").first.evaluate("el => getComputedStyle(el).color") == "rgb(215, 205, 184)"
                 page.locator(".cover-path a").first.evaluate("el => el.blur()")
                 page.mouse.move(0, 0)
-                device = "phone" if width == 390 else "desktop" if width == 1600 else str(width)
-                capture = javascript and width in [390, 1600]
+                device = {320: "small-phone", 390: "phone", 1028: "midwidth", 1600: "desktop"}.get(width, str(width))
+                capture = javascript and width in [320, 390, 1028, 1600]
                 if capture:
                     page.screenshot(path=str(args.artifacts / f"{device}-cover-opening.png"))
                     page.evaluate("scrollTo({top: document.querySelector('.home-cover').offsetHeight - 24, behavior:'instant'})")
@@ -222,10 +231,23 @@ def main():
         page.keyboard.press("Tab")
         focused_is_visible(page)
         context.close()
+        for scale in [2, 4]:
+            context = browser.new_context(viewport={"width": 1600 // scale, "height": 1120 // scale},
+                                          device_scale_factor=scale, reduced_motion="reduce")
+            page = context.new_page()
+            page.goto(args.url, wait_until="networkidle")
+            settle(page)
+            no_overflow(page)
+            assert page.get_by_role("heading", name="Suff Syed", exact=True).count() == 1
+            assert page.locator(".cover-role").inner_text() == ROLE
+            page.locator(".cover-continue").click()
+            body_state(page, "featured-story")
+            page.screenshot(path=str(args.artifacts / f"reflow-{scale * 100}.png"))
+            context.close()
         browser.close()
     assert not errors and not missing and not external, (errors, missing, external)
     (args.artifacts / "cover-verification.json").write_text(json.dumps(states, indent=2) + "\n")
-    print("PASS: compact identity/visible story, five widths with/without JS, gap-free header reveal, inert/tab states, four invitations, keyboard/touch, back/top/direct anchors, resize, smooth/reduced motion and no external assets/errors.")
+    print("PASS: one accessible signature masthead, six widths with/without JS, compact cover/visible story, gap-free header reveal, inert/tab states, keyboard/touch, back/anchors/resize/reflow and no external assets/errors.")
 
 
 if __name__ == "__main__":

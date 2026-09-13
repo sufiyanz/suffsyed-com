@@ -264,9 +264,8 @@ def _photographs(gallery):
 def render_cover():
     return '''
 <section class="home-cover" id="home-title" aria-labelledby="cover-title">
-  <p class="label cover-kicker">An open field guide</p>
   <div class="cover-identity">
-    <h1 id="cover-title">Suff Syed</h1>
+    <h1 id="cover-title"><span class="sr-only">Suff Syed</span><img class="cover-signature" src="/assets/suff-syed-signature-reversed.svg" width="350" height="148" alt="" decoding="async"></h1>
     <p class="cover-role">Suff Syed is a Member of Technical Staff building across AI frontiers at Microsoft.</p>
   </div>
   <div class="cover-invitation">
@@ -276,10 +275,7 @@ def render_cover():
       Step into <a href="#lightworks">the light<sup aria-hidden="true">03</sup></a>.
       Leave room for <a href="#unfinished">the unfinished<sup aria-hidden="true">04</sup></a>.</p>
   </div>
-  <div class="cover-signoff">
-    <a class="cover-continue" href="#featured-story"><span>Open the field guide</span><span aria-hidden="true">↓</span></a>
-    <img class="cover-signature" src="/assets/suff-syed-signature-reversed.svg" width="350" height="148" alt="" decoding="async">
-  </div>
+  <a class="cover-continue" href="#featured-story"><span>Open the field guide</span><span aria-hidden="true">↓</span></a>
 </section>'''
 
 
