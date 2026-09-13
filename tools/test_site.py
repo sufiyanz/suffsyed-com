@@ -27,6 +27,45 @@ class JournalTests(unittest.TestCase):
     def setUpClass(cls):
         cls.pages = {p: load(p) for p in sorted(OUT.rglob("*.html"))}
 
+    def test_identity_cover_and_shared_header(self):
+        home = self.pages[OUT / "index.html"]
+        cover = home.select_one(".home-cover")
+        self.assertEqual(cover.h1.get_text(), "Suff Syed")
+        self.assertEqual(cover.select_one(".cover-role").get_text(),
+                         "Suff Syed is a Member of Technical Staff building across AI frontiers at Microsoft.")
+        self.assertEqual(cover.select_one(".cover-description").get_text(),
+                         "Essays on intelligence, creative work, and what remains human.")
+        self.assertEqual([a["href"] for a in cover.select(".cover-path a")],
+                         ["#featured-story", "#connections", "#lightworks", "#unfinished"])
+        self.assertEqual(cover.find_next_sibling().get("class"), ["mast"])
+        self.assertEqual(home.select_one(".mast").find_next_sibling().get("id"), "main")
+        self.assertEqual(len(home.select("h1")), 1)
+        links = [a["href"] for a in home.select(".mast nav a")]
+        for path, soup in self.pages.items():
+            self.assertEqual(len(soup.select(".mast")), 1)
+            self.assertEqual([a["href"] for a in soup.select(".mast nav a")], links)
+            if path != OUT / "index.html":
+                self.assertIsNone(soup.select_one(".home-cover"))
+
+    def test_signature_is_the_validated_vector(self):
+        vector = (ROOT / "site/suff-syed-signature.svg").read_bytes()
+        self.assertEqual(hashlib.sha256(vector).hexdigest(),
+                         "fdd0c91089963d8584f7c05b5a478473878fb4ad5e45801ac8a136385ed50d67")
+        self.assertEqual(vector, (OUT / "assets/suff-syed-signature.svg").read_bytes())
+        svg = ET.fromstring(vector)
+        self.assertEqual(svg.attrib["viewBox"], "0 0 350 148")
+        self.assertEqual(svg.attrib["color"], "#1B2915")
+        for element in svg.iter():
+            self.assertIn(element.tag.split("}")[-1], {"svg", "title", "path"})
+            self.assertFalse(any(key.lower().startswith("on") or key.lower().endswith("href") for key in element.attrib))
+        reversed_svg = ET.parse(OUT / "assets/suff-syed-signature-reversed.svg").getroot()
+        self.assertEqual(reversed_svg.attrib["color"], "#FFFFFF")
+        reversed_svg.set("color", svg.attrib["color"])
+        self.assertEqual(ET.tostring(reversed_svg), ET.tostring(svg))
+        image = self.pages[OUT / "index.html"].select_one(".cover-signature")
+        self.assertEqual(image["src"], "/assets/suff-syed-signature-reversed.svg")
+        self.assertEqual((image["width"], image["height"], image["alt"]), ("350", "148", ""))
+
     def test_self_hosted_font_provenance(self):
         fonts = ROOT / "site/fonts"
         manifest = json.loads((fonts / "provenance.json").read_text())

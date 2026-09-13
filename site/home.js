@@ -1,6 +1,33 @@
 const root = document.querySelector("[data-home-root]");
 const dataElement = document.getElementById("home-data");
 
+if (root) {
+  const mast = document.querySelector(".mast");
+  const cover = document.querySelector(".home-cover");
+  const html = document.documentElement;
+  const updateVisibility = () => {
+    if (!html.classList.contains("cover-navigation")) return;
+    const pastCover = cover.getBoundingClientRect().bottom <= 1;
+    if (!pastCover && mast.contains(document.activeElement)) document.activeElement.blur();
+    mast.inert = !pastCover;
+    html.classList.toggle("past-cover", pastCover);
+  };
+  const sizeHeader = () => {
+    html.style.setProperty("--home-header-height", `${mast.getBoundingClientRect().height}px`);
+    updateVisibility();
+  };
+  sizeHeader();
+  if ("ResizeObserver" in window) {
+    const sizes = new ResizeObserver(sizeHeader);
+    sizes.observe(mast);
+    sizes.observe(cover);
+  }
+  if (html.classList.contains("cover-navigation")) {
+    new IntersectionObserver(updateVisibility, { rootMargin: "-1px 0px 0px", threshold: 0 }).observe(cover);
+    window.addEventListener("pageshow", updateVisibility);
+  }
+}
+
 if (root && dataElement) {
   let data;
   try {

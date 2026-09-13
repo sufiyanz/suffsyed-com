@@ -261,6 +261,28 @@ def _photographs(gallery):
     return "".join(figures)
 
 
+def render_cover():
+    return '''
+<section class="home-cover" id="home-title" aria-labelledby="cover-title">
+  <p class="label cover-kicker">An open field guide</p>
+  <div class="cover-identity">
+    <h1 id="cover-title">Suff Syed</h1>
+    <p class="cover-role">Suff Syed is a Member of Technical Staff building across AI frontiers at Microsoft.</p>
+  </div>
+  <div class="cover-invitation">
+    <p class="cover-description">Essays on intelligence, creative work, and what remains human.</p>
+    <p class="cover-path">Start with <a href="#featured-story">an essay<sup aria-hidden="true">01</sup></a>.
+      Trace <a href="#connections">a thought through its words<sup aria-hidden="true">02</sup></a>.
+      Step into <a href="#lightworks">the light<sup aria-hidden="true">03</sup></a>.
+      Leave room for <a href="#unfinished">the unfinished<sup aria-hidden="true">04</sup></a>.</p>
+  </div>
+  <div class="cover-signoff">
+    <a class="cover-continue" href="#featured-story"><span>Open the field guide</span><span aria-hidden="true">↓</span></a>
+    <img class="cover-signature" src="/assets/suff-syed-signature-reversed.svg" width="350" height="148" alt="" decoding="async">
+  </div>
+</section>'''
+
+
 def render_home(rows, themes, gallery):
     """Return body HTML only; the caller owns the shell, CSS/JS links and lightbox.
 
@@ -349,9 +371,7 @@ def render_home(rows, themes, gallery):
     )
     return f"""
 <div class="journal-opening" data-home-root data-motion="paused">
-  <section class="opening" aria-labelledby="home-title">
-    <header class="opening-copy"><h1 id="home-title">Reading a mind at work.</h1>
-      <p class="subtitle">Essays on intelligence, creative work, and what remains human.</p></header>
+  <section class="opening" id="featured-story" aria-labelledby="home-essay-title">
     <article class="featured" aria-labelledby="home-essay-title">
       <div class="featured-copy">
         <p class="label">One thought to start with</p>

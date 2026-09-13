@@ -4,12 +4,13 @@ import json
 import shutil
 from pathlib import Path
 from urllib.parse import quote
+import xml.etree.ElementTree as ET
 
 from bs4 import BeautifulSoup
 from PIL import Image
 
 from corpus import connect, measure, reading_plate
-from journal_home import render_home
+from journal_home import render_cover, render_home
 from journal_questions import render_margin, render_research, render_research_teaser
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,12 +44,14 @@ def image(src, alt, lazy=True, sizes="(max-width: 700px) 90vw, 70vw"):
 def layout(title, description, body, path, current="", cover=None, kind="page"):
     nav = [("Writing", "/futurememo/", "writing"), ("Light(works)", "/lightworks/", "light"), ("The unfinished", "/research/", "research"), ("About", "/about-me/", "about")]
     links = "".join(f'<a href="{url}"{" aria-current=" + chr(34) + "page" + chr(34) if key == current else ""}>{label}</a>' for label, url, key in nav)
+    opening = render_cover() if kind == "home" else ""
+    cover_script = '<script src="/assets/home-cover-init.js"></script>\n' if kind == "home" else ""
     og = f'<meta property="og:image" content="{DOMAIN}{cover}">' if cover else ""
     return f'''<!doctype html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{esc(title)} — Suff Syed</title><meta name="description" content="{esc(description)}">
+{cover_script}<title>{esc(title)} — Suff Syed</title><meta name="description" content="{esc(description)}">
 <link rel="canonical" href="{DOMAIN}{path}">
 <meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(description)}">
 <meta property="og:type" content="{"article" if kind == "essay" else "website"}">{og}
@@ -61,7 +64,7 @@ def layout(title, description, body, path, current="", cover=None, kind="page"):
 <script type="module" src="/assets/app.js"></script>
 </head><body id="top" class="{kind}">
 <a class="skip" href="#main">Skip to content</a>
-<div class="sheet"><header class="mast"><a class="signature" href="/" aria-label="Suff Syed, home">Suff Syed</a><nav aria-label="Main navigation">{links}</nav></header>
+<div class="sheet">{opening}<header class="mast"><a class="signature" href="/" aria-label="Suff Syed, home">Suff Syed</a><nav aria-label="Main navigation">{links}</nav></header>
 <main id="main">{body}</main>
 <footer class="foot"><div><a class="signature" href="/">Suff Syed</a><p>A mind at work. A work in progress.</p><p><a href="/about-me/">About the person behind these questions ↗</a></p></div>
 <nav aria-label="Further reading"><a href="/about-the-memo/">About the memo</a><a href="/faqs/">FAQs</a><a href="/the-end-of-design-report/">The End of Design</a><a href="/store/">A coffee, perhaps</a><a href="/methods/">How to read the data</a><a href="/futurememo/rss.xml">RSS</a></nav>
@@ -208,6 +211,10 @@ def main():
             target = OUT / "assets" / source.relative_to(ROOT / "site")
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
+    signature = ET.fromstring((ROOT / "site/suff-syed-signature.svg").read_text())
+    signature.set("color", "#FFFFFF")
+    ET.register_namespace("", "http://www.w3.org/2000/svg")
+    write("/assets/suff-syed-signature-reversed.svg", ET.tostring(signature, encoding="unicode") + "\n")
     for row in rows:
         essay_page(row, rows)
     public_rows = [{**{key: value for key, value in row.items() if key not in {"body", "passages"}},

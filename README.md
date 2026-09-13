@@ -27,6 +27,7 @@ photograph pixels are never recolored or filtered.
 | `content/research-example.json` | Public-data record schema and empty evidence register; no live ingestion. |
 | `docs/assets/img/` | **Committed source image originals from the migration.** The builder reads these; do not delete this directory when rebuilding. |
 | `site/` | Authored CSS, ES modules, favicon and self-hosted font assets, copied recursively to `docs/assets/`. |
+| `site/suff-syed-signature.svg` | User-supplied, visually validated vector autograph; exact master paths, not a font or embedded raster. |
 | `tools/corpus.py` | Deterministic passage extraction, word counts and lexical-neighbor ranking. |
 | `tools/build_site.py` | All routes, responsive images, searchable corpus, RSS and sitemap. |
 | `tools/journal_home.py`, `tools/journal_questions.py` | Opening artwork and local question/research instruments. |
@@ -86,7 +87,36 @@ network access, only when updating fonts):
 .venv/bin/python tools/prepare_fonts.py
 ```
 
-Home follows a deliberate sequence: one featured thought with an original cover
+Home opens with a personal identity cover: the name, the supplied Microsoft role,
+and an inline invitation into writing, the reading plate, photography and open
+research. `journal_home.render_cover()` owns that introduction; the shared layout
+places its single global header immediately below it on home only. The cover
+uses about 60% of the viewport, growing intrinsically on short/narrow screens
+rather than clipping the exact copy. The real featured story starts underneath.
+With JavaScript, the header is fixed outside the page flow and remains invisible
+and inert until the cover leaves view. An `IntersectionObserver`, not scroll
+direction, controls that state; returning to the top hides it again. An early
+capability marker avoids an initial menu flash or reserved header gap. Without
+JavaScript (or the observer API), the same header uses ordinary flow and native
+sticky positioning. There is no duplicate menu or animated layout shift.
+A `ResizeObserver` updates content-anchor and keyboard-focus clearances when
+type or viewport dimensions change; CSS provides responsive fallback clearances.
+The header itself is excluded from those offsets, so focusing its links does not
+push it away. Other routes retain their ordinary header.
+
+The cover alone has an edge-to-edge forest ground, white display/link/focus
+accents and warm paper/stone supporting text. The story and normal header keep
+their light paper ground. Cover hover/visited states are scoped to remain legible.
+The autograph sits in the existing cover sign-off region without replacing the
+typed name or enlarging the cover. Its 350×148 viewBox and explicit image
+dimensions preserve proportions and avoid a load-time shift. The local SVG has
+one compound outline, forest/currentColor ink, and no raster, scripts or external
+references. The builder derives a white reversed version for the dark cover by
+changing only the SVG's root color; the traced path geometry and source master
+are unchanged. It is decorative in context because the adjacent typed name
+already identifies the author. The supplied validated master is preserved byte-for-byte.
+
+Below the cover, home keeps its deliberate sequence: one featured thought with an original cover
 and primary reading action; an optional connection instrument; a photographic
 pause; then one unfinished research question. All twenty selections synchronize
 the opening cover, drawing, title and explicit reading destination. The drawing
@@ -237,6 +267,8 @@ links work without JavaScript; search and local instruments require it.
 .venv/bin/python tools/test_instruments.py \
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_home.py
+.venv/bin/python tools/test_cover.py \
+  --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_shell.py \
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_hierarchy.py \
@@ -263,6 +295,12 @@ viewport and device-scale reflow (not browser-toolbar zoom automation).
 It also checks the initial phone reading action/artwork and synchronized selected
 destinations. Preview tests check public/private isolation, rejected embedding,
 hash-identical evaluation bytes and nonpersistent response injection.
+The cover suite verifies the exact introductory copy, the visible start of the
+featured story, gap-free header reveal/inert states, four section invitations,
+keyboard/touch, back/scroll restoration, direct
+fragments, resize, and smooth/reduced motion at five widths with and without
+JavaScript. It captures readable desktop/phone openings, boundary transitions,
+the header over the story and reading plate, and the restored top state.
 Capture utilities scroll to load every lazy image before saving full pages,
 readable viewport studies and individual home chapter crops; `--devices desktop
 phone` limits capture to those two sizes.

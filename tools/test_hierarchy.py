@@ -52,9 +52,15 @@ def main():
                 assert page.locator("h1").first.evaluate("el => getComputedStyle(el).fontStyle") == "normal"
                 assert page.locator("body").evaluate("el => getComputedStyle(el).fontSynthesis") == "none"
                 assert (page.locator("html").get_attribute("data-font-mode") == "private-evaluation") == args.private_fonts
-                display_font = actual_font(page, "#home-essay-title" if route == "/" else "h1",
+                display_font = actual_font(page, "#cover-title" if route == "/" else "h1",
                                            "PP Kyoto" if args.private_fonts else "Newsreader")
+                if route == "/":
+                    page.evaluate("scrollTo({top:document.querySelector('.home-cover').offsetHeight + 2,behavior:'instant'})")
+                    page.wait_for_function("document.documentElement.classList.contains('past-cover')")
                 navigation_font = actual_font(page, ".mast nav a", "Newsreader")
+                if route == "/":
+                    page.evaluate("scrollTo({top:0,behavior:'instant'})")
+                    page.wait_for_function("!document.documentElement.classList.contains('past-cover')")
                 if page.locator(".label").count():
                     actual_font(page, ".label", "DM Mono")
                 assert page.locator("body").evaluate("el => getComputedStyle(el).fontOpticalSizing") == "auto"
@@ -80,7 +86,7 @@ def main():
                         "Follow a thought further.", "Step outside.", "What happens after the impressive first demo?"]
                     assert not page.locator(".perspective-disclosure").evaluate("el => el.open")
                     assert page.locator(".featured-meta .primary-link").count() == 1
-                    assert page.locator("#home-essay-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") > 1.8 * page.locator("#home-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)")
+                    assert page.locator("#cover-title").evaluate("el => parseFloat(getComputedStyle(el).fontSize)") > 2.5 * page.locator(".cover-role").evaluate("el => parseFloat(getComputedStyle(el).fontSize)")
                     for chapter in [".exploration", ".home-photography"]:
                         bounds = page.locator(chapter).bounding_box()
                         assert abs(bounds["x"]) < 1 and abs(bounds["width"] - width) < 1, (width, chapter, bounds)
@@ -88,10 +94,12 @@ def main():
                         nav_rows = page.locator(".mast nav a").evaluate_all("els => els.map(el => Math.round(el.getBoundingClientRect().top))")
                         assert len(set(nav_rows)) == (2 if width == 320 else 1), nav_rows
                     if width == 390:
-                        cta = page.locator(".featured-meta .primary-link").bounding_box()
-                        art = page.locator("[data-home-cover]").bounding_box()
-                        assert cta["y"] + cta["height"] <= 844, cta
-                        assert min(844, art["y"] + art["height"]) - max(0, art["y"]) >= 150, art
+                        continuation = page.locator(".cover-continue").bounding_box()
+                        assert continuation["y"] + continuation["height"] <= 844, continuation
+                        assert not page.locator(".mast").is_visible()
+                        assert page.locator("#home-essay-title").bounding_box()["y"] < 844
+                        page.locator(".cover-continue").click()
+                        assert page.locator(".featured-meta .primary-link").is_visible()
                     report.append({"width": width, "renderedDisplay": display_font, "renderedNavigation": navigation_font,
                                    "fonts": page.evaluate("""() => [...document.fonts].map(font => ({
                       family: font.family, weight: font.weight, style: font.style,
@@ -158,7 +166,7 @@ def main():
             {"Newsreader", "DM Mono", "PP Kyoto"} if args.private_fonts else {"Newsreader", "DM Mono"})
         assert all(font["status"] != "error" and font["display"] == "swap" for font in record["fonts"])
     (args.artifacts / "font-verification.json").write_text(json.dumps(report, indent=2) + "\n")
-    print("PASS: actual Newsreader/DM Mono and optional Kyoto glyphs; all requested font assets, no retired/external requests; clear narrative, visible mobile CTA/art, 100 synchronized selections, reading orientation, focus and 200%/400% equivalent reflow.")
+    print("PASS: actual Newsreader/DM Mono and optional Kyoto glyphs; all requested font assets, no retired/external requests; identity-first cover and reachable story, 100 synchronized selections, reading orientation, focus and 200%/400% equivalent reflow.")
 
 
 if __name__ == "__main__":
