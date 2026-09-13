@@ -1,0 +1,33 @@
+[data-experience="pocket-darkroom"] { height: 100%; min-height: 0; overflow: auto; color: var(--cp-text); background: var(--cp-bg); }
+[data-experience="pocket-darkroom"] .photo-layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; height: 100%; min-height: 0; gap: 16px; padding: 12px; }
+[data-experience="pocket-darkroom"] .photo-preview { min-width: 0; min-height: 0; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+[data-experience="pocket-darkroom"] canvas { display: block; flex: none; max-width: 100%; max-height: calc(100% - 70px); width: auto; height: auto; object-fit: contain; background: var(--cp-surface); }
+[data-experience="pocket-darkroom"] .photo-controls { min-width: 0; min-height: 0; overflow: auto; display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 12px; }
+[data-experience="pocket-darkroom"] .photo-controls > * { flex: none; }
+[data-experience="pocket-darkroom"] .pg-field { display: flex; flex-direction: column; gap: 0; margin: 0; font: 400 12px/1.5 var(--font-technical); min-width: 0; overflow: hidden; }
+[data-experience="pocket-darkroom"] .pg-field > span { display: flex; justify-content: space-between; gap: 8px; }
+[data-experience="pocket-darkroom"] :is(input, select, button) { min-height: 44px; min-width: 44px; max-width: 100%; font: 400 12px/1.4 var(--font-technical); color: var(--cp-text); background: var(--cp-bg); border: 1px solid var(--cp-border-strong); border-radius: 0; }
+[data-experience="pocket-darkroom"] :is(button, select) { padding: 8px; }
+[data-experience="pocket-darkroom"] select { appearance: none; width: 100%; height: 44px; padding-right: 26px; }
+[data-experience="pocket-darkroom"] .photo-select { position: relative; min-width: 0; }
+[data-experience="pocket-darkroom"] .photo-select::after { content: ""; position: absolute; right: 12px; top: 17px; width: 6px; height: 6px; border-right: 1px solid var(--cp-text); border-bottom: 1px solid var(--cp-text); transform: rotate(45deg); pointer-events: none; }
+[data-experience="pocket-darkroom"] input[type="range"] { width: 100%; padding: 0; margin: 0; accent-color: var(--cp-accent); border: 0; }
+[data-experience="pocket-darkroom"] .pg-field :focus-visible { outline: 2px solid var(--cp-accent); outline-offset: -2px; }
+[data-experience="pocket-darkroom"] :is(button, select, input):focus-visible { outline: 2px solid var(--cp-accent); outline-offset: 2px; }
+[data-experience="pocket-darkroom"] button[aria-pressed="true"] { background: var(--cp-accent); color: var(--cp-reverse); }
+[data-experience="pocket-darkroom"] .photo-adjustments { padding: 0; margin: 0; border: 0; min-width: 0; }
+[data-experience="pocket-darkroom"] legend { margin-bottom: 8px; font: 500 19px/1.2 var(--font-reading); }
+[data-experience="pocket-darkroom"] .photo-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+[data-experience="pocket-darkroom"] :is(.pg-help, .photo-error) { font: 400 13px/1.5 var(--font-reading); margin: 0; overflow-wrap: anywhere; }
+[data-experience="pocket-darkroom"] .photo-error { padding: 12px; border-top: 1px solid var(--cp-border-strong); }
+[data-experience="pocket-darkroom"][data-photo-contrast="forced"] { color: CanvasText; background: Canvas; }
+[data-experience="pocket-darkroom"][data-photo-contrast="forced"] .pg-field { color: CanvasText; background: Canvas; }
+[data-experience="pocket-darkroom"][data-photo-contrast="forced"] .pg-help { color: CanvasText; }
+[data-experience="pocket-darkroom"][data-photo-contrast="forced"] .photo-select::after { border-color: ButtonText; }
+[data-experience="pocket-darkroom"][data-photo-contrast="forced"] .pg-button:hover { color: ButtonText; background: ButtonFace; }
+[data-experience="pocket-darkroom"][data-photo-contrast="forced"] :is(button, input, select) { color: ButtonText; background: ButtonFace; border-color: ButtonText; accent-color: Highlight; }
+[data-experience="pocket-darkroom"][data-photo-contrast="forced"] :focus-visible { outline-color: Highlight; }
+[data-experience="pocket-darkroom"][data-photo-layout="narrow"] .photo-layout { grid-template-columns: minmax(0, 1fr); height: auto; min-height: 100%; }
+[data-experience="pocket-darkroom"][data-photo-layout="narrow"] canvas { max-height: 240px; }
+[data-experience="pocket-darkroom"][data-photo-layout="narrow"] .photo-controls { overflow: visible; }
+[data-experience="pocket-darkroom"][data-photo-layout="narrow"] .photo-adjustments { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 16px; }
