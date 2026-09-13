@@ -275,7 +275,10 @@ def render_cover():
       Step into <a href="#lightworks">the light<sup aria-hidden="true">03</sup></a>.
       Leave room for <a href="#unfinished">the unfinished<sup aria-hidden="true">04</sup></a>.</p>
   </div>
-  <a class="cover-continue" href="#featured-story"><span>Open the field guide</span><span aria-hidden="true">↓</span></a>
+  <div class="cover-ending">
+    <a class="cover-continue" href="#featured-story"><span>Open the field guide</span><span aria-hidden="true">↓</span></a>
+    <button class="signature-motion" type="button" aria-label="Pause signature animation" title="Pause signature animation" hidden>Pause</button>
+  </div>
 </section>'''
 
 

@@ -1,3 +1,5 @@
+import "./signature.js";
+
 const root = document.querySelector("[data-home-root]");
 const dataElement = document.getElementById("home-data");
 

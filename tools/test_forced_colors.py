@@ -36,11 +36,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://127.0.0.1:8766")
     parser.add_argument("--artifacts", type=Path, required=True)
+    parser.add_argument("--browser-channel", default=None)
+    parser.add_argument("--browser", choices=["chromium", "webkit"], default="chromium")
     args = parser.parse_args()
     args.artifacts.mkdir(parents=True, exist_ok=True)
     report, errors = [], []
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = getattr(p, args.browser).launch(**({"channel": args.browser_channel} if args.browser_channel else {}))
         for width, height, expected_width in [(320, 740, 260), (390, 844, 300), (1028, 900, 431.75), (1600, 1000, 560)]:
             baseline, geometry = None, None
             for mode in ["normal", "light", "dark"]:

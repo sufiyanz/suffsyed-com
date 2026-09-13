@@ -125,9 +125,24 @@ forced-color adjustment. Both light and dark high-contrast schemes therefore
 show the same signature and accessible heading without changing the normal theme.
 The current master uses the approved balanced fountain-pen refinement: lighter
 broad strokes with the hairlines, entry/exit tips and natural width variation
-retained. Its source framing is unchanged; there is no CSS thinning,
-opacity reduction or uniform-width stroke. Commit `5d440a7` preserves the previous
+retained. Its source framing is unchanged; the refinement lives in the outline,
+not CSS thinning or a uniform-width stroke. Commit `5d440a7` preserves the previous
 heavier master for comparison.
+
+`site/signature.js` optionally fills that exact silhouette with a fixed DM Mono
+punctuation grid. The 1.35-second resolve uses at most 6.7 updates/second; afterward,
+only two randomly selected glyphs change every 320 ms. A faint original-vector
+underlay preserves the hairlines (22% on desktop, 30% on phones). The canvas is
+decorative and does not add text to the heading's accessible name. A native
+Pause/Resume control sits outside the heading on the existing continuation row.
+One timer stops entirely when paused, offscreen, hidden or leaving the page.
+Pause intent and resolve progress survive visibility/preference changes; there is
+no storage or network service. The grid is capped at 3,000 cells, DPR at 2, and
+each of the two canvas surfaces at 600,000 pixels. Mask sampling and font/style
+measurements happen during preparation/resizing, never in the animation tick.
+The original image remains until the local font and mask are ready. Reduced
+motion, forced colors and printing use the static vector with no active control;
+unsupported or failed initialization retains it and emits a diagnostic warning.
 
 Below the cover, home keeps its deliberate sequence: one featured thought with an original cover
 and primary reading action; an optional connection instrument; a photographic
@@ -284,6 +299,8 @@ links work without JavaScript; search and local instruments require it.
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_forced_colors.py \
   --artifacts /absolute/path/to/session-artifacts
+.venv/bin/python tools/test_signature.py \
+  --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_shell.py \
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_hierarchy.py \
@@ -320,6 +337,18 @@ The forced-colors check samples actual screenshots in light/dark schemes,
 verifies black/white signature contrast and compares the painted silhouette with
 the normal SVG at four widths. It also checks the heading's accessible name and
 confirms that page-wide forced-color adjustment remains enabled.
+The character-field check records actual canvas glyph calls and frame pixels,
+checks sparse substitutions on fixed coordinates, frozen pause/lifecycle states,
+runtime preferences and failure/no-JS fallbacks, and captures six viewport sizes.
+The cover, forced-colors and signature runners accept `--browser-channel chromium`
+to use a separately installed full Chromium engine instead of headless shell.
+They also accept `--browser webkit`. WebKit can verify the character field and its
+forced-media stop/fallback controller, but cannot validate native forced-palette
+contrast when `forced-color-adjust` is unsupported; the strict contrast runner
+must still pass in a capable engine. `test_signature.py --widths 320 1600
+--no-captures` runs focused phone/desktop lifecycle, painted-shape and fallback
+checks without recapturing all viewport studies; `--fallbacks-only` limits it to
+initialization failures, static preferences, no-JS and deep-link suspension.
 Capture utilities scroll to load every lazy image before saving full pages,
 readable viewport studies and individual home chapter crops; `--devices desktop
 phone` limits capture to those two sizes.

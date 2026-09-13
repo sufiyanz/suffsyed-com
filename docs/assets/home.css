@@ -18,6 +18,12 @@ html:has(body.home) { --home-header-height: 65px; scroll-padding-top: 0; }
 .cover-path a:hover { color: var(--cp-surface); text-decoration-thickness: 2px; }
 .cover-path sup { margin-left: 4px; font: 400 12px/1 var(--font-technical); }
 .cover-signature { width: var(--signature-width); max-width: 100%; height: auto; }
+.signature-field { position: absolute; left: 0; top: 0; max-width: 100%; pointer-events: none; color: var(--cp-bg); font-family: var(--font-technical); }
+.home-cover[data-signature-active] .cover-signature { opacity: .22; }
+.cover-ending { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.signature-motion { flex: none; min-width: 54px; min-height: 44px; padding: 8px 0; border: 0; background: none; color: var(--cp-reverse); font: 400 11px/1 var(--font-technical); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.signature-motion:hover { color: var(--cp-surface); }
+.signature-motion:focus-visible { outline-color: var(--cp-reverse); }
 .cover-continue { display: inline-flex; align-items: center; align-self: start; gap: 24px; min-height: 44px; font: 500 19px/1.4 var(--font-reading); text-decoration: none; }
 .cover-continue > span:first-child { text-decoration: underline; text-underline-offset: 6px; }
 .cover-continue > span:last-child { font-size: 30px; }
@@ -162,6 +168,7 @@ html:has(body.home) { --home-header-height: 65px; scroll-padding-top: 0; }
   .cover-description { font-size: 20px; }
   .cover-path { font-size: 18px; line-height: 1.55; }
   .home-cover h1 { --signature-width: clamp(260px,78vw,300px); }
+  .home-cover[data-signature-active] .cover-signature { opacity: .3; }
   .cover-continue { font-size: 18px; gap: 12px; }
   .cover-continue > span:last-child { font-size: 26px; }
   .opening { display: block; padding: 22px 0 32px; }
@@ -209,6 +216,10 @@ html:has(body.home) { --home-header-height: 65px; scroll-padding-top: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .journal-opening .instrument :is(.running-ring, .running-light) { animation: none !important; }
+}
+@media (prefers-reduced-motion: reduce), (forced-colors: active), print {
+  .home-cover .signature-field, .home-cover .signature-motion { display: none !important; }
+  .home-cover[data-signature-active] .cover-signature { opacity: 1; }
 }
 @media (max-width: 365px) {
   html:has(body.home) { --home-header-height: 146px; }

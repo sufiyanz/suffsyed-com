@@ -104,11 +104,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://127.0.0.1:8766")
     parser.add_argument("--artifacts", type=Path, required=True)
+    parser.add_argument("--browser-channel", default=None)
+    parser.add_argument("--browser", choices=["chromium", "webkit"], default="chromium")
     args = parser.parse_args()
     args.artifacts.mkdir(parents=True, exist_ok=True)
     errors, external, missing, states = [], [], [], []
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = getattr(p, args.browser).launch(**({"channel": args.browser_channel} if args.browser_channel else {}))
         for width, height in [(320, 740), (390, 844), (820, 1180), (1028, 900), (1600, 1000), (1920, 1120)]:
             for javascript in [True, False]:
                 print(f"Cover: {width}px / JavaScript {javascript}", flush=True)

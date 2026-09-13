@@ -36,6 +36,11 @@ class JournalTests(unittest.TestCase):
         self.assertEqual(len(cover.select(".cover-signature")), 1)
         self.assertIs(cover.select_one(".cover-signature").parent, cover.h1)
         self.assertIsNone(cover.select_one(".cover-kicker"))
+        controls = cover.select("button.signature-motion")
+        self.assertEqual(len(controls), 1)
+        self.assertTrue(controls[0].has_attr("hidden"))
+        self.assertEqual(controls[0]["aria-label"], "Pause signature animation")
+        self.assertIsNone(controls[0].find_parent("h1"))
         self.assertEqual(cover.select_one(".cover-role").get_text(),
                          "Suff Syed is a Member of Technical Staff building across AI frontiers at Microsoft.")
         self.assertEqual(cover.select_one(".cover-description").get_text(),
