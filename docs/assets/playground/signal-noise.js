@@ -15,9 +15,10 @@ export async function mount(root, context) {
     let game = new SignalGame(context.seed);
     let paused = false, manual = life.preferences.reducedMotion, target = null;
     let dpr = 1, lastSecond = 60;
+    let palette = colors(root, life.preferences);
     const held = new Set();
     const heading = element("header", "sim-heading");
-    heading.append(element("p", "sim-kicker", "A minute of attention"), element("h2", "", "Find the signal."));
+    heading.append(element("h2", "", "Signal / Noise"), element("p", "sim-kicker", "Pocket arcade"));
     const instructions = element("p", "pg-help",
       "Steer the ring to 8 + fragments. Avoid x noise: -3 seconds and back to center.");
     const controls = element("div", "pg-controls sim-controls");
@@ -63,7 +64,10 @@ export async function mount(root, context) {
     const score = element("span", "sim-score");
     const time = element("span", "sim-time");
     const hits = element("span", "sim-hits");
-    metrics.append(score, time, hits);
+    const scoreValue = element("strong", "sim-score-value");
+    const timeValue = element("strong", "sim-time-value");
+    score.append(scoreValue, element("small", "", " / 8 signal"));
+    time.append(timeValue, element("small", "", " s"));
     const canvas = element("canvas", "pg-stage sim-canvas");
     canvas.width = 650;
     canvas.height = 450;
@@ -109,9 +113,8 @@ export async function mount(root, context) {
       }
       pad.append(control);
     }
-    playfield.append(metrics, canvas, pad, guidance, position);
+    playfield.append(canvas);
     const aside = element("aside", "sim-reveal");
-    const fragmentLabel = element("p", "sim-kicker", "A mark, recovered");
     const signatureFrame = element("div", "sim-signature-frame");
     const signature = element("img", "sim-signature");
     const source = new URL(context.data.signature.src, location.href);
@@ -127,14 +130,17 @@ export async function mount(root, context) {
     mask.style.webkitMaskImage = `url("${source.href}")`;
     mask.setAttribute("aria-hidden", "true");
     signatureFrame.append(signature, mask);
+    metrics.append(score, signatureFrame, time);
     const segments = element("div", "sim-segments");
     segments.setAttribute("aria-hidden", "true");
     for (let i = 0; i < 8; i++) segments.append(element("span"));
     const message = element("p", "sim-result", "Eight fragments. One familiar mark.");
     const note = element("p", "sim-note", "A small exercise in choosing what deserves your attention. Everything stays in this tab.");
-    aside.append(fragmentLabel, signatureFrame, segments, message, note);
-    layout.append(playfield, aside);
-    root.append(heading, instructions, controls, layout);
+    aside.append(instructions, hits, guidance, position, note);
+    const result = element("div", "sim-feedback");
+    result.append(segments, message);
+    layout.append(metrics, playfield, result, pad, controls);
+    root.append(heading, layout, aside);
 
     function playable() {
       return life.active && game.state === "playing" && !paused;
@@ -158,8 +164,8 @@ export async function mount(root, context) {
     }
 
     function metricsUpdate() {
-      score.textContent = `${game.collected} / 8 signal`;
-      time.textContent = `${Math.ceil(game.remaining)} s`;
+      scoreValue.textContent = String(game.collected);
+      timeValue.textContent = String(Math.ceil(game.remaining));
       hits.textContent = `${game.hits} noise`;
       const fraction = game.collected / 8;
       signature.style.clipPath = mask.style.clipPath = `inset(0 ${(1 - fraction) * 100}% 0 0)`;
@@ -180,40 +186,48 @@ export async function mount(root, context) {
 
     function draw() {
       surface.begin();
-      const g = surface.drawing, p = colors(context, life.preferences);
+      const g = surface.drawing, p = palette;
       const cellWidth = surface.width / game.columns, cellHeight = surface.height / game.rows;
       const unit = Math.min(cellWidth, cellHeight);
       const point = item => [(item.x + 0.5) * cellWidth, (item.y + 0.5) * cellHeight];
-      g.fillStyle = p.background;
+      g.fillStyle = p.surface;
       g.fillRect(0, 0, surface.width, surface.height);
       g.fillStyle = p.line;
       for (let y = 0; y < game.rows; y++) for (let x = 0; x < game.columns; x++) {
+        g.globalAlpha = 0.65;
         g.fillRect((x + 0.5) * cellWidth - 0.7, (y + 0.5) * cellHeight - 0.7, 1.4, 1.4);
       }
+      g.globalAlpha = 1;
       g.font = `400 ${Math.max(13, unit * 0.62)}px "DM Mono", monospace`;
       g.textAlign = "center";
       g.textBaseline = "middle";
       for (const noise of game.noise) {
         const [x, y] = point(noise);
-        g.fillStyle = p.ink;
-        g.fillText("x", x, y);
+        g.strokeStyle = p.muted;
+        g.lineWidth = Math.max(1.8, unit * 0.12);
+        const arm = Math.max(3, unit * 0.22);
+        g.beginPath();
+        g.moveTo(x - arm, y - arm);
+        g.lineTo(x + arm, y + arm);
+        g.moveTo(x + arm, y - arm);
+        g.lineTo(x - arm, y + arm);
+        g.stroke();
       }
       if (game.target) {
         const [x, y] = point(game.target);
-        g.strokeStyle = p.accent;
-        g.lineWidth = 1.5;
+        g.fillStyle = p.accent;
         g.beginPath();
         g.moveTo(x, y - unit * 0.42);
         g.lineTo(x + unit * 0.42, y);
         g.lineTo(x, y + unit * 0.42);
         g.lineTo(x - unit * 0.42, y);
         g.closePath();
-        g.stroke();
-        g.fillStyle = p.ink;
+        g.fill();
+        g.fillStyle = p.background;
         g.fillText("+", x, y);
       }
       const [x, y] = point(game.player);
-      g.strokeStyle = p.ink;
+      g.strokeStyle = p.accent;
       g.lineWidth = Math.max(2, unit * 0.09);
       g.beginPath();
       g.arc(x, y, unit * 0.29, 0, Math.PI * 2);
@@ -229,20 +243,24 @@ export async function mount(root, context) {
         g.stroke();
       }
       if (game.state !== "playing" || paused || !life.active) {
-        const title = game.state === "ready" ? "Make room for the signal." :
-          game.state === "won" ? "All eight. Well noticed." : game.state === "lost" ? "A minute, complete." : "Take your time.";
-        const fontSize = Math.max(12, Math.min(20, surface.width / 21));
-        g.font = `400 ${fontSize}px "DM Mono", monospace`;
+        const title = game.state === "ready" ? "COLLECT 8 +" :
+          game.state === "won" ? "SIGNAL FOUND" : game.state === "lost" ? "TIME'S UP" : "PAUSED";
+        const fontSize = Math.max(14, Math.min(26, surface.width / 17));
+        g.font = `500 ${fontSize}px "DM Mono", monospace`;
         const textWidth = g.measureText(title).width;
-        const bannerY = surface.height * 0.76;
+        const bannerY = surface.height * 0.63;
         g.fillStyle = p.background;
-        g.fillRect(surface.width / 2 - textWidth / 2 - 10, bannerY - 16, textWidth + 20, 32);
+        g.fillRect(surface.width / 2 - textWidth / 2 - 10, bannerY - fontSize, textWidth + 20, fontSize * 2.2);
         g.fillStyle = p.ink;
         g.fillText(title, surface.width / 2, bannerY);
+        g.font = `400 ${Math.max(8, Math.min(11, unit * 0.7))}px "DM Mono", monospace`;
+        g.fillStyle = p.accent;
+        g.fillText(game.state === "ready" ? "x: -3s + center" : "YOUR PACE. YOUR SIGNAL.", surface.width / 2, bannerY + fontSize * 0.85);
       }
     }
 
     function sync() {
+      palette = colors(root, life.preferences);
       if (life.preferences.reducedMotion && !manual) {
         manual = true;
         if (game.state === "playing") paused = true;
@@ -276,6 +294,7 @@ export async function mount(root, context) {
         context.setStatus(game.state === "won" ?
           `Signal found. All eight fragments recovered with ${second} seconds left.` :
           `Minute complete. ${game.collected} of eight fragments found. Choose Play again to restart.`);
+        if (game.state === "won") context.pulseSignature?.();
       } else {
         if (changed || lastSecond !== second || turnBased) metricsUpdate();
         if (before.hits !== game.hits) {
@@ -283,6 +302,7 @@ export async function mount(root, context) {
           context.setStatus(`Noise hit. Three seconds lost; back at the center. ${second} seconds left.`);
         } else if (before.collected !== game.collected) {
           context.setStatus(`Fragment ${game.collected} of eight found. ${second} seconds left.`);
+          context.pulseSignature?.();
         } else if ([30, 10].includes(second) && lastSecond !== second) {
           context.setStatus(`${second} seconds left. ${game.collected} of eight fragments found.`);
         } else if (turnBased) {
@@ -372,8 +392,6 @@ export async function mount(root, context) {
     });
     life.onResize = size => {
       dpr = size.dpr;
-      if (root.clientHeight <= 400 && root.clientWidth <= 680) heading.append(signatureFrame);
-      else fragmentLabel.after(signatureFrame);
       surface.resize(dpr);
       draw();
     };

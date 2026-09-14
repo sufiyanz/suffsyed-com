@@ -1,56 +1,59 @@
-[data-experience="signal-noise"] { min-width: 0; min-height: 0; height: 100%; overflow: auto; overscroll-behavior: contain; container-type: size; padding: 2px; background: var(--cp-bg); color: var(--cp-text); font-family: var(--font-reading); }
-[data-experience="signal-noise"] :is(h2,p) { margin: 0; }
-[data-experience="signal-noise"] .sim-heading { position: relative; }
-[data-experience="signal-noise"] .sim-heading .sim-signature-frame { position: absolute; right: 0; top: 0; width: 80px; height: 28px; margin: 0; }
-[data-experience="signal-noise"] .sim-kicker { color: var(--cp-text-muted); font: 400 10px/1.5 var(--font-technical); text-transform: uppercase; letter-spacing: .09em; }
-[data-experience="signal-noise"] h2 { margin-top: 4px; color: var(--cp-heading); font: 400 clamp(28px,3vw,38px)/1.1 var(--font-reading); letter-spacing: -.025em; }
-[data-experience="signal-noise"] .pg-help { margin-top: 8px; max-width: 640px; font: 400 17px/1.4 var(--font-reading); }
-[data-experience="signal-noise"] .sim-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0 10px; }
-[data-experience="signal-noise"] .pg-button { min-width: 44px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--cp-border-strong); border-radius: 0; background: var(--cp-bg); color: var(--cp-text); font: 400 12px/1.3 var(--font-technical); }
-[data-experience="signal-noise"] .sim-primary { min-width: 106px; background: var(--cp-heading); color: var(--cp-reverse); }
-[data-experience="signal-noise"] :is(button,canvas,input):focus-visible { outline: 2px solid var(--cp-accent); outline-offset: 2px; }
-[data-experience="signal-noise"] .sim-mode-choice { display: flex; align-items: center; min-height: 44px; margin: 0; gap: 6px; cursor: pointer; font: 400 11px/1.4 var(--font-technical); }
-[data-experience="signal-noise"] .sim-mode-choice input { width: 18px; height: 18px; min-height: 18px; margin: 0 4px; accent-color: var(--cp-accent); }
-[data-experience="signal-noise"] .sim-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(170px,.35fr); gap: 24px; align-items: center; }
-[data-experience="signal-noise"] .sim-playfield { min-width: 0; }
-[data-experience="signal-noise"] .sim-metrics { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; font: 400 12px/1.5 var(--font-technical); }
-[data-experience="signal-noise"] .sim-canvas { display: block; width: 100%; height: clamp(120px, calc(100cqh - 270px), 330px); border: 1px solid var(--cp-border-strong); touch-action: none; cursor: crosshair; }
-[data-experience="signal-noise"] .sim-pad { display: flex; justify-content: center; gap: 8px; margin: 10px 0; }
-[data-experience="signal-noise"] .sim-pad .pg-button { width: 48px; height: 44px; padding: 4px; font: 400 24px/1 var(--font-reading); touch-action: none; }
-[data-experience="signal-noise"] .sim-guidance { font: 400 13px/1.5 var(--font-reading); color: var(--cp-text-muted); }
-[data-experience="signal-noise"] .sim-position { margin-top: 6px; font: 400 10px/1.5 var(--font-technical); }
-[data-experience="signal-noise"] .sim-reveal { min-width: 0; border-top: 1px solid var(--cp-border-strong); padding-top: 14px; }
-[data-experience="signal-noise"] .sim-signature-frame { position: relative; width: 100%; max-width: 240px; aspect-ratio: 350/148; margin: 14px 0; }
-[data-experience="signal-noise"] .sim-signature { width: 100%; height: 100%; object-fit: contain; }
-[data-experience="signal-noise"] .sim-signature-mask { position: absolute; inset: 0; display: none; mask-size: contain; -webkit-mask-size: contain; mask-position: center; -webkit-mask-position: center; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; background: CanvasText; forced-color-adjust: none; }
-[data-experience="signal-noise"] .sim-segments { display: grid; grid-template-columns: repeat(8,1fr); gap: 4px; margin-bottom: 14px; }
-[data-experience="signal-noise"] .sim-segments span { height: 5px; border: 1px solid var(--cp-border-strong); }
-[data-experience="signal-noise"] .sim-segments [data-found="true"] { background: var(--cp-heading); }
-[data-experience="signal-noise"] .sim-result { font: 400 22px/1.2 var(--font-reading); }
-[data-experience="signal-noise"] .sim-note { margin-top: 10px; padding-bottom: 8px; color: var(--cp-text-muted); font: 400 15px/1.4 var(--font-reading); }
-@media (max-width: 680px) {
-  [data-experience="signal-noise"] .sim-layout { grid-template-columns: minmax(0,1fr); gap: 16px; }
-  [data-experience="signal-noise"] .sim-signature-frame { width: 145px; margin: 8px 0; }
-  [data-experience="signal-noise"] .sim-reveal { display: grid; grid-template-columns: 1fr 1fr; align-items: center; column-gap: 14px; }
-  [data-experience="signal-noise"] .sim-reveal > .sim-kicker { grid-column: 1 / -1; }
-  [data-experience="signal-noise"] .sim-segments { margin: 0; }
-  [data-experience="signal-noise"] .sim-result { grid-column: 1 / -1; font-size: 20px; }
-  [data-experience="signal-noise"] .sim-note { grid-column: 1 / -1; font-size: 14px; }
+#cover-playground[data-world="signal-noise"],
+[data-experience="signal-noise"] {
+  color-scheme: dark;
+  --pg-world-bg: #102657;
+  --pg-world-surface: #153778;
+  --pg-world-ink: #FFF5E4;
+  --pg-world-muted: #D7E1F4;
+  --pg-world-accent: #FFB14A;
+  --pg-world-line: #5875A2;
+  --pg-world-signature: #FFD190;
+  --pg-world-signature-opacity: 0.24;
 }
-@container (max-height: 400px) {
-  [data-experience="signal-noise"] .sim-heading > .sim-kicker { display: none; }
-  [data-experience="signal-noise"] h2 { margin-top: 0; font-size: 21px; }
-  [data-experience="signal-noise"] .pg-help { margin-top: 4px; font-size: 13px; line-height: 1.25; }
-  [data-experience="signal-noise"] .sim-controls { gap: 6px; margin: 6px 0 2px; }
-  [data-experience="signal-noise"] .sim-controls .pg-button { padding-inline: 9px; font-size: 11px; }
-  [data-experience="signal-noise"] .sim-primary { min-width: 90px; }
-  [data-experience="signal-noise"] .sim-mode-choice { gap: 3px; font-size: 10px; }
-  [data-experience="signal-noise"] .sim-mode-choice input { margin-inline: 2px; width: 16px; }
-  [data-experience="signal-noise"] .sim-layout { grid-template-columns: minmax(0,1fr); gap: 12px; }
-  [data-experience="signal-noise"] .sim-metrics { padding: 4px 0; font-size: 10px; }
-  [data-experience="signal-noise"] .sim-canvas { height: clamp(100px, calc(100cqh - 185px), 200px); aspect-ratio: auto; }
-  [data-experience="signal-noise"] .sim-pad { margin: 4px 0; }
+[data-experience="signal-noise"] { --font-display: var(--font-technical); min-width: 0; min-height: 0; height: 100%; padding: 2px 4px; overflow: auto; overscroll-behavior: contain; container-type: size; background: transparent; color: var(--pg-world-ink); font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+[data-experience="signal-noise"] :is(h2,p) { margin: 0; color: inherit; }
+[data-experience="signal-noise"] .sim-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; max-width: 820px; height: 20px; margin-inline: auto; }
+[data-experience="signal-noise"] h2 { font: 700 13px/1 var(--font-technical); letter-spacing: -.04em; text-transform: uppercase; }
+[data-experience="signal-noise"] .sim-kicker { color: var(--pg-world-accent); font: 400 9px/1 var(--font-technical); text-transform: uppercase; letter-spacing: .05em; }
+[data-experience="signal-noise"] .sim-layout { display: grid; grid-template-rows: 58px minmax(100px,1fr) 7px 48px 46px; gap: 5px; height: calc(100cqh - 24px); min-height: 276px; max-width: 820px; margin-inline: auto; }
+[data-experience="signal-noise"] .sim-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: center; font-family: var(--font-technical); }
+[data-experience="signal-noise"] :is(.sim-score,.sim-time) { white-space: nowrap; display: flex; align-items: baseline; gap: 3px; }
+[data-experience="signal-noise"] .sim-time { justify-content: end; }
+[data-experience="signal-noise"] .sim-metrics strong { font: 500 44px/1 var(--font-technical); letter-spacing: -.09em; color: var(--pg-world-ink); }
+[data-experience="signal-noise"] .sim-time strong { color: var(--pg-world-accent); }
+[data-experience="signal-noise"] .sim-metrics small { font: 400 9px/1.2 var(--font-technical); color: var(--pg-world-muted); }
+[data-experience="signal-noise"] .sim-playfield { min-height: 0; min-width: 0; padding: 4px; border: 2px solid var(--pg-world-line); border-radius: 12px; background: var(--pg-world-bg); box-shadow: 0 3px 0 var(--pg-world-line); overflow: hidden; }
+[data-experience="signal-noise"] .sim-canvas { display: block; width: 100%; height: 100%; min-height: 0; min-width: 0; border-radius: 6px; touch-action: none; cursor: crosshair; }
+[data-experience="signal-noise"] .sim-pad { display: grid; grid-template-columns: repeat(4,1fr); align-items: start; gap: 9px; max-width: 390px; width: 100%; margin-inline: auto; }
+[data-experience="signal-noise"] .pg-button { min-width: 44px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--pg-world-line); border-radius: 5px; background: var(--pg-world-surface); color: var(--pg-world-ink); font: 500 11px/1.2 var(--font-technical); }
+[data-experience="signal-noise"] .pg-button:hover { background: var(--pg-world-line); color: var(--pg-world-ink); }
+[data-experience="signal-noise"] .sim-pad .pg-button { padding: 3px; height: 44px; background: var(--pg-world-accent); color: var(--pg-world-bg); border: 0; border-bottom: 4px solid var(--pg-world-signature); font: 700 26px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; touch-action: none; }
+[data-experience="signal-noise"] .sim-pad .pg-button:active { border-bottom-width: 1px; background: var(--pg-world-ink); }
+[data-experience="signal-noise"] .sim-controls { display: flex; justify-content: space-between; gap: 6px; flex-wrap: nowrap; align-items: center; }
+[data-experience="signal-noise"] .sim-primary { min-width: 90px; border: 1px solid var(--pg-world-accent); color: var(--pg-world-accent); background: var(--pg-world-bg); text-transform: uppercase; }
+[data-experience="signal-noise"] .sim-primary:hover { background: var(--pg-world-accent); color: var(--pg-world-bg); }
+[data-experience="signal-noise"] .sim-mode-choice { display: flex; align-items: center; justify-content: end; min-height: 44px; margin: 0; gap: 3px; cursor: pointer; color: var(--pg-world-muted); font: 400 10px/1.3 var(--font-technical); }
+[data-experience="signal-noise"] .sim-mode-choice input { width: 16px; height: 16px; min-height: 16px; margin: 0 3px 0 0; accent-color: var(--pg-world-accent); }
+[data-experience="signal-noise"] :is(button,canvas,input):focus-visible { outline: 2px solid var(--pg-world-ink); outline-offset: -2px; }
+[data-experience="signal-noise"] .sim-signature-frame { position: relative; width: 100%; max-width: 150px; height: 52px; justify-self: center; }
+[data-experience="signal-noise"] .sim-signature { width: 100%; height: 100%; object-fit: contain; visibility: hidden; }
+[data-experience="signal-noise"] .sim-signature-mask { position: absolute; inset: 0; display: block; mask-size: contain; -webkit-mask-size: contain; mask-position: center; -webkit-mask-position: center; mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat; background: var(--pg-world-accent); }
+[data-experience="signal-noise"] .sim-segments { display: grid; grid-template-columns: repeat(8,1fr); gap: 5px; padding-inline: 10px; }
+[data-experience="signal-noise"] .sim-segments span { height: 4px; background: var(--pg-world-line); }
+[data-experience="signal-noise"] .sim-segments [data-found="true"] { background: var(--pg-world-accent); }
+[data-experience="signal-noise"] .sim-result { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+[data-experience="signal-noise"] .sim-reveal { max-width: 820px; margin: 14px auto 8px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; border-top: 1px dashed var(--pg-world-line); padding-top: 10px; }
+[data-experience="signal-noise"] :is(.pg-help,.sim-guidance,.sim-note) { font: 400 12px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color: var(--pg-world-muted); }
+[data-experience="signal-noise"] :is(.sim-guidance,.sim-note,.sim-position) { grid-column: 1 / -1; }
+[data-experience="signal-noise"] :is(.sim-hits,.sim-position) { color: var(--pg-world-muted); font: 400 10px/1.5 var(--font-technical); }
+@container (max-width: 620px) {
+  [data-experience="signal-noise"] .sim-heading { height: 16px; }
+  [data-experience="signal-noise"] .sim-layout { grid-template-rows: 44px minmax(100px,1fr) 4px 44px 44px; gap: 3px; height: calc(100cqh - 20px); }
+  [data-experience="signal-noise"] .sim-metrics strong { font-size: 36px; }
+  [data-experience="signal-noise"] .sim-metrics small { font-size: 8px; }
+  [data-experience="signal-noise"] .sim-signature-frame { height: 40px; }
+  [data-experience="signal-noise"] .sim-controls .pg-button { padding-inline: 8px; font-size: 10px; }
+  [data-experience="signal-noise"] .sim-mode-choice { font-size: 9px; }
 }
-[data-experience="signal-noise"][data-forced-colors="true"] { --cp-bg: Canvas; --cp-text: CanvasText; --cp-heading: CanvasText; --cp-text-muted: CanvasText; --cp-border: CanvasText; --cp-border-strong: CanvasText; --cp-accent: Highlight; --cp-reverse: Canvas; --cp-surface: Canvas; }
-[data-experience="signal-noise"][data-forced-colors="true"] .sim-signature { visibility: hidden; }
-[data-experience="signal-noise"][data-forced-colors="true"] .sim-signature-mask { display: block; }
+[data-experience="signal-noise"][data-forced-colors="true"] { --pg-world-bg: Canvas; --pg-world-surface: Canvas; --pg-world-ink: CanvasText; --pg-world-muted: CanvasText; --pg-world-accent: Highlight; --pg-world-line: CanvasText; --pg-world-signature: CanvasText; }
+[data-experience="signal-noise"][data-forced-colors="true"] .sim-signature-mask { background: CanvasText; forced-color-adjust: none; }

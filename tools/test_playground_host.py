@@ -35,6 +35,10 @@ export async function mount(root, context) {
     destroy() { item.destroyed++; }
   };
 }
+
+export async function mountScene() {
+  return {setActive(){}, resize(){}, setPreferences(){}, pulse(){}, destroy(){}};
+}
 """
 
 
@@ -61,6 +65,8 @@ def static_checks(require_all=False):
         folder = ROOT / "site/playground"
         for identifier in IDS:
             pending = [folder / f"{identifier}.js", folder / f"{identifier}.css"]
+            if identifier != "type-garden":
+                pending.append(folder / "scene-engine.js")
             files = set()
             while pending:
                 path = pending.pop()
@@ -102,11 +108,13 @@ def browser_checks(args):
             entry.focus()
             page.keyboard.press("Enter")
             page.wait_for_selector('.pg-shell[data-state="ready"]')
-            assert page.locator(".home-cover").bounding_box() == geometry
+            assert page.locator(".home-cover").bounding_box() == geometry, (page.locator(".home-cover").bounding_box(), geometry)
             assert page.locator("#main").bounding_box()["y"] == before_top
             assert page.locator(".cover-identity").evaluate("el => el.inert")
             assert not page.locator("#main").evaluate("el => el.inert")
-            assert page.evaluate("document.activeElement.id") == "pg-title"
+            assert page.get_by_role("combobox", name="Choose experiment").evaluate("el => el === document.activeElement")
+            assert page.locator("#cover-playground").get_attribute("data-world") == "scratch-terminal"
+            assert page.locator("#cover-playground").get_attribute("data-experience") is None
             assert page.get_by_role("button", name="Choose experiment").count() == 0
             choose = page.get_by_role("combobox", name="Choose experiment")
             assert choose.bounding_box()["height"] >= 44
@@ -127,10 +135,10 @@ def browser_checks(args):
             assert page.locator(".pg-instance").count() == 1
             assert page.locator(".pg-viewport").bounding_box() == stage_size
             page.screenshot(path=str(args.artifacts / f"{width}-host-fixture.png"))
-            page.evaluate("scrollTo(0, document.querySelector('.home-cover').offsetHeight + 5)")
+            page.evaluate("scrollTo({top:document.querySelector('.home-cover').offsetHeight+5,behavior:'instant'})")
             page.wait_for_function("pgFixtures[0].calls.filter(([k])=>k==='active').at(-1)[1] === false")
             assert page.locator(".mast").is_visible()
-            page.evaluate("scrollTo(0,0)")
+            page.evaluate("scrollTo({top:0,behavior:'instant'})")
             page.wait_for_function("pgFixtures[0].calls.filter(([k])=>k==='active').at(-1)[1] === true")
             page.emulate_media(reduced_motion="reduce", forced_colors="active")
             page.wait_for_function("pgFixtures[0].calls.filter(([k])=>k==='preferences').at(-1)[1].forcedColors")
@@ -148,12 +156,14 @@ def browser_checks(args):
             page.get_by_role("textbox", name="Test input").focus()
             page.get_by_role("textbox", name="Test input").dispatch_event("keydown", {"key": "Escape", "isComposing": True})
             assert page.locator(".pg-shell").is_visible()
+            closing_geometry = page.locator(".home-cover").bounding_box()
             page.keyboard.press("Escape")
             assert not page.locator(".pg-shell").is_visible()
             assert entry.evaluate("el => el === document.activeElement")
             assert page.get_by_role("button", name="Resume signature animation").is_visible()
             assert page.evaluate("pgFixtures.every(item => item.destroyed===1 && item.aborted)")
-            assert page.locator(".home-cover").bounding_box() == geometry
+            assert closing_geometry["height"] == geometry["height"] and closing_geometry["width"] == geometry["width"]
+            assert page.locator(".home-cover").bounding_box() == closing_geometry
             assert not errors, errors
             assert not [url for url in requests if not url.startswith(args.url)], requests
             context.close()
@@ -270,6 +280,9 @@ def browser_checks(args):
         context = browser.new_context(viewport={"width": 390, "height": 844})
         attempts = []
         def import_route(route):
+            if "/scene-" in route.request.url:
+                route.fulfill(body=FIXTURE, content_type="text/javascript")
+                return
             attempts.append(route.request.url)
             if len(attempts) == 1:
                 route.fulfill(status=503, body="Temporarily unavailable", content_type="text/plain")

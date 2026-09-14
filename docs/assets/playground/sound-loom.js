@@ -29,7 +29,17 @@ export async function mount(root, context) {
     return node;
   }
 
-  const help = element("p", "pg-help loom-help", "Tap knots to weave. Play to listen.");
+  const housing = element("div", "loom-housing");
+  const header = element("div", "loom-header");
+  const brand = element("div", "loom-brand");
+  brand.append(element("span", "loom-name", "sound loom"), element("span", "loom-model", "SL-08 / RHYTHM MACHINE"));
+  const display = element("div", "loom-display");
+  display.setAttribute("aria-hidden", "true");
+  const tempoReadout = element("span", "loom-bpm", "96");
+  const beatReadout = element("span", "loom-beat", "--");
+  display.append(tempoReadout, element("span", "loom-unit", "BPM"), beatReadout);
+  header.append(brand, display);
+  const help = element("p", "pg-help loom-help", "Tap keys to weave. Play to listen. Swipe for all eight steps; arrow keys and Space work too.");
   const stage = element("div", "pg-stage loom-scroll");
   const grid = element("div", "loom-grid");
   grid.setAttribute("role", "grid");
@@ -99,7 +109,7 @@ export async function mount(root, context) {
   tempoInput.setAttribute("aria-valuetext", "96 beats per minute");
   tempoLabel.append(tempoText, tempoInput);
   const timbreLabel = element("label", "loom-setting");
-  const timbreText = element("span", "", "Thread");
+  const timbreText = element("span", "", "Voice");
   const timbreInput = element("select", "pg-field");
   timbreInput.setAttribute("aria-label", "Timbre");
   for (const [value, title] of [["sine", "Soft"], ["triangle", "Reed"]]) {
@@ -108,13 +118,15 @@ export async function mount(root, context) {
     timbreInput.append(option);
   }
   timbreLabel.append(timbreText, timbreInput);
-  settings.append(tempoLabel, timbreLabel);
+  const tuningNote = element("p", "loom-tuning-note", "Five pitches. Eight steps.\nA small machine for a passing melody.");
+  settings.append(tempoLabel, timbreLabel, tuningNote);
   tuning.append(tune, settings);
   controls.append(transport, tuning);
   const summary = element("p", "loom-summary");
   const error = element("p", "loom-error");
   error.hidden = true;
-  root.append(help, stage, controls, summary, error);
+  housing.append(header, help, stage, controls, summary, error);
+  root.append(housing);
 
   function count() {
     return pattern.reduce((total, row) => total + row.filter(Boolean).length, 0);
@@ -135,6 +147,7 @@ export async function mount(root, context) {
     root.dataset.state = !active ? "inactive" : starting ? "starting" : playing ? "playing" : error.hidden ? "ready" : "error";
     root.dataset.reducedMotion = String(preferences.reducedMotion);
     root.dataset.forcedColors = String(preferences.forcedColors);
+    display.dataset.transport = starting ? "starting" : playing ? "playing" : "stopped";
   }
 
   function renderPattern() {
@@ -151,9 +164,11 @@ export async function mount(root, context) {
       for (let row = 0; row < PITCHES.length; row++) cells[row * STEPS + marked].removeAttribute("data-current");
     }
     marked = step;
+    beatReadout.textContent = marked < 0 ? "--" : String(marked + 1).padStart(2, "0");
     if (marked >= 0) {
       headers[marked].setAttribute("aria-current", "step");
       for (let row = 0; row < PITCHES.length; row++) cells[row * STEPS + marked].dataset.current = "true";
+      if (playing && active && !destroyed && !document.hidden) context.pulseSignature?.();
     }
   }
 
@@ -345,12 +360,19 @@ export async function mount(root, context) {
   tempoInput.addEventListener("input", () => {
     tempo = Number(tempoInput.value);
     tempoText.textContent = `Tempo ${tempo}`;
+    tempoReadout.textContent = String(tempo);
     tempoInput.setAttribute("aria-valuetext", `${tempo} beats per minute`);
   }, options);
   tempoInput.addEventListener("change", () => say(`Tempo set to ${tempo} beats per minute.`), options);
   timbreInput.addEventListener("change", () => {
     timbre = timbreInput.value;
     say(`${timbreInput.selectedOptions[0].textContent} thread selected for the next notes.`);
+  }, options);
+  tuning.addEventListener("toggle", () => {
+    root.dataset.view = tuning.open ? "tune" : "keys";
+    stage.hidden = tuning.open;
+    tune.textContent = tuning.open ? "Keys" : "Tune";
+    tune.title = tuning.open ? "Return to the step keys" : "Adjust tempo and timbre";
   }, options);
   cells.forEach((cell, index) => {
     cell.addEventListener("click", () => toggle(cell), options);

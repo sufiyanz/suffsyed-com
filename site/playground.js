@@ -158,14 +158,13 @@ function setupPlayground(cover) {
   shell.id = "cover-playground";
   shell.setAttribute("aria-labelledby", "pg-title");
   shell.hidden = true;
-  const header = node("div", undefined, "pg-heading");
-  const heading = node("h2", "A little room to play");
+  const heading = node("h2", "A little room to play", "pg-title");
   heading.id = "pg-title";
   heading.tabIndex = -1;
-  const close = node("button", "Close", "pg-button");
+  const close = node("button", "×", "pg-button pg-icon");
   close.type = "button";
   close.setAttribute("aria-label", "Close experiment");
-  header.append(heading, close);
+  close.title = "Close experiment";
   const toolbar = node("div", undefined, "pg-toolbar");
   const choose = node("select");
   choose.setAttribute("aria-label", "Choose experiment");
@@ -178,9 +177,11 @@ function setupPlayground(cover) {
     option.value = experience.id;
     choose.append(option);
   }
-  const another = node("button", "Another experiment", "pg-button");
+  const another = node("button", "↻", "pg-button pg-icon");
   another.type = "button";
-  toolbar.append(choice, another);
+  another.setAttribute("aria-label", "Another experiment");
+  another.title = "Another experiment";
+  toolbar.append(choice, another, close);
   const viewport = node("div", undefined, "pg-viewport");
   const feedback = node("div", undefined, "pg-feedback");
   const feedbackText = node("p");
@@ -193,7 +194,7 @@ function setupPlayground(cover) {
   status.setAttribute("role", "status");
   const ephemeral = node("p", "Not saved. Close or switch to start fresh.", "pg-ephemeral");
   footer.append(status, ephemeral);
-  shell.append(header, toolbar, viewport, footer);
+  shell.append(heading, toolbar, viewport, footer);
   cover.append(shell);
   let selected = experiences[0].id, bag = [], current = null, open = false, away = false;
   let inView = cover.getBoundingClientRect().bottom > 0;
@@ -221,6 +222,10 @@ function setupPlayground(cover) {
     current = null;
     if (!record) return;
     clearTimeout(record.deadline);
+    clearTimeout(record.sceneDeadline);
+    if (record.scene) disposeController(record.scene);
+    record.sceneAbort?.abort();
+    record.sceneRoot?.remove();
     if (record.controller) disposeController(record.controller);
     record.abort.abort();
     record.root.remove();
@@ -247,6 +252,75 @@ function setupPlayground(cover) {
     if (record.active === active) return;
     record.active = active;
     try { record.controller.setActive(active); } catch (error) { fail(record, "The experiment could not change its activity state.", error); }
+    if (stillCurrent(record)) sceneCall(record, "setActive", active);
+  }
+
+  function sceneError(record, message, error) {
+    if (!stillCurrent(record)) return;
+    console.warn("Cover signature background unavailable.", message, error);
+    record.sceneError = message;
+    if (record.sceneRoot) {
+      record.sceneRoot.dataset.sceneState = "fallback";
+      record.sceneRoot.dataset.sceneStatus = "failed";
+    }
+    status.textContent = message;
+  }
+
+  function sceneDimensions() {
+    const box = cover.getBoundingClientRect();
+    return { width: box.width, height: box.height, dpr: Math.min(devicePixelRatio || 1, 2) };
+  }
+
+  function sceneCall(record, method, value) {
+    if (!record.scene) return;
+    try { record.scene[method](value); } catch (error) {
+      disposeController(record.scene);
+      record.scene = null;
+      sceneError(record, "Character background unavailable; using the original signature.", error);
+    }
+  }
+
+  async function startScene(record, id, context) {
+    if (id === "type-garden") return;
+    const layer = node("div", undefined, "pg-scene");
+    layer.dataset.worldSignature = id;
+    layer.dataset.sceneState = "fallback";
+    layer.dataset.sceneStatus = "loading";
+    layer.setAttribute("aria-hidden", "true");
+    layer.style.setProperty("--pg-scene-mask", `url("${image.currentSrc || image.src}")`);
+    shell.prepend(layer);
+    record.sceneRoot = layer;
+    const abort = new AbortController();
+    record.sceneAbort = abort;
+    const cancel = () => abort.abort(record.abort.signal.reason);
+    record.abort.signal.addEventListener("abort", cancel, { once: true });
+    record.sceneDeadline = setTimeout(() => abort.abort(new Error("Signature background timeout")), 10000);
+    try {
+      const module = await abortable(loadModule("scene-engine"), abort.signal);
+      if (!stillCurrent(record) || abort.signal.aborted) return;
+      const mounting = module.mountScene(layer, {
+        id, seed: context.seed, data: context.data, signal: abort.signal, preferences: preferences(),
+        reportError: (message, error) => sceneError(record, message, error),
+      }).then(controller => {
+        if (!stillCurrent(record) || abort.signal.aborted) {
+          disposeController(controller);
+          return null;
+        }
+        return controller;
+      });
+      const controller = await abortable(mounting, abort.signal);
+      if (!controller || !stillCurrent(record)) return;
+      record.scene = controller;
+      sceneCall(record, "resize", sceneDimensions());
+      sceneCall(record, "setPreferences", preferences());
+      sceneCall(record, "setActive", record.active);
+    } catch (error) {
+      if (stillCurrent(record)) {
+        sceneError(record, "Character background unavailable; using the original signature.", error);
+      }
+    } finally {
+      clearTimeout(record.sceneDeadline);
+    }
   }
 
   async function select(id) {
@@ -255,10 +329,11 @@ function setupPlayground(cover) {
     const focusWasInside = current?.root.contains(document.activeElement) || document.activeElement === retry;
     teardown();
     selected = id;
+    shell.dataset.world = id;
     bag = bag.filter(item => item !== id);
     choose.value = id;
     heading.textContent = experience.title;
-    if (focusWasInside) heading.focus({ preventScroll: true });
+    if (focusWasInside) choose.focus({ preventScroll: true });
     shell.dataset.state = "loading";
     viewport.setAttribute("aria-busy", "true");
     status.textContent = `Opening ${experience.title.toLowerCase()}.`;
@@ -269,7 +344,7 @@ function setupPlayground(cover) {
     root.dataset.experience = id;
     root.hidden = true;
     viewport.prepend(root);
-    const record = { root, abort: new AbortController(), controller: null, active: false, deadline: null };
+    const record = { root, abort: new AbortController(), controller: null, scene: null, active: false, deadline: null };
     current = record;
     record.deadline = setTimeout(() => fail(record, "This experiment is taking too long to open. Try again.", new Error("Mount timeout")), 15000);
     try {
@@ -285,7 +360,12 @@ function setupPlayground(cover) {
       /** @type {PlaygroundContext} */
       const context = {
         signal, seed, random: randomFrom(seed), preferences: preferences(), palette: readPalette(cover), data,
-        setStatus(message) { if (stillCurrent(record)) status.textContent = String(message); },
+        pulseSignature() {
+          if (stillCurrent(record) && record.active) sceneCall(record, "pulse");
+        },
+        setStatus(message) {
+          if (stillCurrent(record)) status.textContent = `${String(message)}${record.sceneError ? ` ${record.sceneError}` : ""}`;
+        },
         reportError(message, error) {
           if (!stillCurrent(record)) return;
           if (!record.controller) {
@@ -296,6 +376,7 @@ function setupPlayground(cover) {
           status.textContent = String(message);
         },
       };
+      void startScene(record, id, context);
       const mounting = Promise.resolve(module.mount(root, context)).then(controller => {
         if (!stillCurrent(record)) {
           if (controller) disposeController(controller);
@@ -339,7 +420,7 @@ function setupPlayground(cover) {
     shell.hidden = false;
     entry.setAttribute("aria-expanded", "true");
     measure();
-    heading.focus({ preventScroll: true });
+    choose.focus({ preventScroll: true });
     void select(selected);
   }
 
@@ -367,6 +448,7 @@ function setupPlayground(cover) {
     if (record?.controller) {
       try { record.controller.resize(dimensions); } catch (error) { fail(record, "The experiment could not resize.", error); }
     }
+    if (record?.scene && stillCurrent(record)) sceneCall(record, "resize", sceneDimensions());
   }
 
   entry.addEventListener("click", enter);
@@ -393,6 +475,7 @@ function setupPlayground(cover) {
     const record = current;
     if (!record?.controller) return;
     try { record.controller.setPreferences(preferences()); } catch (error) { fail(record, "The experiment could not apply your preferences.", error); }
+    if (record.scene && stillCurrent(record)) sceneCall(record, "setPreferences", preferences());
   });
   printing.addEventListener("change", updateActive);
   document.addEventListener("visibilitychange", updateActive);

@@ -30,28 +30,43 @@ export async function mount(root, context) {
 
   root.inert = true;
   for (const [name, color] of Object.entries(context.palette)) root.style.setProperty(`--ink-${name}`, color);
-  const intro = node("p", "ink-invitation", "Make room for a line.");
+  const intro = node("div", "ink-inscription");
+  intro.append(node("span", "ink-folio", "01 / FIELD NOTES"), node("p", "ink-invitation", "Take your time."));
   const controls = node("div", "pg-controls ink-controls");
+  const toolbox = node("section", "ink-toolbox");
+  toolbox.id = `ink-tools-${context.seed}`;
+  toolbox.setAttribute("aria-label", "Drawing tools");
+  toolbox.hidden = true;
+  const toolHeading = node("div", "ink-tool-heading");
+  toolHeading.append(node("h3", "", "Choose your materials"));
   const fields = node("div", "ink-fields");
   const actions = node("div", "ink-actions");
+  const toolActions = node("div", "ink-tool-actions");
   const stage = node("div", "pg-stage ink-stage");
   const canvas = node("canvas", "ink-paper");
+  const invitation = node("span", "ink-paper-invitation", "Start anywhere.");
+  invitation.setAttribute("aria-hidden", "true");
   const cursor = node("span", "ink-cursor");
   cursor.setAttribute("aria-hidden", "true");
   canvas.tabIndex = 0;
   canvas.setAttribute("role", "application");
   canvas.setAttribute("aria-label", "Fountain pen drawing surface");
-  const help = node("p", "pg-help ink-help", "Draw, or use arrows + Space.");
+  const help = node("p", "pg-help ink-help", "Draw · arrows + Space");
   help.append(node("span", "ink-hidden",
     " Pen, mouse and touch are supported. Arrows move the nib; Enter or Space lifts/lowers it. Shift + arrows takes a larger step. Closing discards the sheet."));
   help.id = `ink-help-${context.seed}`;
   canvas.setAttribute("aria-describedby", help.id);
-  const budget = node("p", "ink-budget", "Only here, only now. Up to 96 strokes / 12,000 points. Closing discards this sheet.");
+  const budget = node("p", "ink-budget");
+  const footer = node("div", "ink-footer");
+  const sheetCount = node("span", "ink-sheet-count", "BLANK SHEET");
+  footer.append(help, sheetCount);
   const notice = node("p", "ink-notice");
   notice.hidden = true;
-  controls.append(fields, actions);
-  stage.append(canvas, cursor);
-  root.append(intro, controls, stage, help, budget, notice);
+  toolbox.append(toolHeading, fields, toolActions, budget,
+    node("p", "ink-tool-note", "Pen pressure shapes the line. Mouse and touch respond to speed. Nothing is saved unless you choose Save PNG."));
+  controls.append(actions);
+  stage.append(canvas, invitation, cursor);
+  root.append(intro, stage, controls, footer, toolbox, notice);
 
   function select(labelText, options) {
     const label = node("label", "pg-field ink-field");
@@ -67,19 +82,28 @@ export async function mount(root, context) {
     fields.append(label);
     on(input, "change", () => {
       finish();
+      updateMaterial();
       context.setStatus(`${labelText}: ${input.selectedOptions[0].textContent}.`);
     });
     return input;
   }
 
-  function button(text, handler) {
+  function button(text, handler, parent = actions) {
     const input = node("button", "pg-button", text);
     input.type = "button";
     on(input, "click", () => { if (active && !destroyed) handler(); });
-    actions.append(input);
+    parent.append(input);
     return input;
   }
 
+  const tools = button("Tools", () => showTools(toolbox.hidden));
+  tools.classList.add("ink-nib-button");
+  tools.setAttribute("aria-controls", toolbox.id);
+  tools.setAttribute("aria-expanded", "false");
+  const nibMark = node("span", "ink-nib-mark");
+  nibMark.setAttribute("aria-hidden", "true");
+  tools.prepend(nibMark);
+  button("Done", () => showTools(false), toolHeading);
   const nib = select("Nib", [["fountain", "Fountain"], ["round", "Round"]]);
   const size = select("Size", [["5", "Medium"], ["2", "Fine"], ["10", "Broad"]]);
   const color = select("Ink", [
@@ -112,8 +136,9 @@ export async function mount(root, context) {
     render();
     updateTools();
     context.setStatus("A fresh sheet. All strokes cleared.");
-  });
+  }, toolActions);
   const download = button("Save PNG", save);
+  download.classList.add("ink-save");
   const drawing = canvas.getContext("2d");
   if (!drawing) {
     context.reportError("This browser cannot open the drawing surface.", new Error("Canvas 2D is unavailable."));
@@ -125,7 +150,30 @@ export async function mount(root, context) {
     undo.disabled = clear.disabled = strokes.length === 0;
     download.disabled = exporting || strokes.length === 0;
     budget.textContent = `${strokes.length}/96 strokes · ${pointCount.toLocaleString("en-US")}/12,000 points`;
+    sheetCount.textContent = strokes.length ? `${strokes.length} MARK${strokes.length === 1 ? "" : "S"}` : "BLANK SHEET";
+    invitation.hidden = strokes.length > 0;
   }
+
+  function updateMaterial() {
+    nibMark.style.setProperty("--ink-selected", context.palette[color.value]);
+    nibMark.dataset.nib = nib.value;
+    tools.title = `Tools: ${nib.selectedOptions[0].textContent}, ${size.selectedOptions[0].textContent}, ${color.selectedOptions[0].textContent}`;
+  }
+
+  function showTools(visible, returnFocus = true) {
+    finish();
+    toolbox.hidden = !visible;
+    tools.setAttribute("aria-expanded", String(visible));
+    if (visible) nib.focus();
+    else if (returnFocus) tools.focus({ preventScroll: true });
+  }
+
+  on(root, "keydown", event => {
+    if (event.key === "Escape" && !toolbox.hidden) {
+      event.preventDefault();
+      showTools(false);
+    }
+  });
 
   function showLimit(message) {
     notice.textContent = message;
@@ -210,6 +258,7 @@ export async function mount(root, context) {
   on(canvas, "pointerdown", event => {
     if (!active || current || !event.isPrimary || event.button !== 0) return;
     event.preventDefault();
+    if (!toolbox.hidden) showTools(false, false);
     canvas.focus({ preventScroll: true });
     cursor.hidden = true;
     if (start(eventPoint(event), event.pressure, event.timeStamp, event.pointerType)) {
@@ -343,7 +392,10 @@ export async function mount(root, context) {
     if (destroyed) return;
     active = Boolean(value);
     root.inert = !active;
-    if (!active) finish();
+    if (!active) {
+      finish();
+      showTools(false, false);
+    }
   }
 
   function setPreferences(value) {
@@ -418,6 +470,7 @@ export async function mount(root, context) {
 
   setPreferences(preferences);
   updateTools();
+  updateMaterial();
   await document.fonts.ready;
   if (destroyed || context.signal.aborted) return controller;
   observer = new ResizeObserver(() => resize({ dpr: requestedDpr }));

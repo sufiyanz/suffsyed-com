@@ -1,4 +1,4 @@
-const GLYPHS = "/+:.=;x";
+const GLYPHS = "TYPE/garden+";
 const FRAME_MS = 1000 / 30;
 const MAX_PIXELS = 1000000;
 
@@ -8,7 +8,7 @@ export async function mount(root, context) {
   let preferences = { ...context.preferences };
   let raf = 0, lastFrame = 0, pointerId = null, held = false, keyboardHeld = false;
   let width = 0, height = 0, ratio = 1, particles = [], image, drawing, mask, maskDrawing;
-  let fontSize = 8, fontFamily = "", color = "", accent = "", mode = "attract";
+  let fontSize = 10, fontFamily = "", color = "", accent = "", mode = "attract";
   const aim = { x: 0, y: 0, visible: false };
   const glyphs = Array.from({ length: 500 }, () => GLYPHS[Math.floor(context.random() * GLYPHS.length)]);
 
@@ -19,9 +19,9 @@ export async function mount(root, context) {
     return node;
   }
 
-  const help = element("p", "pg-help type-help", "Drag through the autograph. Release, and the letters find their way home.");
+  const help = element("p", "pg-help type-help", "Drag to disturb. Release to return.");
   const controls = element("div", "pg-controls type-controls");
-  const modeLabel = element("label", "type-mode", "Force");
+  const modeLabel = element("label", "type-mode");
   const modeSelect = element("select", "pg-field");
   modeSelect.setAttribute("aria-label", "Garden force");
   for (const [value, title] of [["attract", "Attract"], ["repel", "Repel"], ["flow", "Flow"]]) {
@@ -31,24 +31,30 @@ export async function mount(root, context) {
   }
   modeLabel.append(modeSelect);
   const pause = element("button", "pg-button", "Pause");
-  const reform = element("button", "pg-button", "Re-form");
+  const reform = element("button", "pg-button type-reform", "Re-form");
   const step = element("button", "pg-button", "Step");
   pause.type = reform.type = step.type = "button";
   step.title = "Apply one nudge at the aiming point without animation";
   controls.append(modeLabel, pause, reform, step);
   const stage = element("div", "pg-stage type-stage");
-  const canvas = element("canvas", "type-canvas", "Suff Syed's autograph, composed of small monospaced letters. Drag to move them; release to restore the signature.");
+  const canvas = element("canvas", "type-canvas", "Suff Syed's autograph, composed of bold, individually planted letters. Drag to move them; release to restore the signature.");
+  canvas.dataset.worldSignature = "type-garden";
   canvas.tabIndex = 0;
   canvas.setAttribute("role", "application");
   canvas.setAttribute("aria-roledescription", "interactive signature garden");
   canvas.setAttribute("aria-label", "Type garden. Arrow keys aim the force; hold Space or Enter to apply it; release to re-form. Escape releases the tool.");
-  const caption = element("span", "type-caption", "A FIELD OF LETTERS");
-  caption.setAttribute("aria-hidden", "true");
-  stage.append(canvas, caption);
+  const poster = element("div", "type-poster");
+  poster.setAttribute("aria-hidden", "true");
+  const title = element("span", "type-title", "TYPE");
+  const edition = element("span", "type-edition", "LIVING\nLETTERFORMS\nNO. 01");
+  const word = element("span", "type-word", "GARDEN");
+  const caption = element("span", "type-caption", "250 LETTERS / ONE SIGNATURE");
+  poster.append(title, edition, word, caption);
+  stage.append(canvas, poster);
   const summary = element("p", "type-summary", "Preparing the original autograph...");
   const error = element("p", "type-error");
   error.hidden = true;
-  root.append(help, controls, stage, summary, error);
+  root.append(stage, help, controls, summary, error);
   root.dataset.state = "loading";
 
   function say(message) {
@@ -131,8 +137,9 @@ export async function mount(root, context) {
 
   function colors() {
     const style = getComputedStyle(canvas);
-    color = preferences.forcedColors ? "CanvasText" : context.palette.paper;
-    accent = preferences.forcedColors ? "CanvasText" : context.palette.stone;
+    color = preferences.forcedColors ? "CanvasText" : style.getPropertyValue("--pg-world-signature").trim();
+    accent = preferences.forcedColors ? "CanvasText" : style.getPropertyValue("--pg-world-ink").trim();
+    if (!color || !accent) throw new Error("The Type garden world palette is unavailable.");
     fontFamily = style.fontFamily;
   }
 
@@ -141,11 +148,11 @@ export async function mount(root, context) {
     drawing.setTransform(1, 0, 0, 1, 0, 0);
     drawing.clearRect(0, 0, canvas.width, canvas.height);
     drawing.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
-    drawing.globalAlpha = preferences.forcedColors ? .2 : .12;
+    drawing.globalAlpha = preferences.forcedColors ? .2 : .14;
     drawing.drawImage(mask, 0, 0, width, height);
     drawing.globalAlpha = 1;
     drawing.fillStyle = color;
-    drawing.font = `400 ${fontSize}px ${fontFamily}`;
+    drawing.font = `900 ${fontSize}px ${fontFamily}`;
     drawing.textAlign = "center";
     drawing.textBaseline = "middle";
     for (const particle of particles) drawing.fillText(particle.glyph, particle.x, particle.y);
@@ -175,16 +182,18 @@ export async function mount(root, context) {
     canvas.width = mask.width = backingWidth;
     canvas.height = mask.height = backingHeight;
     const [, , sourceWidth, sourceHeight] = context.data.signature.viewBox;
-    const scale = Math.min((width - 24) / sourceWidth, (height - 28) / sourceHeight, 2.25);
+    const posterTop = width < 500 ? 58 : 24;
+    const posterBottom = width < 500 ? 40 : 24;
+    const scale = Math.min((width - 24) / sourceWidth, (height - posterTop - posterBottom) / sourceHeight, 2.65);
     const imageWidth = Math.max(1, sourceWidth * scale), imageHeight = Math.max(1, sourceHeight * scale);
-    const left = (width - imageWidth) / 2, top = (height - imageHeight) / 2;
+    const left = (width - imageWidth) / 2, top = posterTop + (height - posterTop - posterBottom - imageHeight) / 2;
     maskDrawing.setTransform(backingWidth / width, 0, 0, backingHeight / height, 0, 0);
     maskDrawing.drawImage(image, left, top, imageWidth, imageHeight);
     const pixels = maskDrawing.getImageData(0, 0, mask.width, mask.height).data;
     const budget = width < 500 ? 250 : 500;
-    fontSize = width < 500 ? 6.5 : 8.5;
+    fontSize = width < 500 ? 8.5 : 12;
     // One mask read per resolution; occupied tiles keep the fine autograph hairlines.
-    const tile = fontSize * .65;
+    const tile = width < 500 ? 3.8 : 5.5;
     const columns = Math.ceil(width / tile);
     const tiles = new Map();
     for (let y = 0; y < mask.height; y++) {
@@ -209,8 +218,9 @@ export async function mount(root, context) {
         y: target.y + (old && oldHeight ? (old.y - old.ty) * height / oldHeight : 0),
       };
     });
+    caption.textContent = `${count} LETTERS / ONE SIGNATURE`;
     aim.x = oldWidth ? aim.x * width / oldWidth : width / 2;
-    aim.y = oldHeight ? aim.y * height / oldHeight : height / 2;
+    aim.y = oldHeight ? aim.y * height / oldHeight : top + imageHeight / 2;
     tintMask();
     paint();
   }
@@ -450,7 +460,7 @@ export async function mount(root, context) {
     let prepared;
     try {
       prepared = await Promise.race([
-        Promise.all([image.decode(), document.fonts.load('400 8.5px "DM Mono"', GLYPHS)]),
+        Promise.all([image.decode(), document.fonts.load('400 11px "DM Mono"', GLYPHS)]),
         cancelled,
       ]);
     } finally {

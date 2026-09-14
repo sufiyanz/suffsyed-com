@@ -29,17 +29,24 @@ AUDIO_PROBE = """(() => {
 def pixels(root):
     return root.locator("canvas").first.evaluate("el => el.toDataURL()")
 
+def choose_view(root, name):
+    control = root.get_by_role("button", name=name, exact=True)
+    if control.count() and control.is_visible():
+        control.click()
+
 
 def scratch(root, page, artifacts):
     root.get_by_role("button", name="Run", exact=True).click()
     page.wait_for_function("document.querySelector('.pg-status').textContent.includes('50')")
     before = pixels(root)
+    choose_view(root, "Code")
     root.get_by_role("textbox", name="Drawing instructions").fill("circle nope")
     root.get_by_role("button", name="Run", exact=True).click()
     root.locator(".code-error:not([hidden])").wait_for()
     assert page.locator(".pg-shell").get_attribute("data-state") == "ready"
     assert pixels(root) == before
     root.get_by_role("button", name="Reset", exact=True).click()
+    choose_view(root, "Code")
     root.get_by_role("combobox", name="Drawing example").select_option("1")
     root.get_by_role("button", name="Run", exact=True).click()
     page.wait_for_function("document.querySelector('.pg-status').textContent.includes('131')")
@@ -48,6 +55,7 @@ def scratch(root, page, artifacts):
 
 
 def model(root, page, artifacts):
+    choose_view(root, "Adjust")
     before = root.locator(".code-model-pocket").inner_text()
     root.get_by_role("combobox", name="Assumption example").select_option("3")
     assert root.locator(".code-model-pocket").inner_text() != before
@@ -57,6 +65,7 @@ def model(root, page, artifacts):
     assert slider.input_value() == "0"
     root.get_by_role("button", name="Reset", exact=True).click()
     assert root.locator(".code-model-pocket").inner_text() == before
+    choose_view(root, "Readout")
     return "Preset changes visible model, native keyboard slider, exact reset"
 
 
@@ -70,6 +79,12 @@ def png_download(root, page, artifacts, label="Download PNG"):
 
 
 def darkroom(root, page, artifacts):
+    develop = root.locator("summary").filter(has_text="Develop print")
+    opened = False
+    if develop.count() and develop.is_visible() and not develop.evaluate("el=>el.parentElement.open"):
+        develop.click()
+        opened = True
+        page.evaluate("new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))")
     before = pixels(root)
     slider = root.get_by_role("slider", name="Exposure", exact=False)
     slider.focus()
@@ -81,6 +96,8 @@ def darkroom(root, page, artifacts):
     png_download(root, page, artifacts)
     root.get_by_role("button", name="Reset to original", exact=True).click()
     page.wait_for_function("before => document.querySelector('[data-experience=pocket-darkroom] canvas').toDataURL() === before", arg=before)
+    if opened:
+        develop.click()
     return "Exposure changes pixels, original/edited comparison, real PNG, exact reset"
 
 
@@ -89,7 +106,9 @@ def postcard(root, page, artifacts):
     root.get_by_role("button", name="New variation", exact=True).click()
     page.wait_for_function("before => document.querySelector('[data-experience=generative-postcard] canvas').toDataURL() !== before", arg=before)
     assert root.locator("a[href*='#']").count() >= 1
+    choose_view(root, "Edit postcard")
     png_download(root, page, artifacts)
+    choose_view(root, "Edit postcard")
     return "New variation changes composition, original passage attribution, real PNG"
 
 
@@ -116,8 +135,10 @@ def ink(root, page, artifacts):
     page.mouse.up()
     assert has_ink()
     png_download(root, page, artifacts, "Save PNG")
+    choose_view(root, "Tools")
     root.get_by_role("button", name="Clear", exact=True).click()
     assert not has_ink()
+    choose_view(root, "Done")
     return "Keyboard and pointer ink, exact Undo/Clear restoration, real PNG"
 
 
@@ -131,10 +152,12 @@ def poetry(root, page, artifacts):
     first.focus()
     page.keyboard.press("Space")
     assert root.locator(".poetry-poem").inner_text() == before
+    choose_view(root, "Tools")
     root.get_by_role("button", name="Clear", exact=True).click()
     assert root.locator(".poetry-poem").inner_text() == ""
     root.get_by_role("button", name="Reset", exact=True).click()
     assert root.locator(".poetry-poem").inner_text() == before
+    choose_view(root, "Done")
     root.get_by_role("button", name="New passage", exact=True).click()
     assert root.locator(".poetry-poem").inner_text() != before
     source = urlsplit(root.locator(".poetry-source-link").get_attribute("href"))
@@ -147,7 +170,7 @@ def terrarium(root, page, artifacts):
     root.get_by_role("button", name="Step", exact=True).click()
     assert root.locator(".sim-steps").inner_text() != before
     root.get_by_role("button", name="Resume", exact=True).click()
-    page.wait_for_function("Number(document.querySelector('[data-experience=agent-terrarium] .sim-steps').textContent.slice(2)) > 2")
+    page.wait_for_function("Number(document.querySelector('[data-experience=agent-terrarium] .sim-steps').textContent.match(/\\d+/)[0]) > 2")
     root.get_by_role("button", name="Pause", exact=True).click()
     paused = pixels(root)
     page.wait_for_timeout(180)
@@ -269,6 +292,9 @@ def main():
                 root = page.locator(f'[data-experience="{identifier}"]')
                 assert identifier in ACTIONS, f"No real action test yet for {identifier}"
                 action = ACTIONS[identifier](root, page, args.artifacts)
+                if identifier != "type-garden":
+                    page.wait_for_selector(f'[data-world-signature="{identifier}"][data-scene-status="ready"]')
+                    page.wait_for_timeout(650)
                 page.screenshot(path=str(args.artifacts / f"{width}-{identifier}.png"))
                 assert page.locator(".home-cover").bounding_box()["height"] == cover["height"]
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")

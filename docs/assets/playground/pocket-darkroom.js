@@ -10,28 +10,45 @@ export async function mount(root, ctx) {
   if (!life.live) return controller;
   const layout = element("div", "photo-layout");
   const stage = element("figure", "pg-stage photo-preview");
+  const folio = element("div", "darkroom-folio");
+  const frameNumber = element("span", "", "FRAME 01");
+  folio.append(frameNumber, element("span", "darkroom-safelight", "SAFELIGHT"));
   const canvas = element("canvas", "", "An editable photograph. Use the labelled controls to change the image.");
   canvas.setAttribute("role", "img");
-  const caption = element("figcaption", "pg-help");
-  stage.append(canvas, caption);
+  const negative = element("div", "darkroom-negative");
+  negative.append(canvas);
+  const caption = element("figcaption", "darkroom-caption");
+  const comparison = element("div", "darkroom-comparison");
+  const before = button("Show original");
+  before.setAttribute("aria-pressed", "false");
+  const meter = element("span", "darkroom-meter", "0.0 EV");
+  meter.setAttribute("aria-hidden", "true");
+  comparison.append(before);
+  folio.insertBefore(meter, folio.lastChild);
+  stage.append(folio, negative, caption);
+  const consoleWrap = element("div", "darkroom-console-wrap");
+  const tools = element("details", "darkroom-console");
+  const summary = element("summary", "", "Develop print");
+  tools.append(summary);
   const controls = element("div", "pg-controls photo-controls");
+  controls.append(element("p", "darkroom-equipment", "ENLARGER / LOCAL 01"));
   const photoSelect = choices(controls, "Photograph", ctx.data.photos);
   const adjustments = element("fieldset", "photo-adjustments");
-  adjustments.append(element("legend", "", "Light & texture"));
+  adjustments.append(element("legend", "", "Light / texture"));
   const exposure = slider(adjustments, "Exposure", -2, 2, .1, 0, n => `${n > 0 ? "+" : ""}${n.toFixed(1)} EV`);
   const contrast = slider(adjustments, "Contrast", -50, 50, 1, 0, n => `${n > 0 ? "+" : ""}${n}%`);
   const grain = slider(adjustments, "Grain", 0, 50, 1, 0, n => `${n}%`);
   const duotone = slider(adjustments, "Forest duotone", 0, 100, 1, 0, n => `${n}%`);
   controls.append(adjustments);
   const actions = element("div", "photo-actions");
-  const before = button("Show original");
-  before.setAttribute("aria-pressed", "false");
   const reset = button("Reset to original");
   const save = button("Download PNG");
   const retry = button("Reload photograph");
-  actions.append(before, reset, save, retry);
+  actions.append(reset, save, retry);
   controls.append(actions, element("p", "pg-help", "A pocket-size print, not a saved edit. Grain stays fixed; nothing leaves this browser."));
-  layout.append(stage, controls);
+  tools.append(controls);
+  consoleWrap.append(tools, comparison);
+  layout.append(stage, consoleWrap);
   root.append(layout);
   let image = null;
   let imageId = null;
@@ -41,6 +58,7 @@ export async function mount(root, ctx) {
   let dirty = true;
   let size = {width: root.clientWidth || 720, height: root.clientHeight || 400, dpr: devicePixelRatio || 1};
   root.dataset.photoLayout = size.width >= 620 ? "wide" : "narrow";
+  tools.open = size.width >= 620;
   const sliders = {exposure, contrast, grain, duotone};
   const values = {exposure: 0, contrast: 0, grain: 0, duotone: 0};
   const photo = () => ctx.data.photos.find(row => row.id === photoSelect.value);
@@ -52,26 +70,28 @@ export async function mount(root, ctx) {
   life.preferences(ctx.preferences);
   life.cleanup(() => { image = source = null; canvas.width = canvas.height = 1; });
 
-  function prepare() {
+  function prepare(candidate = image) {
     const wide = size.width >= 620;
-    const bounds = fitSize(image.naturalWidth, image.naturalHeight,
-      wide ? size.width - 265 : size.width - 24, wide ? Math.max(180, size.height - 55) : 240, size.dpr);
-    canvas.width = bounds.width;
-    canvas.height = bounds.height;
-    const context = context2d(canvas, {willReadFrequently: true});
-    context.drawImage(image, 0, 0, bounds.width, bounds.height);
-    source = context.getImageData(0, 0, bounds.width, bounds.height);
+    const bounds = fitSize(candidate.naturalWidth, candidate.naturalHeight,
+      wide ? size.width - 290 : size.width - 44, Math.max(140, size.height - 125), size.dpr);
+    const surface = element("canvas");
+    surface.width = bounds.width;
+    surface.height = bounds.height;
+    const context = context2d(surface, {willReadFrequently: true});
+    context.drawImage(candidate, 0, 0, bounds.width, bounds.height);
+    return context.getImageData(0, 0, bounds.width, bounds.height);
   }
 
   function render() {
     if (!life.live || !image || imageId !== photoSelect.value) return false;
     try {
-      if (!source) prepare();
+      if (!source) source = prepare();
       const context = context2d(canvas);
+      let output = source;
       if (showingBefore) {
-        context.putImageData(source, 0, 0);
+        output = source;
       } else {
-        const output = new ImageData(new Uint8ClampedArray(source.data), source.width, source.height);
+        output = new ImageData(new Uint8ClampedArray(source.data), source.width, source.height);
         const gain = 2 ** values.exposure;
         const slope = (100 + values.contrast) / (100 - values.contrast);
         const mix = values.duotone / 100;
@@ -94,9 +114,14 @@ export async function mount(root, ctx) {
           pixels[i + 1] = g + amount;
           pixels[i + 2] = b + amount;
         }
-        context.putImageData(output, 0, 0);
       }
-      caption.textContent = `${showingBefore ? "Original" : "Your print"} / ${photo()?.title || "Photograph"} / ${canvas.width} × ${canvas.height}`;
+      if (canvas.width !== source.width) canvas.width = source.width;
+      if (canvas.height !== source.height) canvas.height = source.height;
+      context.putImageData(output, 0, 0);
+      frameNumber.textContent = `FRAME ${String(ctx.data.photos.findIndex(row => row.id === imageId) + 1).padStart(2, "0")}`;
+      meter.textContent = `${values.exposure > 0 ? "+" : ""}${values.exposure.toFixed(1)} EV`;
+      caption.textContent = `${showingBefore ? "ORIGINAL NEGATIVE" : "YOUR CONTACT PRINT"} / ${canvas.width} × ${canvas.height}`;
+      caption.title = photo()?.title || "Photograph";
       canvas.setAttribute("aria-label", `${showingBefore ? "Original" : "Edited preview"}: ${photo()?.alt || photo()?.title || "Photograph"}`);
       dirty = false;
       enabled(true);
@@ -125,17 +150,23 @@ export async function mount(root, ctx) {
     try {
       const loaded = await loadPhoto(selected, task.signal);
       if (!task.valid()) return;
+      const prepared = prepare(loaded);
       image = loaded;
       imageId = selected.id;
-      prepare();
+      source = prepared;
       if (render()) life.status("Photograph ready. Adjust the light, or compare with the original.");
     } catch (cause) {
       if (!task.valid()) return;
-      image = source = null;
-      imageId = null;
-      canvas.width = canvas.height = 1;
-      caption.textContent = "Photograph unavailable. Choose another or reload.";
-      life.fail("The photograph could not be opened. Choose another photograph or reload.", cause);
+      if (image && source) {
+        photoSelect.value = imageId;
+        enabled(true);
+        caption.textContent = "LAST GOOD PRINT / source unchanged";
+      } else {
+        canvas.width = canvas.height = 1;
+        caption.textContent = "Choose another photograph or reload.";
+      }
+      tools.open = true;
+      life.fail("The photograph could not be opened. Your last good print is unchanged. Choose another photograph or reload.", cause);
     } finally {
       if (task.valid()) loading = false;
     }
@@ -152,14 +183,16 @@ export async function mount(root, ctx) {
   function resize(next) {
     if (!life.live) return;
     size = {...size, ...next};
+    const previousLayout = root.dataset.photoLayout;
     root.dataset.photoLayout = size.width >= 620 ? "wide" : "narrow";
+    if (previousLayout !== root.dataset.photoLayout) tools.open = size.width >= 620;
     life.cancel();
     dirty = true;
     if (loading) { loading = false; if (life.active) void selectPhoto(); return; }
     if (image) {
       source = null;
       if (life.active) life.queue(() => {
-        try { prepare(); render(); }
+        try { source = prepare(); render(); }
         catch (cause) { enabled(false); life.fail("The resized preview could not be drawn. Reload to retry.", cause); }
       });
     }
@@ -178,6 +211,7 @@ export async function mount(root, ctx) {
       dirty = true;
       life.queue(render);
     });
+    life.on(control.input, "change", () => { if (life.active) ctx.pulseSignature?.(); });
   }
   life.on(before, "click", () => {
     showingBefore = !showingBefore;

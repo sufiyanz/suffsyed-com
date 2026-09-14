@@ -181,18 +181,49 @@ The status footer has a reserved height so announcements cannot resize an active
 drawing surface or change a composition. All tools scroll inside the cover when
 space is tight; no full-screen modal or document scroll lock is used.
 
-| Experiment | What happens locally |
+The experiment chrome is one 44px utility rail rather than a second journal
+heading. Choose, Another and Close retain their native names and hit targets;
+entry focuses the visible chooser. A hidden semantic heading still names the
+region. The solid rail and 42px status footer protect text contrast from the
+decorative field. Each experience now has its own composition, type and material.
+
+| Experiment / world | What happens locally |
 | --- | --- |
-| Scratch terminal | A bounded drawing language runs in a short-lived Worker. Three examples, editable code, Run/Stop/Reset and line/column errors; never JavaScript or a shell. |
-| Ink studio | Fountain/round nibs, pen pressure and mouse velocity, eraser, undo, clear and PNG export. Arrows and Space provide keyboard drawing. |
-| Pocket darkroom | Exposure, contrast, seeded grain and forest duotone alter a visitor-only photograph copy. Compare/reset to the untouched source or download a PNG. |
-| Type garden | Attract, repel or flow the autograph's glyphs, then re-form them. Pause and reduced-motion Step preserve a deliberate pace. |
-| Blackout poetry | Keep or remove words from a complete original paragraph; remix order and separators stay intact. Original attribution and visitor-remix labels remain visible. |
-| Agent terrarium | Seeded, explicitly rule-based agents gather food around editable walls. Run/Pause, Step, Reset and rule controls expose the mechanism, not an AI service. |
-| Assumption lab | Three sliders and presets change an authored cost/supervision model. Its invented defect constants, formulas and omitted factors are disclosed; it is not a forecast. |
-| Sound loom | A five-pitch, eight-step sequencer with tempo/timbre controls. Only Play creates audio; Stop, inactivity or Close silences and closes it. |
-| Generative postcard | Recompose a real photograph with an exact source sentence and attribution. New variation, layout controls and PNG download never modify the originals. |
-| Signal / noise | A seeded 60-second fragment-collection game reveals the exact autograph. Keyboard/touch steering and a reduced-motion turn-based mode are available. |
+| Scratch terminal / phosphor workstation | Bounded drawing language, short-lived Worker, three examples, Run/Stop/Reset and line/column errors; never JavaScript or a shell. Phone Code/Drawing views keep the artifact large. |
+| Ink studio / tactile drawing desk | Fountain/round nibs, pressure/velocity, erase, undo and PNG export. Tools holds nib/size/color and Clear; arrows and Space draw on the dominant paper. |
+| Pocket darkroom / safelight contact print | Exposure, contrast, seeded grain and forest duotone alter only a visitor copy. Develop print exposes controls; original/edited comparison stays in reach. |
+| Type garden / kinetic typography poster | Attract, repel or flow the autograph's glyphs on acid paper, then Re-form. This interactive canvas is the sole signature scene; Pause and reduced-motion Step remain. |
+| Blackout poetry / cut-paper collage | Keep/remove words from a complete original paragraph with exact order and separators. A pinned visitor-remix slip stays visible; Tools holds brush/reset/source details. |
+| Agent terrarium / nocturnal habitat | Seeded rule-based agents, editable food/walls and real Step/Run/Pause/Reset. Rules/World views expose parameters without presenting decorative trails as model results. |
+| Assumption lab / scenario instrument | Dominant numerical ledger and calibrated inputs. Readout/Adjust views retain feedback on phones; invented constants, formulas and omissions remain explicit, not forecasts. |
+| Sound loom / rhythm machine | Five pitches and eight tactile step keys; Tune/Keys switches views. Only Play creates audio; Stop, inactivity or Close closes it. Real played steps may pulse the backdrop. |
+| Generative postcard / postal atelier | A raised print combines a real photograph, exact source sentence and attribution. Edit postcard reveals controls; New variation and PNG export leave originals untouched. |
+| Signal / noise / pocket arcade | A seeded 60-second, eight-fragment game with bold clock and steering controls. The functional autograph reveal stays separate from decorative pixel fragments. |
+
+Module CSS is the single source for eight `--pg-world-*` theme tokens and
+`color-scheme`. Only that theme block also matches
+`#cover-playground[data-world="<id>"]`; all other rules remain scoped to the
+module's `[data-experience]` root. The host never has `data-experience`. World
+colors do not replace the six semantic `context.palette` colors used for drawing,
+image processing or exports. Module-local `--font-display` can select public or
+native type without affecting the journal or importing private fonts.
+
+`site/playground/scene-engine.js` and `scene-profiles.js` load only after entry.
+Nine profiles use the unchanged autograph mask with code punctuation, dry-ink
+stippling, halftones, real passage-word fragments, trails, pixel fragments,
+rhythmic columns, coordinates or postal characters. Type garden owns its existing
+interactive signature instead. Decorative layers are pointer-transparent,
+`aria-hidden`, behind functional surfaces and absent from their exports.
+`data-world-signature` identifies the layer; `data-scene-status` becomes `ready`
+only after a real first paint or static preference treatment, and `failed` when
+an explicit warning retains the already-loaded cover vector as fallback.
+
+Optional `context.pulseSignature()` is backwards-compatible, inactive-safe and
+coalesced: a response lasts 500ms, renders no faster than every 90ms, and cannot
+restart within 1.1 seconds. Settled, hidden, offscreen and closed scenes schedule
+no work. A scene caps at 3,000 cells, DPR 2 and 600,000 backing pixels; pending
+image/font/import work is bounded and abortable. Forced colors use a static
+system-color vector; reduced motion never starts the response loop.
 
 Ink sheets cap strokes at 96, points per stroke at 900 and total points at 12,000.
 The scratch interpreter caps input, syntax, loops and operations, with a 120 ms
@@ -364,6 +395,8 @@ links work without JavaScript; search and local instruments require it.
   --require-all --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_playground_integration.py \
   --artifacts /absolute/path/to/session-artifacts
+.venv/bin/python tools/test_playground_scenes.py \
+  --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_shell.py \
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_hierarchy.py \
@@ -425,6 +458,10 @@ values, simulation state and native audio construction/closure. `--ids` and
 stylesheet response by two seconds without changing its contents; use it with
 `--ids scratch-terminal pocket-darkroom` to replay the startup-color regression.
 The host suite also checks delayed CSS and invalid-token recovery through Retry.
+The scene suite uses route-only control fixtures with the real renderer to check
+actual glyph pixels, cell/backing budgets, coalesced pulse cadence, zero settled
+or offscreen work, Type exclusion, late imports and explicit static fallback.
+World composition is checked separately against the actual modules, not fixtures.
 The five `test_playground_<team>.py` suites
 cover deeper module algorithms, budgets, failure/abort paths and resource release
 using artifact-only loopback harnesses. Controlled PointerEvents validate stylus
