@@ -61,7 +61,7 @@ def render_foundation(rows, image):
 {header(home=True, motion=True)}
 <main id="main" tabindex="-1">
 <section class="cover technical-surface" aria-labelledby="cover-title">
-<div class="hero-field motion-field" data-motion-scene>{ribbon()}</div>
+<div class="hero-field motion-field" data-motion-scene>{ribbon("home-ribbon")}</div>
 <p class="cover-role">{IDENTITY}</p>
 <div class="editorial-plane">
 <h1 id="cover-title"><span class="sr-only">Suff Syed</span><span class="signature-ink">
@@ -78,7 +78,7 @@ def render_foundation(rows, image):
 <ol class="writing-list">{"".join(writing)}</ol>
 </section>
 <section class="ideas technical-surface" aria-labelledby="ideas-title">
-<div class="idea-field motion-field" data-motion-scene>{orbit()}</div>
+<div class="idea-field motion-field" data-motion-scene>{orbit("home-ideas")}</div>
 <div class="idea-copy"><p class="exhibition-label">[ A thought in company ]</p>
 <h2 id="ideas-title">One question.<br>Many ways in.</h2>
 <p>Follow a preoccupation through the writing. Every connection leads back to an original passage.</p>

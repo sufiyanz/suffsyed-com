@@ -145,7 +145,7 @@ def essay_page(row, rows):
     related = "".join(f'<a href="{item["url"]}"><span class="label">{esc(item["theme"])}</span><h3>{esc(item["title"])}</h3><span class="plain">Read the essay ↗</span></a>' for item in next_rows)
     content = f'''
 <header class="essay-head">
-<div class="arrival-field motion-field" data-motion-scene>{orbit()}</div>
+<div class="arrival-field motion-field" data-motion-scene>{orbit("essay-" + row["slug"])}</div>
 <div class="essay-kicker label"><a href="/futurememo/">future(memo)</a><span>Essay {row["no"]:02d} / {esc(row["theme"])}</span><span>{row["words"]:,} words · About {row["minutes"]} min</span></div>
 <h1>{esc(row["title"])}</h1>
 <div class="head-foot"><span>By Suff Syed</span><a href="#reading">Begin reading ↓</a><a href="#reading-lens" class="enhanced">Read through a different lens ↗</a></div>
@@ -179,7 +179,7 @@ def archive_page(rows, data, atlas):
 <a class="archive-art" href="{row["url"]}" aria-label="Read {esc(row["title"])}">{image(row["cover"], row["coverAlt"], sizes="(max-width: 700px) calc(100vw - 32px), (max-width: 1599px) 44vw, 680px")}</a>
 <div class="entry-copy"><div class="label">{esc(row["theme"])} <span>· {row["words"]:,} words</span></div><h2><a href="{row["url"]}">{esc(row["title"])}</a></h2><p>{esc(row["description"])}</p><div class="entry-thread"><span class="label">A word to follow</span><a href="{row["url"]}?term={quote(row["terms"][0]["term"])}#reading-lens">{esc(row["terms"][0]["term"])} <small>{row["terms"][0]["count"]} occurrences ↗</small></a></div><div class="archive-matches"></div></div>
 <a class="entry-read" href="{row["url"]}" aria-label="Read {esc(row["title"])}">↗</a></li>'''
-    body = f'''<header class="page-opening"><div class="arrival-field motion-field" data-motion-scene>{orbit()}</div><span class="label">future(memo) / Twenty essays</span><h1>Following the<br>same restlessness.</h1><div class="page-dek"><p>Intelligence, creative work, and what remains human.</p></div></header>
+    body = f'''<header class="page-opening"><div class="arrival-field motion-field" data-motion-scene>{orbit("archive-arrival")}</div><span class="label">future(memo) / Twenty essays</span><h1>Following the<br>same restlessness.</h1><div class="page-dek"><p>Intelligence, creative work, and what remains human.</p></div></header>
 <details class="archive-discovery"><summary>Search &amp; explore the collection</summary>
 <section class="archive-tools enhanced" aria-label="Explore the writing"><form id="archive-search"><label for="archive-query">Search every written passage</label><div class="search-line"><input id="archive-query" type="search" placeholder="A word, a phrase, a question…" maxlength="180"><button type="submit">Search</button></div><p class="micro">Case-insensitive phrase search across the full text. No network search, no generated summaries.</p></form><div><label for="archive-theme">A preoccupation</label><select id="archive-theme"><option value="">All five themes</option>{"".join(f'<option>{esc(t["name"])}</option>' for t in data["themes"])}</select><div class="archive-view"><button id="archive-list-toggle" type="button" aria-pressed="false" class="plain">Compact reading list</button><button id="archive-reset" type="button" class="plain">Reset</button></div></div></section>
 <p class="archive-native-note">Search and filters need JavaScript. All twenty essays and the question index remain available below.</p>

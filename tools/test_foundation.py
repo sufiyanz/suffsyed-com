@@ -161,7 +161,8 @@ def main():
         (args.output / "motion-a.png").write_bytes(a)
         (args.output / "motion-b.png").write_bytes(b)
         evidence["motion"]["changedPixels"] = changed
-        assert page.evaluate("document.getAnimations().filter(a => a.playState === 'running').length") <= 4
+        assert page.evaluate("document.getAnimations().filter(a => a.playState === 'running').length") <= 2
+        assert page.locator("animateMotion").count() == 3
         toggle.click()
         page.wait_for_timeout(100)
         a = field.screenshot()
@@ -201,7 +202,7 @@ def main():
         page.go_back(wait_until="networkidle")
         # Back may restore a document or reload it: neither may duplicate controllers.
         assert page.locator("[data-motion-toggle]").count() == 1
-        assert page.evaluate("document.getAnimations().length") <= 4
+        assert page.evaluate("document.getAnimations().length") <= 2
         if page.locator("html").get_attribute("data-bfcache-probe") == "gallery":
             assert page.locator("[data-motion-toggle]").get_attribute("aria-pressed") == "true"
         page.evaluate("window.dispatchEvent(new PageTransitionEvent('pagehide', {persisted:true}))")
@@ -225,7 +226,8 @@ def main():
         })""")
         ordered = sorted(samples)
         evidence["motion"].update({"rafSamples": len(samples), "p95FrameMs": ordered[int(len(ordered)*.95)],
-                                   "maxFrameMs": max(samples), "jsFrameCallbacks": 0, "maxScenes": 2, "maxTracks": 4,
+                                   "maxFrameMs": max(samples), "jsFrameCallbacks": 0, "maxScenes": 2,
+                                   "maxCarrierTracks": 2, "maxNativeFollowers": 3,
                                    "visibilityCheck": "emulated hidden event; real IntersectionObserver scroll",
                                    "pausePixelDifference": 0})
         assert len(samples) >= 40 and ordered[int(len(ordered)*.95)] < 50, evidence["motion"]

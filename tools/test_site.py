@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 
 from corpus import content_digest, flat_text, reading_plate, tokens
 from build_site import journal_home_page
+from foundation_art import orbit, ribbon
 from foundation_home import DESCRIPTION, IDENTITY, SELECTED_ESSAYS
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -77,6 +78,30 @@ class JournalTests(unittest.TestCase):
             self.assertEqual(entry.select_one(".archive-art")["href"], f'/futurememo/{row["slug"]}/')
             self.assertEqual(entry.img["src"], row["cover"])
             self.assertEqual(entry.h2.get_text(), row["title"])
+
+    def test_motion_routes_and_anchors_are_explicit(self):
+        home = self.pages[OUT / "index.html"]
+        followers = home.select("[data-motion-follower]")
+        self.assertEqual(len(followers), 3)
+        self.assertEqual(len(home.select("[data-motion-route]")), 9)
+        for follower in followers:
+            route = home.find(id=follower["data-motion-follower"])
+            self.assertEqual(route["data-motion-route"], "closed")
+            self.assertTrue(route["d"].endswith(" Z"))
+            self.assertIs(route.parent, follower.parent)
+            self.assertEqual(follower.mpath["href"], "#" + route["id"])
+            self.assertEqual(follower.find("animatemotion")["begin"], "indefinite")
+            start = re.match(r"M([-\d.]+),([-\d.]+)", route["d"]).groups()
+            self.assertEqual(follower["data-motion-start"].split(), list(start))
+            self.assertEqual(follower["transform"], f'translate({" ".join(start)})')
+        for page in self.pages.values():
+            for marker in page.select("[data-motion-anchor]"):
+                axes = page.find(id=marker["data-motion-anchor"])
+                self.assertIs(axes.parent, marker.parent)
+                self.assertEqual(marker["data-anchor-point"].split(), [marker["cx"], marker["cy"]])
+        repeated = BeautifulSoup(ribbon("first") + ribbon("second") + orbit("third") + orbit("fourth"), "html.parser")
+        ids = [node["id"] for node in repeated.select("[id]")]
+        self.assertEqual(len(ids), len(set(ids)))
 
     def test_preserved_journal_cover_and_internal_header(self):
         home = self.journal_home

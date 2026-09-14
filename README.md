@@ -34,14 +34,23 @@ Linked searches open the disclosure automatically; without JavaScript it
 explains the limitation and retains native memo/question-index links.
 
 `tools/foundation_art.py` produces original parametric SVG line studies and a
-seeded static 160px grain tile. `site/motion.js` progressively animates only SVG
-group transforms: slow perspective breathing and orbital oscillation, never a
-rotating icon or moving artwork. Each scene has a dedicated paint-contained,
-clipped field separated from copy and controls. The budget is at most two
-visible scenes and two transform tracks per scene, 18/24-second cycles, no
-JavaScript frame callbacks, geometry reads, storage or network requests.
-IntersectionObserver, document visibility and page lifecycle events suspend
-timelines without losing manual pause. A compact Pause/Resume control only
+seeded static 160px grain tile. `site/motion.js` combines slow 24-second carrier
+transforms with three native SVG `animateMotion` / `mpath` tracers. Each tracer
+references an actual visible closed ribbon path in the same carrier coordinate
+frame. Opposite eighth-step lanes join through the half-twist; no open half is
+closed with a chord. The three cycles take 48, 60 and 72 seconds at constant path
+speed. Fixed origin markers explicitly reference their construction axes and
+share the axes' carrier, rather than drifting independently.
+
+Each scene has a dedicated paint-contained, clipped field separated from copy
+and controls. The page budget is at most two visible scenes, two WAAPI carrier
+tracks and three native followers sharing one SVG clock; no JavaScript frame
+callbacks, geometry reads, storage or network requests. IntersectionObserver,
+document visibility and page lifecycle events pause **both** WAAPI and native
+SVG timelines without losing manual pause. Reduced/forced/print media remove
+native intervals and restore canonical static path positions; returning to
+ordinary media preserves the pause choice and starts fresh cycles on resume.
+A compact Pause/Resume control only
 appears when enhancement is available. Reduced motion, forced colors, print
 and no-JS retain complete static content; no dead motion control is shown.
 The module is initialized once per document and survives bfcache restoration.
@@ -90,6 +99,15 @@ pixels, exact paused frames, offscreen/visibility/page lifecycle suspension and
 a sampled frame budget (p95 below 50ms in headless WebKit; no site JS frame loop).
 Headless visibility is explicitly emulated; offscreen suspension uses real scroll.
 It saves desktop/phone compositions, motion frames and machine-readable evidence.
+`tools/test_path_motion.py --url http://127.0.0.1:8774 --output /absolute/path`
+adds 1,455 rendered-marker-to-visible-path samples across full cycles at all
+five widths, with a 1 CSS-pixel ceiling, independent carrier poses, forward
+progression, loop seams and fixed-origin alignment. It also inspects native
+SVG clocks, not only `document.getAnimations()`, through pause, offscreen,
+synthetic hidden events, media round trips, Back and no-JS. Inspection maps:
+`[data-motion-follower]` names the visible route ID, `data-motion-start` records
+its static first vertex, and `[data-motion-anchor]` names an axis path with a
+`data-anchor-point`. Helpers require unique stable instance prefixes for IDs.
 The older `test_home.py`, cover, hierarchy, signature and playground browser
 suites describe the preserved interactive composition, **not** acceptance
 criteria for this writing-gallery iteration. Static checks still exercise
