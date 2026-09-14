@@ -14,18 +14,33 @@ export function button(text, action, lifecycle, className = "") {
 
 export async function readyFont(signal) {
   if (signal.aborted) return;
-  const faces = await document.fonts.load('400 12px "DM Mono"', "+x./");
+  const loaded = await Promise.all([400, 500].map(weight =>
+    document.fonts.load(`${weight} 12px "DM Mono"`, "+x./"),
+  ));
   if (signal.aborted) return;
-  if (!faces.length || faces.some(face => face.status !== "loaded")) {
+  if (loaded.some(faces => !faces.length || faces.some(face => face.status !== "loaded"))) {
     throw new Error("The existing local DM Mono font could not be loaded.");
   }
 }
 
-export function colors(context, preferences) {
-  const p = context.palette;
-  return preferences.forcedColors
-    ? { background: "Canvas", ink: "CanvasText", line: "CanvasText", accent: "Highlight", reverse: "HighlightText", muted: "CanvasText" }
-    : { background: p.paper, ink: p.forest, line: p.stone, accent: p.green, reverse: p.white, muted: p.green };
+export function colors(root, preferences) {
+  if (preferences.forcedColors) {
+    return { background: "Canvas", surface: "Canvas", ink: "CanvasText", line: "CanvasText",
+      accent: "Highlight", reverse: "HighlightText", muted: "CanvasText" };
+  }
+  const style = getComputedStyle(root);
+  const palette = {};
+  for (const [key, token] of Object.entries({
+    background: "bg", surface: "surface", ink: "ink", line: "line", accent: "accent", muted: "muted",
+  })) {
+    const value = style.getPropertyValue(`--pg-world-${token}`).trim();
+    if (!value || !CSS.supports("color", value)) {
+      throw new Error(`The experiment is missing a valid --pg-world-${token} color.`);
+    }
+    palette[key] = value;
+  }
+  palette.reverse = palette.background;
+  return palette;
 }
 
 export function canvasSurface(canvas) {

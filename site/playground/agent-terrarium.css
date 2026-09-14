@@ -1,41 +1,55 @@
-[data-experience="agent-terrarium"] { min-width: 0; min-height: 0; height: 100%; overflow: auto; overscroll-behavior: contain; container-type: size; padding: 2px; background: var(--cp-bg); color: var(--cp-text); font-family: var(--font-reading); }
-[data-experience="agent-terrarium"] :is(h2,p,figure) { margin: 0; }
-[data-experience="agent-terrarium"] .sim-heading { margin-bottom: 14px; }
-[data-experience="agent-terrarium"] .sim-kicker { color: var(--cp-text-muted); font: 400 10px/1.5 var(--font-technical); text-transform: uppercase; letter-spacing: .09em; }
-[data-experience="agent-terrarium"] h2 { margin-top: 4px; color: var(--cp-heading); font: 400 clamp(25px,3vw,36px)/1.1 var(--font-reading); letter-spacing: -.025em; }
-[data-experience="agent-terrarium"] .sim-controls { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-[data-experience="agent-terrarium"] .pg-button { min-width: 44px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--cp-border-strong); border-radius: 0; background: var(--cp-bg); color: var(--cp-text); font: 400 12px/1.3 var(--font-technical); }
-[data-experience="agent-terrarium"] .sim-primary { background: var(--cp-heading); color: var(--cp-reverse); min-width: 86px; }
-[data-experience="agent-terrarium"] .pg-button[aria-pressed="true"] { background: var(--cp-surface); text-decoration: underline; text-underline-offset: 4px; }
-[data-experience="agent-terrarium"] :is(button,canvas,input,summary):focus-visible { outline: 2px solid var(--cp-accent); outline-offset: 2px; }
-[data-experience="agent-terrarium"] .sim-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(190px,.4fr); gap: 20px; align-items: start; }
-[data-experience="agent-terrarium"] .sim-world { min-width: 0; }
-[data-experience="agent-terrarium"] .sim-canvas { display: block; width: 100%; height: clamp(120px, calc(100cqh - 195px), 350px); border: 1px solid var(--cp-border-strong); touch-action: manipulation; cursor: crosshair; }
-[data-experience="agent-terrarium"] .sim-metrics { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--cp-border); font: 400 12px/1.4 var(--font-technical); }
-[data-experience="agent-terrarium"] .sim-key { margin-top: 8px; color: var(--cp-text-muted); font: 400 10px/1.6 var(--font-technical); }
-[data-experience="agent-terrarium"] .sim-panel { min-width: 0; }
-[data-experience="agent-terrarium"] .sim-tools { display: flex; flex-wrap: wrap; gap: 6px; }
-[data-experience="agent-terrarium"] .pg-help { margin-top: 10px; font: 400 15px/1.4 var(--font-reading); color: var(--cp-text-muted); }
-[data-experience="agent-terrarium"] .sim-position { margin-top: 8px; font: 400 10px/1.5 var(--font-technical); }
-[data-experience="agent-terrarium"] .sim-rules { margin-top: 12px; border-block: 1px solid var(--cp-border-strong); }
-[data-experience="agent-terrarium"] summary { min-height: 44px; padding: 12px 0; cursor: pointer; font: 400 12px/1.5 var(--font-technical); }
-[data-experience="agent-terrarium"] .pg-field { display: block; margin: 0 0 10px; font: 400 12px/1.4 var(--font-technical); }
-[data-experience="agent-terrarium"] input[type="range"] { display: block; width: 100%; min-height: 44px; padding: 0; accent-color: var(--cp-accent); cursor: pointer; }
-[data-experience="agent-terrarium"] .sim-explanation { margin-top: 14px; font: 400 16px/1.45 var(--font-reading); }
-[data-experience="agent-terrarium"] .sim-mode { margin-top: 10px; padding-bottom: 8px; color: var(--cp-text-muted); font: 400 10px/1.5 var(--font-technical); }
-@media (max-width: 680px) {
-  [data-experience="agent-terrarium"] .sim-layout { grid-template-columns: minmax(0,1fr); gap: 14px; }
-  [data-experience="agent-terrarium"] .sim-heading { margin-bottom: 10px; }
+#cover-playground[data-world="agent-terrarium"],
+[data-experience="agent-terrarium"] {
+  color-scheme: dark;
+  --pg-world-bg: #08191C;
+  --pg-world-surface: #102C2E;
+  --pg-world-ink: #DFF6D5;
+  --pg-world-muted: #9FBCB2;
+  --pg-world-accent: #B4EF70;
+  --pg-world-line: #355154;
+  --pg-world-signature: #8CDC86;
+  --pg-world-signature-opacity: 0.24;
 }
-@container (max-height: 400px) {
-  [data-experience="agent-terrarium"] .sim-heading { margin-bottom: 6px; }
-  [data-experience="agent-terrarium"] .sim-kicker { font-size: 9px; }
-  [data-experience="agent-terrarium"] h2 { font-size: 20px; margin-top: 2px; }
-  [data-experience="agent-terrarium"] .sim-controls { margin-bottom: 8px; }
-  [data-experience="agent-terrarium"] .sim-layout { grid-template-columns: minmax(0,1fr); gap: 8px; }
-  [data-experience="agent-terrarium"] .sim-canvas { height: clamp(110px, calc(100cqh - 184px), 210px); aspect-ratio: auto; }
-  [data-experience="agent-terrarium"] .sim-metrics { font-size: 10px; padding: 7px 0; }
-  [data-experience="agent-terrarium"] .sim-key { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  [data-experience="agent-terrarium"] .sim-tools { gap: 6px; }
+[data-experience="agent-terrarium"] { --font-display: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; min-width: 0; min-height: 0; height: 100%; padding: 2px 4px; overflow: auto; overscroll-behavior: contain; container-type: size; display: grid; grid-template-rows: 28px minmax(120px,1fr) auto; gap: 8px; background: transparent; color: var(--pg-world-ink); font-family: var(--font-technical); }
+[data-experience="agent-terrarium"] :is(h2,h3,p,figure) { margin: 0; color: inherit; }
+[data-experience="agent-terrarium"] [hidden] { display: none !important; }
+[data-experience="agent-terrarium"] .sim-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; width: 100%; max-width: 1160px; margin-inline: auto; }
+[data-experience="agent-terrarium"] h2 { font: 600 19px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing: -.035em; }
+[data-experience="agent-terrarium"] .sim-kicker { max-width: 165px; font: 400 9px/1.3 var(--font-technical); color: var(--pg-world-muted); text-align: right; }
+[data-experience="agent-terrarium"] .sim-layout { min-height: 0; min-width: 0; width: 100%; max-width: 1160px; margin-inline: auto; display: grid; }
+[data-experience="agent-terrarium"] .sim-world { min-width: 0; min-height: 0; display: grid; grid-template-rows: 27px minmax(0,1fr); border: 1px solid var(--pg-world-line); border-radius: 3px; overflow: hidden; }
+[data-experience="agent-terrarium"] .sim-metrics { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 0 10px; color: var(--pg-world-ink); background: var(--pg-world-bg); border-bottom: 1px solid var(--pg-world-line); font: 400 10px/1 var(--font-technical); }
+[data-experience="agent-terrarium"] .sim-delivered { color: var(--pg-world-accent); }
+[data-experience="agent-terrarium"] .sim-steps { color: var(--pg-world-muted); }
+[data-experience="agent-terrarium"] .sim-canvas { display: block; min-width: 0; min-height: 0; width: 100%; height: 100%; touch-action: manipulation; cursor: crosshair; }
+[data-experience="agent-terrarium"] .sim-dock { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; max-width: 1160px; margin-inline: auto; }
+[data-experience="agent-terrarium"] :is(.sim-controls,.sim-tools) { display: flex; flex-wrap: nowrap; gap: 6px; min-width: 0; align-items: center; }
+[data-experience="agent-terrarium"] .pg-button { min-width: 44px; min-height: 44px; padding: 8px 13px; border: 1px solid var(--pg-world-line); border-radius: 2px; background: var(--pg-world-surface); color: var(--pg-world-ink); font: 400 11px/1.2 var(--font-technical); }
+[data-experience="agent-terrarium"] .pg-button:hover { background: var(--pg-world-line); color: var(--pg-world-ink); }
+[data-experience="agent-terrarium"] .sim-primary { min-width: 78px; background: var(--pg-world-accent); border-color: var(--pg-world-accent); color: var(--pg-world-bg); font-weight: 500; }
+[data-experience="agent-terrarium"] .sim-primary:hover { color: var(--pg-world-bg); background: var(--pg-world-ink); }
+[data-experience="agent-terrarium"] .pg-button[aria-pressed="true"] { border-color: var(--pg-world-accent); color: var(--pg-world-accent); box-shadow: inset 0 -2px var(--pg-world-accent); }
+[data-experience="agent-terrarium"] .sim-view-button { border: 0; background: transparent; text-decoration: underline; text-underline-offset: 4px; }
+[data-experience="agent-terrarium"] :is(button,canvas,input):focus-visible { outline: 2px solid var(--pg-world-accent); outline-offset: -2px; }
+[data-experience="agent-terrarium"] .sim-panel { min-height: 0; overflow: auto; padding: 12px 16px; border: 1px solid var(--pg-world-line); background: var(--pg-world-surface); }
+[data-experience="agent-terrarium"] .sim-rules { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+[data-experience="agent-terrarium"] .sim-rules h3 { grid-column: 1 / -1; font: 600 19px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+[data-experience="agent-terrarium"] .pg-field { display: block; margin: 0; font: 400 12px/1.4 var(--font-technical); background: transparent; color: var(--pg-world-ink); }
+[data-experience="agent-terrarium"] input[type="range"] { display: block; width: 100%; min-height: 44px; margin: 0; padding: 0; accent-color: var(--pg-world-accent); background: transparent; border: 0; cursor: pointer; }
+[data-experience="agent-terrarium"] :is(.sim-explanation,.pg-help) { max-width: 65ch; margin-top: 14px; font: 400 13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color: var(--pg-world-muted); }
+[data-experience="agent-terrarium"] :is(.sim-position,.sim-key,.sim-mode) { margin-top: 10px; font: 400 10px/1.5 var(--font-technical); color: var(--pg-world-muted); }
+[data-experience="agent-terrarium"] .sim-position { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@container (max-width: 620px) {
+  [data-experience="agent-terrarium"] .sim-dock { flex-direction: column; gap: 5px; align-items: stretch; }
+  [data-experience="agent-terrarium"] .sim-tools { justify-content: center; }
+  [data-experience="agent-terrarium"] .sim-controls { justify-content: space-between; gap: 4px; }
+  [data-experience="agent-terrarium"] .sim-controls .pg-button { padding-inline: 10px; }
+  [data-experience="agent-terrarium"] .sim-tools .pg-button { flex: 1; }
+  [data-experience="agent-terrarium"] .sim-primary { min-width: 70px; }
+  [data-experience="agent-terrarium"] .sim-rules { grid-template-columns: 1fr; gap: 8px; }
 }
-[data-experience="agent-terrarium"][data-forced-colors="true"] { --cp-bg: Canvas; --cp-text: CanvasText; --cp-heading: CanvasText; --cp-text-muted: CanvasText; --cp-border: CanvasText; --cp-border-strong: CanvasText; --cp-accent: Highlight; --cp-reverse: Canvas; --cp-surface: Canvas; }
+@container (min-width: 621px) {
+  [data-experience="agent-terrarium"] .sim-kicker { max-width: none; font-size: 10px; }
+  [data-experience="agent-terrarium"] h2 { font-size: 24px; }
+}
+[data-experience="agent-terrarium"][data-forced-colors="true"] { --pg-world-bg: Canvas; --pg-world-surface: Canvas; --pg-world-ink: CanvasText; --pg-world-muted: CanvasText; --pg-world-accent: Highlight; --pg-world-line: CanvasText; }

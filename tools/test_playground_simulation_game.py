@@ -1,18 +1,22 @@
-"""Standalone v1-contract tests; writes its temporary mount harness only to --artifacts.
+"""V1 mechanics/lifecycle and V2 visual-world tests; harness stays in --artifacts.
 
 Run with the existing Playwright environment:
   python tools/test_playground_simulation_game.py --artifacts /path/to/session/files
 The loopback server uses a free port and serves only these tests and existing site assets.
+Use --host-url to check real cover integration while locally fulfilling only owned assets.
 """
 import argparse
 from collections import deque
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from io import BytesIO
 import json
 from pathlib import Path
 import re
 import threading
+from urllib.parse import urlparse
 
 from playwright.sync_api import sync_playwright
+from PIL import Image, ImageChops
 
 ROOT = Path(__file__).resolve().parents[1]
 HARNESS = """<!doctype html>
@@ -20,12 +24,12 @@ HARNESS = """<!doctype html>
 <title>Local simulation contract test</title><link rel="stylesheet" href="/assets/journal.css">SHARED_CSS
 <style>
 body { padding:20px; } main { max-width:980px; margin:auto; }
-.pg-shell.test-shell { position:relative;inset:auto;padding:0;display:block;overflow:visible; }
+.pg-shell.test-shell { position:relative;inset:auto;padding:0;display:block;overflow:visible; background:var(--pg-world-bg);color:var(--pg-world-ink); }
 .test-slot { position:relative;height:680px;max-height:calc(100svh - 74px); }
 #status { font:12px var(--font-technical); margin-top:12px; }
-</style></head><body><main class="pg-shell test-shell"><div class="test-slot"><div id="root" class="pg-instance"></div></div>
+</style></head><body><main id="cover-playground" class="pg-shell test-shell"><div class="test-slot"><div id="root" class="pg-instance"></div></div>
 <p id="status" role="status"></p></main><script type="module">
-const probe = window.probe = {active:new Set(), frames:0, times:[], peak:0, requests:0};
+const probe = window.probe = {active:new Set(), frames:0, times:[], peak:0, requests:0, rafActive:new Set()};
 const schedule = window.setTimeout, cancel = window.clearTimeout;
 window.setTimeout = (fn, delay, ...args) => {
   const id = schedule(() => { probe.active.delete(id); fn(...args); }, delay);
@@ -35,10 +39,10 @@ window.setTimeout = (fn, delay, ...args) => {
 window.clearTimeout = id => { probe.active.delete(id); cancel(id); };
 const frame = window.requestAnimationFrame, cancelFrame = window.cancelAnimationFrame;
 window.requestAnimationFrame = fn => {
-  const id = frame(t => { probe.active.delete(id); fn(t); });
-  probe.active.add(id); return id;
+  const id = frame(t => { probe.rafActive.delete(id); fn(t); });
+  probe.rafActive.add(id); return id;
 };
-window.cancelAnimationFrame = id => { probe.active.delete(id); cancelFrame(id); };
+window.cancelAnimationFrame = id => { probe.rafActive.delete(id); cancelFrame(id); };
 const clear = CanvasRenderingContext2D.prototype.clearRect;
 CanvasRenderingContext2D.prototype.clearRect = function(...args) {
   probe.frames++; probe.times.push(performance.now());
@@ -57,6 +61,7 @@ window.testMount = async (id, preferences={reducedMotion:false,forcedColors:fals
   document.head.append(link);
   await loaded;
   const root=document.getElementById('root'); root.dataset.experience=id;
+  document.getElementById('cover-playground').dataset.world=id;
   const {seededRandom}=await import('/assets/playground/sim-core.js');
   window.testContext = {
     signal:abort.signal,seed:42,random:seededRandom(42),preferences,
@@ -69,12 +74,14 @@ window.testMount = async (id, preferences={reducedMotion:false,forcedColors:fals
   window.controller=await module.mount(root,testContext);
   window.testResize=()=>controller.resize({width:root.clientWidth,height:root.clientHeight,dpr:devicePixelRatio});
   testResize();
+  await document.fonts.ready;
 };
 window.harnessReady=true;
 </script></body></html>"""
 
 MODEL_TESTS = """async () => {
   const {Terrarium, SignalGame, seededRandom} = await import('/assets/playground/sim-core.js');
+  const {readyFont, colors} = await import('/assets/playground/sim-ui.js');
   const assert=(value,message)=>{if(!value)throw new Error(message)};
   const snapshot=w=>JSON.stringify({
     resources:[...w.resources],obstacles:[...w.obstacles],trails:[...w.trails],
@@ -159,7 +166,17 @@ MODEL_TESTS = """async () => {
     assert(game.state==='won' && game.collected===8 && game.hits===0,'A seeded manual round is not winnable');
     successes.push({seed,moves,remaining:game.remaining});
   }
-  return {returned:first.delivered,steps:first.steps,worldCells:first.resources.length,maxAgents:36,maxWalls:128,maxFood:192,gameEntities:8,successes};
+  const load=document.fonts.load;
+  let missingWeight=false,missingPalette=false;
+  try {
+    document.fonts.load=(font,...args)=>font.startsWith('500') ? Promise.resolve([]) : load.call(document.fonts,font,...args);
+    await readyFont(new AbortController().signal);
+  } catch(error) { missingWeight=error.message.includes('DM Mono'); }
+  finally { document.fonts.load=load; }
+  try { colors(document.createElement('div'),{forcedColors:false}); }
+  catch(error) { missingPalette=error.message.includes('--pg-world-'); }
+  assert(missingWeight && missingPalette,'Missing visual dependencies silently fell back');
+  return {returned:first.delivered,steps:first.steps,worldCells:first.resources.length,maxAgents:36,maxWalls:128,maxFood:192,gameEntities:8,missingVisualDependenciesDiagnosed:true,successes};
 }"""
 
 
@@ -171,8 +188,11 @@ def frozen(page):
 
 
 def capture(page, artifacts, name):
-    page.locator("#root").evaluate("el=>el.scrollTop=0")
-    page.screenshot(path=str(artifacts / name), full_page=True)
+    page.locator("[data-experience]").evaluate("el=>el.scrollTop=0")
+    if page.locator(".home-cover").count():
+        page.locator(".home-cover").screenshot(path=str(artifacts / name))
+    else:
+        page.screenshot(path=str(artifacts / name), full_page=True)
 
 
 def controls_fit(page, selector):
@@ -210,7 +230,7 @@ def route(start, target):
     raise AssertionError("No route to visible signal")
 
 
-def solve_browser_game(page, captures, prefix, touch=False):
+def solve_browser_game(page, captures, prefix, touch=False, standalone=True):
     for fragment in range(8):
         values = page.locator(".sim-position").inner_text()
         x, y, tx, ty = [int(n) - 1 for n in re.findall(r"\d+", values)]
@@ -218,28 +238,116 @@ def solve_browser_game(page, captures, prefix, touch=False):
             if touch:
                 page.get_by_role("button", name=key.removeprefix("Arrow"), exact=True).tap()
             else:
-                page.locator("canvas").focus()
+                page.locator("[data-experience=signal-noise] canvas").focus()
                 page.keyboard.press(key)
-        assert page.locator(".sim-score").inner_text().startswith(f"{fragment + 1} / 8"), values
+        assert page.locator(".sim-score-value").inner_text() == str(fragment + 1), values
         if fragment == 3:
             capture(page, captures, f"{prefix}-game-mid.png")
-            if int(prefix) < 600:
+            if page.viewport_size["width"] < 600:
                 assert page.locator(".sim-signature-frame").evaluate("""el=>{
-                  const box=el.getBoundingClientRect(),root=document.getElementById('root').getBoundingClientRect();
+                  const box=el.getBoundingClientRect(),root=el.closest('[data-experience]').getBoundingClientRect();
                   return box.top>=root.top && box.bottom<=root.bottom && box.right<=root.right;
                 }"""), "Recovered mark is outside the compact view"
-    assert page.locator("#root").get_attribute("data-state") == "won"
+    assert page.locator("[data-experience=signal-noise]").get_attribute("data-state") == "won"
     assert "Signal found" in page.locator(".sim-result").inner_text()
     assert page.locator(".sim-hits").inner_text() == "0 noise"
     capture(page, captures, f"{prefix}-game-won.png")
-    frozen(page)
+    if standalone:
+        frozen(page)
+
+
+def geometry(page):
+    return page.locator("[data-experience]").evaluate("""root=>{
+      const box=root.getBoundingClientRect(),canvas=root.querySelector('canvas'),rect=canvas.getBoundingClientRect();
+      const colors=getComputedStyle(root);
+      return {root:{width:box.width,height:box.height}, canvas:{x:rect.x-box.x,y:rect.y-box.y,width:rect.width,height:rect.height},
+        canvasHeightRatio:rect.height/box.height, backingPixels:canvas.width*canvas.height,
+        rootBackground:colors.backgroundColor, surface:colors.getPropertyValue('--pg-world-surface').trim(),
+        headingFont:getComputedStyle(root.querySelector('h2')).fontFamily,
+        primaryFont:getComputedStyle(root.querySelector('.sim-primary')).fontFamily,
+        pixel:[...canvas.getContext('2d').getImageData(0,0,1,1).data]};
+    }""")
+
+
+def capture_host(browser, args):
+    results = []
+    owned = {"agent-terrarium.js", "agent-terrarium.css", "signal-noise.js", "signal-noise.css", "sim-ui.js", "sim-core.js"}
+    for width, height in [(320, 740), (390, 844), (1028, 900), (1600, 1000)]:
+        context = browser.new_context(viewport={"width": width, "height": height}, device_scale_factor=2,
+                                      has_touch=width < 600, is_mobile=width < 600)
+        def local_modules(route):
+            filename = Path(urlparse(route.request.url).path).name
+            if filename in owned:
+                route.fulfill(path=str(ROOT / "site" / "playground" / filename))
+            else:
+                route.continue_()
+        context.route("**/assets/playground/*", local_modules)
+        page = context.new_page()
+        errors = []
+        external = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.on("request", lambda request: external.append(request.url)
+                if not request.url.startswith(args.host_url) else None)
+        page.goto(args.host_url, wait_until="networkidle")
+        cover_height = page.locator(".home-cover").bounding_box()["height"]
+        page.get_by_role("button", name="Open cover experiments").click()
+        for identifier in ["agent-terrarium", "signal-noise"]:
+            page.get_by_role("combobox", name="Choose experiment").select_option(identifier)
+            page.wait_for_function("document.querySelector('.pg-shell')?.dataset.state==='ready'")
+            root = page.locator(f"[data-experience='{identifier}']")
+            page.wait_for_timeout(1400)
+            capture(page, args.artifacts, f"host-{width}-{identifier}-ready.png")
+            info = geometry(page)
+            assert info["rootBackground"] == "rgba(0, 0, 0, 0)"
+            assert "Kyoto" not in info["headingFont"] and "Kyoto" not in info["primaryFont"]
+            assert page.evaluate("document.documentElement.scrollWidth<=innerWidth")
+            assert abs(page.locator(".home-cover").bounding_box()["height"] - cover_height) < 0.01
+            scene = page.locator(".pg-scene")
+            if scene.count():
+                before = Image.open(BytesIO(page.locator(".home-cover").screenshot())).convert("RGB")
+                scene.evaluate("el=>el.style.visibility='hidden'")
+                after = Image.open(BytesIO(page.locator(".home-cover").screenshot())).convert("RGB")
+                scene.evaluate("el=>el.style.removeProperty('visibility')")
+                visible_pixels = sum(max(pixel) > 2 for pixel in ImageChops.difference(before, after).getdata())
+                assert visible_pixels > 100, f"{identifier} hides the actual character signature"
+                info["visibleScenePixels"] = visible_pixels
+                info["sceneState"] = scene.get_attribute("data-scene-state")
+                info["sceneMarker"] = page.locator("[data-world-signature]").first.get_attribute("data-world-signature")
+            if identifier == "agent-terrarium":
+                root.locator("canvas").focus()
+                page.keyboard.press("ArrowRight")
+                page.keyboard.press("Space")
+                for _ in range(35):
+                    root.get_by_role("button", name="Step", exact=True).click()
+                assert int(root.locator(".sim-delivered").inner_text().split()[0]) > 0
+                capture(page, args.artifacts, f"host-{width}-terrarium-paths.png")
+                root.get_by_role("button", name="Rules", exact=True).click()
+                assert root.get_by_role("slider", name="Agents", exact=True).is_visible()
+                capture(page, args.artifacts, f"host-{width}-terrarium-rules.png")
+                root.get_by_role("button", name="World", exact=True).click()
+            else:
+                root.get_by_role("checkbox", name="Turn-based").check()
+                root.get_by_role("button", name="Start 60 s", exact=True).click()
+                solve_browser_game(page, args.artifacts, f"host-{width}", touch=width == 390, standalone=False)
+            results.append({"id": identifier, "viewport": width, "geometry": info, "errors": errors.copy()})
+        page.get_by_role("button", name="Close experiment").click()
+        assert page.locator("[data-experience]").count() == 0
+        assert not errors, errors
+        assert not external, external
+        context.close()
+    return results
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--artifacts", type=Path, required=True)
     parser.add_argument("--shared-css", type=Path, default=ROOT / "site" / "playground.css")
+    parser.add_argument("--quick", action="store_true", help="Skip the real-minute expiry while iterating visuals")
+    parser.add_argument("--host-url", help="Also exercise the real host, fulfilling only owned module assets locally")
+    parser.add_argument("--host-only", action="store_true", help="Capture the real host without rerunning standalone checks")
     args = parser.parse_args()
+    if args.host_only and not args.host_url:
+        parser.error("--host-only requires --host-url")
     args.artifacts.mkdir(parents=True, exist_ok=True)
     harness = args.artifacts / "mount-harness.html"
     shared_css = '<link rel="stylesheet" href="/test-host.css">' if args.shared_css.is_file() else ""
@@ -268,7 +376,7 @@ def main():
     try:
         with sync_playwright() as p:
             browser = p.webkit.launch(timeout=20000)
-            for width, height in [(320, 740), (390, 844), (1600, 1000)]:
+            for width, height in ([] if args.host_only else [(320, 740), (390, 844), (1028, 900), (1600, 1000)]):
                 print(f"Simulation/game: {width}px", flush=True)
                 context = browser.new_context(viewport={"width": width, "height": height}, device_scale_factor=2,
                                               has_touch=width < 600, is_mobile=width < 600)
@@ -290,6 +398,9 @@ def main():
                 assert page.evaluate("document.documentElement.scrollWidth<=innerWidth")
                 assert page.locator("canvas").evaluate("el=>el.width*el.height<=1000000")
                 canvas_pixels = page.locator("canvas").evaluate("el=>el.width*el.height")
+                habitat_geometry = geometry(page)
+                assert habitat_geometry["pixel"] == [16, 44, 46, 255]
+                assert habitat_geometry["canvasHeightRatio"] >= 0.43
                 capture(page, args.artifacts, f"{width}-terrarium-ready.png")
                 assert controls_fit(page, ".sim-controls button, .sim-tools button"), "Terrarium controls escape compact stage"
                 page.locator("canvas").focus()
@@ -312,12 +423,15 @@ def main():
                 frozen(page)
                 page.evaluate("controller.setActive(false);controller.setActive(true)")
                 frozen(page)
-                page.get_by_text("Adjust the rules", exact=True).click()
+                page.get_by_role("button", name="Rules", exact=True).click()
+                assert page.locator("#root").get_attribute("data-view") == "rules"
+                frozen(page)
                 page.get_by_role("slider", name="Agents", exact=True).fill("36")
                 page.get_by_role("slider", name="Exploration", exact=True).fill("80")
                 page.get_by_role("slider", name="Trail memory", exact=True).fill("95")
                 assert page.get_by_text("Agents: 36", exact=True).count() == 1
-                page.get_by_text("Adjust the rules", exact=True).click()
+                capture(page, args.artifacts, f"{width}-terrarium-rules.png")
+                page.get_by_role("button", name="World", exact=True).click()
                 # Advance real user steps: nearby added food must actually be collected and returned.
                 page.locator("canvas").focus()
                 page.keyboard.press("ArrowRight")
@@ -346,13 +460,16 @@ def main():
                 assert page.get_by_role("checkbox", name="Turn-based").is_checked()
                 assert page.evaluate("document.documentElement.scrollWidth<=innerWidth")
                 capture(page, args.artifacts, f"{width}-game-ready.png")
+                game_geometry = geometry(page)
+                assert game_geometry["pixel"] == [21, 55, 120, 255]
+                assert game_geometry["canvasHeightRatio"] >= 0.40, game_geometry
                 assert controls_fit(page, ".sim-controls button, .sim-pad button"), "Game controls escape compact stage"
                 page.get_by_role("button", name="Start 60 s", exact=True).click()
                 frozen(page)
                 solve_browser_game(page, args.artifacts, str(width), touch=width == 390)
                 page.get_by_role("button", name="Play again", exact=True).click()
-                assert page.locator(".sim-score").inner_text() == "0 / 8 signal"
-                assert page.locator(".sim-time").inner_text() == "60 s"
+                assert page.locator(".sim-score-value").inner_text() == "0"
+                assert page.locator(".sim-time-value").inner_text() == "60"
                 page.get_by_role("button", name="Pause", exact=True).click()
                 frozen(page)
                 page.evaluate("controller.setActive(false);controller.setActive(true)")
@@ -390,7 +507,7 @@ def main():
                 frozen(page)
                 assert page.evaluate("probe.peak") == 1
                 page.get_by_role("button", name="Restart", exact=True).click()
-                assert page.locator(".sim-time").inner_text() == "60 s"
+                assert page.locator(".sim-time-value").inner_text() == "60"
                 page.get_by_role("button", name="Start 60 s", exact=True).click()
                 canvas = page.locator("canvas")
                 bounds = canvas.bounding_box()
@@ -415,12 +532,15 @@ def main():
                     mount(page, "signal-noise")
                     page.evaluate("controller.destroy()")
                 frozen(page)
-                if width == 1600:
+                if width == 1600 and not args.quick:
                     # Aborting while fonts are unresolved must never remount or register late work.
                     for experience in ["agent-terrarium", "signal-noise"]:
                         page.evaluate("""id=>{
                           window.originalLoad=document.fonts.load.bind(document.fonts);
-                          document.fonts.load=()=>new Promise(resolve=>{window.finishFont=resolve;});
+                          window.fontResolvers=[];
+                          document.fonts.load=()=>new Promise(resolve=>{
+                            fontResolvers.push(resolve);window.finishFont=()=>fontResolvers.forEach(fn=>fn([{status:'loaded'}]));
+                          });
                           window.pendingMount=testMount(id);
                         }""", experience)
                         page.wait_for_function("typeof window.finishFont==='function'")
@@ -432,11 +552,11 @@ def main():
                     mount(page, "signal-noise")
                     page.get_by_role("button", name="Start 60 s", exact=True).click()
                     page.wait_for_function("document.getElementById('root').dataset.state==='lost'", timeout=75000)
-                    assert page.locator(".sim-time").inner_text() == "0 s"
+                    assert page.locator(".sim-time-value").inner_text() == "0"
                     capture(page, args.artifacts, "1600-game-timeout.png")
                     frozen(page)
                     page.get_by_role("button", name="Play again", exact=True).click()
-                    assert page.locator(".sim-score").inner_text() == "0 / 8 signal"
+                    assert page.locator(".sim-score-value").inner_text() == "0"
                     page.evaluate("controller.destroy()")
                     frozen(page)
                     # Unsupported canvas is a visible diagnosed failure, not an empty success.
@@ -459,11 +579,15 @@ def main():
                     "scheduledAfterDestroy": page.evaluate("probe.active.size"),
                     "sampledMinimumFrameMs": min(b - a for a, b in zip(frame_times, frame_times[1:])),
                     "terrariumBackingPixels": canvas_pixels,
+                    "habitatGeometry": habitat_geometry,
+                    "arcadeGeometry": game_geometry,
                     "compactControlsFit": True,
                     "keyboardWin": width != 390,
                     "touchWin": width == 390,
                 })
                 context.close()
+            if args.host_url:
+                report["liveHost"] = capture_host(browser, args)
             browser.close()
         assert not report["errors"], report["errors"]
         assert not report["externalRequests"], report["externalRequests"]

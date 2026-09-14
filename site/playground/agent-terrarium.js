@@ -8,10 +8,11 @@ export async function mount(root, context) {
     let world = new Terrarium(context.seed);
     let running = false, started = false, accumulator = 0, elapsed = 0;
     let cursor = world.home, tool = "resource", dpr = 1;
+    let palette = colors(root, life.preferences);
     const heading = element("header", "sim-heading");
     heading.append(
+      element("h2", "", "Habitat"),
       element("p", "sim-kicker", "Local rule-based simulation"),
-      element("h2", "", "Small rules. Living paths."),
     );
     const controls = element("div", "pg-controls sim-controls");
     const run = button("Run", () => {
@@ -38,7 +39,23 @@ export async function mount(root, context) {
       sync();
       context.setStatus("Same seed, fresh colony. Your current rules are retained.");
     }, life);
-    controls.append(run, step, reset);
+    const view = button("Rules", () => {
+      const open = root.dataset.view !== "rules";
+      if (open) running = false;
+      root.dataset.view = open ? "rules" : "world";
+      view.textContent = open ? "World" : "Rules";
+      view.setAttribute("aria-expanded", String(open));
+      panel.hidden = !open;
+      figure.hidden = tools.hidden = open;
+      sync();
+      if (!open) {
+        surface.resize(dpr);
+        draw();
+      }
+      context.setStatus(open ? "Rules open. Colony paused; adjust a rule or choose World." : "World view. Choose Run or Step.");
+    }, life, "sim-view-button");
+    view.setAttribute("aria-expanded", "false");
+    controls.append(run, step, reset, view);
     const layout = element("div", "sim-layout");
     const figure = element("figure", "sim-world");
     const canvas = element("canvas", "pg-stage sim-canvas");
@@ -55,7 +72,7 @@ export async function mount(root, context) {
     const food = element("span", "sim-food");
     const steps = element("span", "sim-steps");
     metrics.append(count, food, steps);
-    figure.append(canvas, metrics, element("figcaption", "sim-key", "Double ring: home / +: food / square: wall / dot: agent"));
+    figure.append(metrics, canvas);
     const panel = element("div", "sim-panel");
     const tools = element("div", "sim-tools");
     tools.setAttribute("role", "group");
@@ -74,8 +91,8 @@ export async function mount(root, context) {
     position.setAttribute("aria-live", "polite");
     position.setAttribute("aria-atomic", "true");
     const help = element("p", "pg-help", "Tap to place. Or focus the world, move with arrow keys, and press Space.");
-    const details = element("details", "sim-rules");
-    details.append(element("summary", "", "Adjust the rules"));
+    const details = element("div", "sim-rules");
+    details.append(element("h3", "", "Adjust the rules"));
     for (const [name, label, low, high] of [
       ["population", "Agents", 6, 36],
       ["exploration", "Exploration", 0, 100],
@@ -104,9 +121,14 @@ export async function mount(root, context) {
     const explanation = element("p", "sim-explanation",
       "Each agent wanders, senses nearby food, then finds a route home around walls. Return trips leave fading trails. Shared paths emerge from those small rules, not an AI model.");
     const mode = element("p", "sim-mode");
-    panel.append(tools, help, position, details, explanation, mode);
+    const key = element("p", "sim-key", "Double ring: home / +: food / square: wall / dot: agent");
+    panel.append(details, explanation, help, key, mode);
+    panel.hidden = true;
+    const dock = element("div", "sim-dock");
+    dock.append(tools, controls);
     layout.append(figure, panel);
-    root.append(heading, controls, layout);
+    root.append(heading, layout, dock, position);
+    root.dataset.view = "world";
 
     function metricsUpdate() {
       count.textContent = `${world.delivered} returned`;
@@ -123,19 +145,22 @@ export async function mount(root, context) {
     }
 
     function draw() {
+      if (root.dataset.view === "rules") return;
       surface.begin();
-      const g = surface.drawing, palette = colors(context, life.preferences);
+      const g = surface.drawing;
       const cellWidth = surface.width / world.columns, cellHeight = surface.height / world.rows;
       const unit = Math.min(cellWidth, cellHeight);
       const xy = cell => [(cell % world.columns + 0.5) * cellWidth, (Math.floor(cell / world.columns) + 0.5) * cellHeight];
-      g.fillStyle = palette.background;
+      g.fillStyle = palette.surface;
       g.fillRect(0, 0, surface.width, surface.height);
       for (let cell = 0; cell < world.resources.length; cell++) {
         const [x, y] = xy(cell);
         g.fillStyle = palette.line;
+        g.globalAlpha = 0.7;
         g.fillRect(x - 0.6, y - 0.6, 1.2, 1.2);
+        g.globalAlpha = 1;
         if (world.trails[cell] > 0.02) {
-          g.globalAlpha = life.preferences.forcedColors ? 1 : Math.min(0.65, world.trails[cell] / 10);
+          g.globalAlpha = life.preferences.forcedColors ? 1 : Math.min(0.75, world.trails[cell] / 8);
           g.fillStyle = palette.accent;
           g.beginPath();
           g.arc(x, y, Math.max(1, unit * 0.28), 0, Math.PI * 2);
@@ -143,10 +168,21 @@ export async function mount(root, context) {
           g.globalAlpha = 1;
         }
         if (world.obstacles[cell]) {
-          g.fillStyle = palette.ink;
-          g.fillRect(x - unit * 0.37, y - unit * 0.37, unit * 0.74, unit * 0.74);
+          g.strokeStyle = palette.muted;
+          g.lineWidth = 1;
+          g.strokeRect(x - unit * 0.39, y - unit * 0.39, unit * 0.78, unit * 0.78);
+          g.fillStyle = palette.muted;
+          g.globalAlpha = 0.35;
+          g.fillRect(x - unit * 0.23, y - unit * 0.23, unit * 0.46, unit * 0.46);
+          g.globalAlpha = 1;
         }
         if (world.resources[cell]) {
+          g.fillStyle = palette.accent;
+          g.globalAlpha = life.preferences.forcedColors ? 1 : 0.09 + world.resources[cell] / 80;
+          g.beginPath();
+          g.arc(x, y, unit * 0.62, 0, Math.PI * 2);
+          g.fill();
+          g.globalAlpha = 1;
           g.strokeStyle = palette.accent;
           g.lineWidth = Math.max(1.5, unit * 0.12);
           g.beginPath();
@@ -158,13 +194,17 @@ export async function mount(root, context) {
         }
       }
       const [hx, hy] = xy(world.home);
-      g.strokeStyle = palette.ink;
+      g.strokeStyle = palette.accent;
       g.lineWidth = 1.5;
       for (const radius of [0.52, 0.83]) {
         g.beginPath();
         g.arc(hx, hy, unit * radius, 0, Math.PI * 2);
         g.stroke();
       }
+      g.font = `400 ${Math.max(7, Math.min(10, unit * 0.65))}px "DM Mono", monospace`;
+      g.textAlign = "center";
+      g.fillStyle = palette.muted;
+      g.fillText("HOME", hx, hy + unit * 1.8);
       world.agents.forEach((agent, index) => {
         const [x, y] = xy(agent.cell);
         const offset = (index % 3 - 1) * unit * 0.13;
@@ -181,17 +221,25 @@ export async function mount(root, context) {
       const [cx, cy] = xy(cursor);
       g.strokeStyle = palette.ink;
       g.lineWidth = 1.5;
-      g.setLineDash([3, 2]);
-      g.strokeRect(cx - cellWidth / 2 + 1, cy - cellHeight / 2 + 1, cellWidth - 2, cellHeight - 2);
-      g.setLineDash([]);
+      const side = Math.max(3, unit * 0.32);
+      for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+        const x = cx + dx * (cellWidth / 2 - 1), y = cy + dy * (cellHeight / 2 - 1);
+        g.beginPath();
+        g.moveTo(x - dx * side, y);
+        g.lineTo(x, y);
+        g.lineTo(x, y - dy * side);
+        g.stroke();
+      }
     }
 
     function sync() {
+      palette = colors(root, life.preferences);
       if (life.preferences.reducedMotion) running = false;
       life.setRunning(running && life.active && !life.preferences.reducedMotion);
       run.textContent = running ? "Pause" : started ? "Resume" : "Run";
-      run.disabled = life.preferences.reducedMotion || !life.active;
-      step.disabled = reset.disabled = !life.active;
+      run.disabled = life.preferences.reducedMotion || !life.active || root.dataset.view === "rules";
+      step.disabled = !life.active || root.dataset.view === "rules";
+      reset.disabled = !life.active;
       root.dataset.state = running && life.active ? "running" : "paused";
       mode.textContent = life.preferences.reducedMotion
         ? "Reduced motion: explore one step at a time."
@@ -206,6 +254,7 @@ export async function mount(root, context) {
       metricsUpdate();
       draw();
       context.setStatus(result + ` Column ${cursor % world.columns + 1}, row ${Math.floor(cursor / world.columns) + 1}.`);
+      context.pulseSignature?.();
     }
 
     life.listen(canvas, "pointerdown", event => {
