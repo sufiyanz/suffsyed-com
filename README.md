@@ -172,6 +172,11 @@ Module-reported action errors remain visible without discarding the editor or
 last successful result; thrown mount/lifecycle failures tear down the instance.
 The signature is suspended separately while the host is open, preserving its
 own user-pause choice. Only loaded code and styles are retained between instances.
+Each mount waits for the journal stylesheet, then reads and validates an immutable
+six-color palette. It is never captured during early module evaluation: WebKit
+can execute the host before that stylesheet has arrived. Invalid tokens prevent
+mounting with an explicit diagnostic, and Retry reads the restored stylesheet
+again rather than retaining bad colors.
 The status footer has a reserved height so announcements cannot resize an active
 drawing surface or change a composition. All tools scroll inside the cover when
 space is tight; no full-screen modal or document scroll lock is used.
@@ -416,7 +421,11 @@ environments; module-specific tests exercise the actual creative tools.
 The integration runner performs real primary actions in every module through the
 actual host at phone and desktop sizes: pixels, original text, downloads, model
 values, simulation state and native audio construction/closure. `--ids` and
-`--widths` bound an individual rerun. The five `test_playground_<team>.py` suites
+`--widths` bound an individual rerun. `--late-palette` delays the real journal
+stylesheet response by two seconds without changing its contents; use it with
+`--ids scratch-terminal pocket-darkroom` to replay the startup-color regression.
+The host suite also checks delayed CSS and invalid-token recovery through Retry.
+The five `test_playground_<team>.py` suites
 cover deeper module algorithms, budgets, failure/abort paths and resource release
 using artifact-only loopback harnesses. Controlled PointerEvents validate stylus
 pressure; clipboard success/denial tests avoid changing the system clipboard.

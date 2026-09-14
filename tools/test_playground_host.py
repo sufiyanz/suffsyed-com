@@ -3,6 +3,7 @@ import argparse
 import gzip
 import json
 import re
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,10 +12,12 @@ IDS = ["scratch-terminal", "ink-studio", "pocket-darkroom", "type-garden", "blac
 
 FIXTURE = """
 export async function mount(root, context) {
-  const item = {id:root.dataset.experience, seed:context.seed, calls:[], destroyed:0, aborted:false};
+  const item = {id:root.dataset.experience, seed:context.seed, palette:context.palette, calls:[], destroyed:0, aborted:false};
   (window.pgFixtures ||= []).push(item);
   if (!Object.isFrozen(context.data) || !Object.isFrozen(context.data.photos[0]))
     throw new Error('Context material must be immutable');
+  if (!Object.isFrozen(context.palette) || !Object.values(context.palette).every(value => /^#[0-9a-f]{6}$/i.test(value)))
+    throw new Error('Context palette must be immutable six-digit colors');
   if (!context.data.passages[0].href.includes('#')) throw new Error('Original anchor required');
   context.signal.addEventListener('abort', () => {item.aborted=true;}, {once:true});
   if (window.pgFixtureMode === 'late') await new Promise(resolve => {window.finishPgMount=resolve;});
@@ -154,6 +157,91 @@ def browser_checks(args):
             assert not errors, errors
             assert not [url for url in requests if not url.startswith(args.url)], requests
             context.close()
+
+        if args.browser == "webkit":
+            context = browser.new_context(viewport={"width": 390, "height": 844})
+            pending_styles = []
+            context.route("**/assets/journal.css", lambda route: pending_styles.append(route))
+            context.route("**/assets/playground/*.js", lambda route: route.fulfill(body=FIXTURE, content_type="text/javascript"))
+            context.route("**/assets/playground/*.css", lambda route: route.fulfill(body="/* Test-only fixture */", content_type="text/css"))
+            page = context.new_page()
+            page.goto(args.url, wait_until="commit")
+            page.wait_for_selector(".pg-shell", state="attached")
+            page.locator(".signature-entry").dispatch_event("click")
+            assert page.locator(".pg-shell").get_attribute("data-state") == "loading"
+            assert not page.evaluate("window.pgFixtures?.length")
+            page.get_by_role("button", name="Close experiment").dispatch_event("click")
+            assert not page.locator(".pg-instance").count()
+            page.locator(".signature-entry").dispatch_event("click")
+            page.get_by_role("combobox", name="Choose experiment").select_option("ink-studio")
+            assert page.locator(".pg-shell").get_attribute("data-state") == "loading"
+            assert not page.evaluate("window.pgFixtures?.length")
+            assert len(pending_styles) == 1
+            pending_styles[0].fulfill(path=str(ROOT / "docs/assets/journal.css"), content_type="text/css")
+            page.wait_for_selector('.pg-shell[data-state="ready"]')
+            assert page.evaluate("pgFixtures.map(item => item.id)") == ["ink-studio"]
+            page.get_by_role("button", name="Close experiment").click()
+            assert page.evaluate("pgFixtures[0].destroyed === 1 && pgFixtures[0].aborted")
+            context.close()
+
+        context = browser.new_context(viewport={"width": 390, "height": 844})
+        context.route("**/assets/journal.css", lambda route: route.abort("failed"))
+        context.route("**/assets/playground/*.js", lambda route: route.fulfill(body=FIXTURE, content_type="text/javascript"))
+        context.route("**/assets/playground/*.css", lambda route: route.fulfill(body="/* Test-only fixture */", content_type="text/css"))
+        page = context.new_page()
+        diagnostics = []
+        page.on("console", lambda message: diagnostics.append(message.text))
+        page.goto(args.url, wait_until="networkidle")
+        assert page.evaluate("document.readyState") == "complete"
+        assert not page.locator(".pg-shell").is_visible()
+        page.get_by_role("button", name="Open cover experiments").click()
+        page.wait_for_selector('.pg-shell[data-state="error"]', timeout=3000)
+        # WebKit may retain an empty CSSStyleSheet object after a failed request.
+        assert any("The journal stylesheet could not load." in message
+                   or 'The journal palette token --forest is invalid: "".' in message
+                   for message in diagnostics), diagnostics
+        assert not page.evaluate("window.pgFixtures?.length")
+        page.get_by_role("button", name="Retry", exact=True).click()
+        page.wait_for_selector('.pg-shell[data-state="error"]', timeout=3000)
+        page.get_by_role("button", name="Close experiment").click()
+        assert not page.locator(".pg-shell").is_visible()
+        assert page.get_by_role("button", name="Open cover experiments").evaluate("el => el === document.activeElement")
+        context.close()
+
+        context = browser.new_context(viewport={"width": 390, "height": 844})
+        context.route("**/assets/playground/*.js", lambda route: route.fulfill(body=FIXTURE, content_type="text/javascript"))
+        context.route("**/assets/playground/*.css", lambda route: route.fulfill(body="/* Test-only fixture */", content_type="text/css"))
+        def delay_stylesheet(route):
+            response = route.fetch()
+            time.sleep(2)
+            route.fulfill(response=response)
+        context.route("**/assets/journal.css", delay_stylesheet)
+        page = context.new_page()
+        diagnostics = []
+        page.on("console", lambda message: diagnostics.append(message.text))
+        page.goto(args.url, wait_until="networkidle")
+        entry = page.get_by_role("button", name="Open cover experiments")
+        entry.click()
+        page.wait_for_selector('.pg-shell[data-state="ready"]')
+        assert page.evaluate("pgFixtures[0].palette") == {
+            "forest": "#1B2915", "green": "#305831", "stone": "#D7CDB8",
+            "paper": "#EFEDE6", "white": "#FFFFFF", "ink": "#191919",
+        }
+        page.get_by_role("button", name="Close experiment").click()
+        for name, value in [("forest", "initial"), ("green", "not-a-color")]:
+            previous = page.evaluate("(window.pgFixtures || []).length")
+            page.locator(".home-cover").evaluate("(el, token) => el.style.setProperty('--'+token[0], token[1])", [name, value])
+            entry.click()
+            page.wait_for_selector('.pg-shell[data-state="error"]')
+            assert page.evaluate("(window.pgFixtures || []).length") == previous
+            assert any(f"palette token --{name} is invalid" in message for message in diagnostics), diagnostics
+            page.locator(".home-cover").evaluate("(el, name) => el.style.removeProperty('--'+name)", name)
+            page.get_by_role("button", name="Retry", exact=True).click()
+            page.wait_for_selector('.pg-shell[data-state="ready"]')
+            assert page.evaluate("pgFixtures.at(-1).palette.forest") == "#1B2915"
+            page.get_by_role("button", name="Close experiment").click()
+            assert entry.evaluate("el => el === document.activeElement")
+        context.close()
 
         context = browser.new_context(viewport={"width": 390, "height": 844})
         context.route("**/assets/playground/*.js", lambda route: route.fulfill(body=FIXTURE, content_type="text/javascript"))

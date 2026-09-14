@@ -105,6 +105,42 @@ async function loadData(signal) {
   return freeze(data);
 }
 
+function waitForJournalStyle(signal) {
+  const link = document.querySelector('link[rel="stylesheet"][href="/assets/journal.css"]');
+  if (!link) return Promise.reject(new Error("The journal stylesheet is missing."));
+  if (link.sheet) return Promise.resolve();
+  const error = () => new Error("The journal stylesheet could not load.");
+  if (document.readyState === "complete") return Promise.reject(error());
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      link.removeEventListener("load", loaded);
+      link.removeEventListener("error", failed);
+      signal.removeEventListener("abort", cancelled);
+      window.removeEventListener("load", settled);
+    };
+    const loaded = () => { cleanup(); resolve(); };
+    const failed = () => { cleanup(); reject(error()); };
+    const cancelled = () => { cleanup(); reject(signal.reason); };
+    const settled = () => { if (link.sheet) loaded(); else failed(); };
+    link.addEventListener("load", loaded, { once: true });
+    link.addEventListener("error", failed, { once: true });
+    signal.addEventListener("abort", cancelled, { once: true });
+    window.addEventListener("load", settled, { once: true });
+    if (signal.aborted) cancelled();
+  });
+}
+
+function readPalette(cover) {
+  const style = getComputedStyle(cover);
+  return freeze(Object.fromEntries(["forest", "green", "stone", "paper", "white", "ink"].map(name => {
+    const value = style.getPropertyValue(`--${name}`).trim();
+    if (!/^#[0-9a-f]{6}$/i.test(value)) {
+      throw new Error(`The journal palette token --${name} is invalid: ${JSON.stringify(value)}.`);
+    }
+    return [name, value];
+  })));
+}
+
 function setupPlayground(cover) {
   const entry = cover.querySelector(".signature-entry");
   const image = cover.querySelector(".cover-signature");
@@ -163,8 +199,6 @@ function setupPlayground(cover) {
   let inView = cover.getBoundingClientRect().bottom > 0;
   let dimensions = { width: 0, height: 0, dpr: 1 };
   const shuffle = randomFrom(crypto.getRandomValues(new Uint32Array(1))[0]);
-  const palette = freeze(Object.fromEntries(["forest", "green", "stone", "paper", "white", "ink"]
-    .map(name => [name, getComputedStyle(cover).getPropertyValue(`--${name}`).trim()])));
 
   function stillCurrent(record) {
     return open && current === record && !record.abort.signal.aborted;
@@ -241,7 +275,7 @@ function setupPlayground(cover) {
     try {
       const signal = record.abort.signal;
       const [module, , data] = await abortable(Promise.all([
-        loadModule(id), loadStyle(id, signal), loadData(signal),
+        loadModule(id), loadStyle(id, signal), loadData(signal), waitForJournalStyle(signal),
       ]), signal);
       if (!stillCurrent(record)) return;
       if (typeof module.mount !== "function") throw new Error("Experiment has no mount function.");
@@ -250,7 +284,7 @@ function setupPlayground(cover) {
       const seed = crypto.getRandomValues(new Uint32Array(1))[0];
       /** @type {PlaygroundContext} */
       const context = {
-        signal, seed, random: randomFrom(seed), preferences: preferences(), palette, data,
+        signal, seed, random: randomFrom(seed), preferences: preferences(), palette: readPalette(cover), data,
         setStatus(message) { if (stillCurrent(record)) status.textContent = String(message); },
         reportError(message, error) {
           if (!stillCurrent(record)) return;

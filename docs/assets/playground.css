@@ -1,4 +1,5 @@
 .home-cover { position: relative; }
+.pg-shell[hidden], .pg-instance[hidden], .pg-feedback[hidden], .signature-entry[hidden] { display: none !important; }
 .cover-identity { position: relative; }
 .signature-entry { position: absolute; top: 0; left: 0; padding: 0; border: 0; background: transparent; color: var(--cp-bg); text-align: right; }
 .signature-entry > span { position: absolute; bottom: 2px; right: 2px; font: 400 10px/1.5 var(--font-technical); text-decoration: underline; text-underline-offset: 4px; }

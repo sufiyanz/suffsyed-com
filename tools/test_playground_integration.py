@@ -1,6 +1,7 @@
 """Real cover-host actions; module algorithm/resource matrices live in the owned suites."""
 import argparse
 import json
+import time
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -234,6 +235,8 @@ def main():
     parser.add_argument("--ids", nargs="+", choices=IDS, default=IDS)
     parser.add_argument("--widths", nargs="+", type=int, default=[390, 1600])
     parser.add_argument("--artifacts", type=Path, required=True)
+    parser.add_argument("--late-palette", action="store_true",
+                        help="Delay the real journal stylesheet response by two seconds.")
     args = parser.parse_args()
     args.artifacts.mkdir(parents=True, exist_ok=True)
     report = []
@@ -243,6 +246,12 @@ def main():
             context = browser.new_context(viewport={"width": width, "height": 844 if width < 900 else 1000},
                                           has_touch=width < 900, accept_downloads=True)
             context.add_init_script(AUDIO_PROBE)
+            if args.late_palette:
+                def delay_stylesheet(route):
+                    response = route.fetch()
+                    time.sleep(2)
+                    route.fulfill(response=response)
+                context.route("**/assets/journal.css", delay_stylesheet)
             page = context.new_page()
             errors, requests = [], []
             page.on("pageerror", lambda error: errors.append(str(error)))
@@ -254,7 +263,8 @@ def main():
             for identifier in args.ids:
                 print(f"Live {identifier}: {width}px", flush=True)
                 page.get_by_role("combobox", name="Choose experiment").select_option(identifier)
-                page.wait_for_selector(f'.pg-shell[data-state="ready"] [data-experience="{identifier}"]')
+                page.wait_for_function("['ready','error'].includes(document.querySelector('.pg-shell').dataset.state)")
+                assert page.locator(".pg-shell").get_attribute("data-state") == "ready", page.locator(".pg-feedback").inner_text()
                 page.evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))")
                 root = page.locator(f'[data-experience="{identifier}"]')
                 assert identifier in ACTIONS, f"No real action test yet for {identifier}"
