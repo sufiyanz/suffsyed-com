@@ -1,44 +1,39 @@
-"""The observatory homepage only; the journal's other renderers remain independent."""
+"""The sage observatory and an exhibition of original essay illustrations."""
 from html import escape
 
-from foundation_art import orbit, ribbon, writing_study
+from foundation_art import orbit, ribbon
+from writing_frame import footer, header
 
 
 SELECTED_ESSAYS = (
     "qubit-teams-the-future-built-by-two-people-using-ai",
-    "ai-doesnt-create-slop-humans-do",
+    "how-future-designers-will-win-in-the-age-of-ai",
     "a-new-class-of-software-builders-is-emerging",
 )
-SELECTED_PHOTOS = (0, 1)
 IDENTITY = "Suff Syed is a Member of Technical Staff building across AI frontiers at Microsoft."
 DESCRIPTION = "Essays on intelligence, creative work, and what remains human."
 
 
-def render_foundation(rows, gallery, image):
+def render_foundation(rows, image):
     by_slug = {row["slug"]: row for row in rows}
     writing = []
     for index, slug in enumerate(SELECTED_ESSAYS):
         row = by_slug[slug]
         first_sentence = row["description"].split(". ", 1)[0]
         excerpt = first_sentence if first_sentence.endswith(".") else first_sentence + "."
+        sizes = ("(max-width: 700px) calc(100vw - 32px), "
+                 "(max-width: 1599px) 56vw, 864px") if index != 1 else (
+                     "(max-width: 700px) calc(100vw - 32px), (max-width: 1050px) 40vw, "
+                     "(max-width: 1599px) 34vw, 520px")
         writing.append(f'''<li class="writing-plane writing-plane--{index + 1}">
-{writing_study(index)}
+<a class="exhibition-art" href="{escape(row["url"])}" aria-label="Read {escape(row["title"])}">{image(row["cover"], row["coverAlt"], sizes=sizes)}</a>
 <div class="essay-copy">
+<span class="exhibition-label">{index + 1:02d} / {escape(row["theme"])}</span>
 <h3><a href="{escape(row["url"])}">{escape(row["title"])}</a></h3>
 <p>{escape(excerpt)}</p>
 <a class="text-link" href="{escape(row["url"])}" aria-label="Read {escape(row["title"])}">Read essay <span aria-hidden="true">↗</span></a>
 </div>
 </li>''')
-    photographs = []
-    for position, index in enumerate(SELECTED_PHOTOS):
-        photo = gallery[index]
-        sizes = ("(max-width: 700px) calc(100vw - 64px), "
-                 "(max-width: 1599px) 51vw, 800px") if position == 0 else (
-                     "(max-width: 700px) 72vw, (max-width: 1599px) 30vw, 470px")
-        photographs.append(f'''<figure class="photo-{"print" if position == 0 else "study"}">
-<a href="/lightworks/#plate-{index + 1:02d}">{image(photo["src"], photo["alt"], sizes=sizes)}</a>
-<figcaption>{escape(photo["alt"])}</figcaption>
-</figure>''')
     return f'''<!doctype html>
 <html lang="en">
 <head>
@@ -51,25 +46,22 @@ def render_foundation(rows, gallery, image):
 <meta property="og:description" content="{DESCRIPTION}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://suffsyed.com/">
-<meta property="og:image" content="https://suffsyed.com{gallery[0]["src"]}">
+<meta property="og:image" content="https://suffsyed.com{by_slug[SELECTED_ESSAYS[0]]["cover"]}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">
 <link rel="preload" href="/assets/foundation/instrument-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/dm-mono-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/foundation.css">
+<link rel="stylesheet" href="/assets/frame.css">
+<script type="module" src="/assets/motion.js"></script>
 </head>
 <body id="top" class="foundation">
 <a class="skip" href="#main">Skip to content</a>
-<header class="site-header">
-<a class="site-name" href="/" aria-label="Suff Syed, home">Suff Syed</a>
-<nav aria-label="Main navigation">
-<a href="#writing">Writing</a><a href="#photography">Photos</a><a href="/about-me/">About</a>
-</nav>
-</header>
+{header(home=True, motion=True)}
 <main id="main" tabindex="-1">
 <section class="cover technical-surface" aria-labelledby="cover-title">
-{ribbon()}
+<div class="hero-field motion-field" data-motion-scene>{ribbon()}</div>
 <p class="cover-role">{IDENTITY}</p>
 <div class="editorial-plane">
 <h1 id="cover-title"><span class="sr-only">Suff Syed</span><span class="signature-ink">
@@ -85,25 +77,15 @@ def render_foundation(rows, gallery, image):
 </header>
 <ol class="writing-list">{"".join(writing)}</ol>
 </section>
-<section class="photography technical-surface" id="photography" aria-labelledby="photography-title">
-<header class="chapter-heading"><h2 id="photography-title">[ Light(works) ]</h2></header>
-{orbit()}
-<div class="photo-heading"><p class="photo-title">A different<br>kind of looking.</p>
-<p>A deliberate step away from screens and into the world.</p>
-<a class="text-link" href="/lightworks/">All photographs <span aria-hidden="true">↗</span></a></div>
-<div class="photo-pair">{"".join(photographs)}</div>
+<section class="ideas technical-surface" aria-labelledby="ideas-title">
+<div class="idea-field motion-field" data-motion-scene>{orbit()}</div>
+<div class="idea-copy"><p class="exhibition-label">[ A thought in company ]</p>
+<h2 id="ideas-title">One question.<br>Many ways in.</h2>
+<p>Follow a preoccupation through the writing. Every connection leads back to an original passage.</p>
+<a class="text-link" href="/futurememo/#by-preoccupation">Enter the question atlas <span aria-hidden="true">↗</span></a></div>
 </section>
 </main>
-<footer class="site-footer">
-<p class="footer-note">An independent point of view.<br>Thanks for spending a little time here.</p>
-<nav aria-label="Further reading"><a href="/about-me/">About me</a>
-<a href="/futurememo/">Writing</a><a href="/futurememo/rss.xml">RSS</a>
-<a href="#top">Back to top <span aria-hidden="true">↑</span></a></nav>
-<a class="footer-signature" href="/" aria-label="Suff Syed, home"><span class="signature-ink">
-<img src="/assets/suff-syed-signature-reversed.svg" width="350" height="148" alt="" loading="lazy">
-</span></a>
-<p class="footer-colophon">Writing &amp; photography<br>by Suff Syed</p>
-</footer>
+{footer()}
 </body>
 </html>
 '''

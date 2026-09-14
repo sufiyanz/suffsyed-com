@@ -6,26 +6,46 @@ Python builds plain HTML, CSS, SVG and small JavaScript modules. GitHub Pages
 serves `main` / `docs`; there is no application server, tracking, model API or
 runtime dependency on Squarespace.
 
-## Sage observatory homepage
+## Sage observatory / writing gallery
 
-The homepage is a drawing-led visual foundation: sage technical paper, an
-oversized clipped ribbon study, a compact upper-right navigation strip, an
-offset pale editorial plane, three stepped writing panels, a photographic
-scene, and a dark forest closing autograph. This replaces the rejected text
-folio without porting the interactive journal. The composition applies the
+The approved sage observatory now leads into an artwork-first exhibition:
+three generous original essay illustrations on home, all twenty at gallery
+scale in `/futurememo/`, and full-ratio frontispieces on every essay arrival.
+The compact fixed navigation, exact autograph, pale editorial plane, Instrument
+Sans / DM Mono hierarchy and dark forest footer form a shared writing-first
+frame. Light(works) is no longer a homepage scene or primary navigation item;
+its direct route, 22 photographs and full-view behavior remain intact without
+shared-navigation promotion. The composition applies the
 published [Frontend Design Review: Creative Frontend Design](https://raw.githubusercontent.com/microsoft/skills/main/.github/skills/frontend-design-review/SKILL.md)
 workflow: explicit observatory concept, asymmetry, scale contrast and matte
 material craft. Blink informed the spatial hierarchy, not the artwork or code;
 no proprietary fonts, branded diagrams, animation or scroll mechanics are copied.
 
-`tools/foundation_home.py` renders this page independently;
-`site/foundation.css` is its only stylesheet. `tools/foundation_art.py` produces
-original static parametric line studies and a seeded 160px grain tile. They
-are decorative, not charts or claims about measurements. The photographs are
-never tinted, cropped or covered with diagrams. There is no JavaScript,
-preloader, scroll interception, app module, graph or data payload. Content is
-visible immediately; native links work without scripts. The autograph is not
-a launcher, and its approved source contour is unchanged.
+`tools/foundation_home.py` renders the homepage; `site/foundation.css` owns its
+composition. `tools/writing_frame.py` and `site/frame.css` share the navigation,
+footer and material tokens; `site/writing.css` carries these through the index
+and article arrivals while retaining Newsreader for long reading. Support-page
+content is unchanged. All artwork is still, uncropped, untinted and displayed
+at its native aspect ratio. Responsive `sizes` match the new scale; sources
+include 640/960px derivatives and full original files.
+The archive opens on art, not utilities: a native Search & explore disclosure
+holds the complete passage search, theme filter and compact-list controls.
+Linked searches open the disclosure automatically; without JavaScript it
+explains the limitation and retains native memo/question-index links.
+
+`tools/foundation_art.py` produces original parametric SVG line studies and a
+seeded static 160px grain tile. `site/motion.js` progressively animates only SVG
+group transforms: slow perspective breathing and orbital oscillation, never a
+rotating icon or moving artwork. Each scene has a dedicated paint-contained,
+clipped field separated from copy and controls. The budget is at most two
+visible scenes and two transform tracks per scene, 18/24-second cycles, no
+JavaScript frame callbacks, geometry reads, storage or network requests.
+IntersectionObserver, document visibility and page lifecycle events suspend
+timelines without losing manual pause. A compact Pause/Resume control only
+appears when enhancement is available. Reduced motion, forced colors, print
+and no-JS retain complete static content; no dead motion control is shown.
+The module is initialized once per document and survives bfcache restoration.
+There is no preloader, scroll interception, new app host or AI feature.
 The compact navigation stays fixed while reading. Safe-area insets and native
 scroll padding keep section headings and keyboard targets clear, without
 scroll-state JavaScript or hide/reveal behavior.
@@ -38,8 +58,9 @@ live separately in `site/foundation/`, leaving every original font untouched.
 using the existing `requirements-fonts.txt` tooling; the ordinary build remains
 offline. The homepage requests exactly these two local font files.
 
-This is **not a site-wide migration**. Essays, passage IDs, the archive, gallery,
-supporting pages and public fonts retain their earlier implementation. All ten
+The writing templates and shared frame intentionally evolve the static-only
+checkpoint. Original essay bodies, metadata, passage IDs, theme anchors, atlas
+sources, search, compact list mode, gallery and public fonts are preserved. All ten
 experiments, host/lifecycle API, scenes, reader margin and research sources are
 preserved, but parked off the homepage until the visual direction is approved.
 `build_site.journal_home_page()` retains the complete previous composition as an
@@ -55,21 +76,23 @@ python3 tools/build_site.py
 python3 tools/test_site.py
 python3 tools/test_preview.py
 python3 tools/test_atlas.py --static-only
-python3 tools/serve.py --port 8773
+python3 tools/serve.py --port 8774
 # In a separate terminal, with the existing Playwright environment:
-python tools/test_foundation.py --url http://127.0.0.1:8773 --browser webkit \
+python tools/test_foundation.py --url http://127.0.0.1:8774 --browser webkit \
   --output /absolute/path/to/review-artifacts
 ```
 
 `--browser` also supports Chromium (the default) and Firefox. The focused check
-covers 320/390/820/1440/1600px, native links, uncropped responsive images, keyboard
-focus, no-JS, reduced motion, emulated forced colors and resource isolation.
-It also verifies the floating navigation, large cropped hero art, asymmetric
-editorial plane, stepped panels, dark closing band and licensed font boundary.
-It optionally saves full-page frames and a desktop/phone contact sheet.
+covers 320/390/820/1440/1600px, all twenty artwork/title/URL associations, decoded
+resource resolution (not WebKit's density-corrected `naturalWidth`), native links,
+focus, no-JS, reduced motion and emulated forced colors. It records real changed
+pixels, exact paused frames, offscreen/visibility/page lifecycle suspension and
+a sampled frame budget (p95 below 50ms in headless WebKit; no site JS frame loop).
+Headless visibility is explicitly emulated; offscreen suspension uses real scroll.
+It saves desktop/phone compositions, motion frames and machine-readable evidence.
 The older `test_home.py`, cover, hierarchy, signature and playground browser
 suites describe the preserved interactive composition, **not** acceptance
-criteria for this deliberately static homepage. Static checks still exercise
+criteria for this writing-gallery iteration. Static checks still exercise
 its renderer, original reading plates, all essays, links and source assets.
 
 ## Preserved journal design
@@ -99,7 +122,8 @@ photograph pixels are never recolored or filtered.
 | `site/suff-syed-signature.svg` | User-supplied, visually validated vector autograph; exact master paths, not a font or embedded raster. |
 | `tools/corpus.py` | Deterministic passage extraction, word counts and lexical-neighbor ranking. |
 | `tools/build_site.py` | All routes, responsive images, searchable corpus, RSS and sitemap. |
-| `tools/foundation_home.py`, `site/foundation.css` | Isolated, static homepage visual foundation. |
+| `tools/foundation_home.py`, `site/foundation.css` | Observatory homepage and curated artwork exhibition. |
+| `tools/writing_frame.py`, `site/frame.css`, `site/writing.css`, `site/motion.js` | Shared writing frame, gallery/reading styles and bounded decorative motion. |
 | `tools/foundation_art.py`, `site/foundation/` | Original line studies, deterministic grain generator and licensed homepage font/provenance. |
 | `tools/journal_home.py`, `tools/journal_questions.py` | Opening artwork and local question/research instruments. |
 | `tools/question_atlas.py` | Validated, server-rendered question/passage index for the existing writing archive. |

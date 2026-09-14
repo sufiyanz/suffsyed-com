@@ -103,5 +103,8 @@ function initializeArchive() {
   const params = new URLSearchParams(location.search);
   if (params.has("q")) query.value = params.get("q").slice(0, 180);
   if ([...theme.options].some(option => option.value === params.get("theme"))) theme.value = params.get("theme");
-  if (query.value || theme.value) apply();
+  if (query.value || theme.value) {
+    document.querySelector(".archive-discovery").open = true;
+    apply();
+  }
 }

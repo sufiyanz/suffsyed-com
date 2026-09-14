@@ -11,7 +11,8 @@ from PIL import Image
 
 from corpus import connect, measure, reading_plate
 from foundation_home import render_foundation
-from foundation_art import write_grain
+from foundation_art import orbit, write_grain
+from writing_frame import footer as writing_footer, header as writing_header
 from journal_home import render_cover, render_home
 from journal_questions import render_margin, render_research, render_research_teaser
 from question_atlas import build_atlas, render_atlas
@@ -53,6 +54,13 @@ def layout(title, description, body, path, current="", cover=None, kind="page", 
     og = f'<meta property="og:image" content="{DOMAIN}{cover}">' if cover else ""
     page_assets = "".join(f'<link rel="stylesheet" href="/assets/{esc(name)}">' for name in styles)
     page_assets += "".join(f'<script type="module" src="/assets/{esc(name)}"></script>' for name in scripts)
+    motion = kind in ("essay", "archive")
+    if kind != "home":
+        page_assets += '<link rel="stylesheet" href="/assets/writing.css">'
+        if motion:
+            page_assets += '<script type="module" src="/assets/motion.js"></script>'
+        return layout_writing(title, description, body, path, current, cover, kind, page_assets)
+    mast = f'<header class="mast"><a class="signature" href="/" aria-label="Suff Syed, home">Suff Syed</a><nav aria-label="Main navigation">{links}</nav></header>'
     return f'''<!doctype html>
 <html lang="en" data-theme="light">
 <head>
@@ -70,8 +78,8 @@ def layout(title, description, body, path, current="", cover=None, kind="page", 
 <script type="module" src="/assets/app.js"></script>{page_assets}
 </head><body id="top" class="{kind}">
 <a class="skip" href="#main">Skip to content</a>
-<div class="sheet">{opening}<header class="mast"><a class="signature" href="/" aria-label="Suff Syed, home">Suff Syed</a><nav aria-label="Main navigation">{links}</nav></header>
-<main id="main">{body}</main>
+<div class="sheet">{opening}{mast}
+<main id="main" tabindex="-1">{body}</main>
 <footer class="foot"><div><a class="signature" href="/">Suff Syed</a><p>A mind at work. A work in progress.</p><p><a href="/about-me/">About the person behind these questions ↗</a></p></div>
 <nav aria-label="Further reading"><a href="/about-the-memo/">About the memo</a><a href="/faqs/">FAQs</a><a href="/the-end-of-design-report/">The End of Design</a><a href="/store/">A coffee, perhaps</a><a href="/methods/">How to read the data</a><a href="/futurememo/rss.xml">RSS</a></nav>
 <nav aria-label="Elsewhere"><a href="https://substack.com/@suffsyed">Substack ↗</a><a href="https://x.com/suff_syed">X ↗</a><a href="https://www.linkedin.com/in/suffsyed/">LinkedIn ↗</a><a href="#top">Back to top ↑</a></nav></footer></div>
@@ -82,7 +90,33 @@ def layout(title, description, body, path, current="", cover=None, kind="page", 
 </body></html>'''
 
 
+def layout_writing(title, description, body, path, current, cover, kind, page_assets):
+    og = f'<meta property="og:image" content="{DOMAIN}{cover}">' if cover else ""
+    return f'''<!doctype html><html lang="en" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{esc(title)} — Suff Syed</title><meta name="description" content="{esc(description)}">
+<link rel="canonical" href="{DOMAIN}{path}">
+<meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(description)}">
+<meta property="og:type" content="{"article" if kind == "essay" else "website"}">{og}
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/foundation/instrument-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/dm-mono-regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/journal.css"><link rel="stylesheet" href="/assets/questions.css">
+<link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">
+<script type="module" src="/assets/app.js"></script>{page_assets}
+</head><body id="top" class="{kind} writing-frame">
+<a class="skip" href="#main">Skip to content</a>{writing_header(current=current, motion=kind in ("essay", "archive"))}
+<div class="sheet"><main id="main" tabindex="-1">{body}</main></div>{writing_footer()}
+<dialog id="artwork-dialog" aria-labelledby="artwork-title"><div class="dialog-head"><h2 id="artwork-title">A closer look.</h2><button class="close" data-close-dialog aria-label="Close artwork">×</button></div>
+<figure><img id="artwork-image" alt=""><figcaption id="artwork-caption"></figcaption></figure>
+<div class="artwork-actions"><button id="artwork-prev" class="plain" aria-label="Previous photograph">← Previous</button><a id="artwork-original">Open image file ↗</a><button id="artwork-next" class="plain" aria-label="Next photograph">Next →</button></div></dialog>
+</body></html>'''
+
+
 def essay_page(row, rows):
+    with Image.open(OUT / row["cover"].lstrip("/")) as cover_image:
+        cover_width = cover_image.width
     body = BeautifulSoup(row["body"], "html.parser")
     for passage_number, el in enumerate(body.select("[data-passage]"), 1):
         tools = body.new_tag("span", attrs={"class": "passage-tools"})
@@ -111,11 +145,13 @@ def essay_page(row, rows):
     related = "".join(f'<a href="{item["url"]}"><span class="label">{esc(item["theme"])}</span><h3>{esc(item["title"])}</h3><span class="plain">Read the essay ↗</span></a>' for item in next_rows)
     content = f'''
 <header class="essay-head">
+<div class="arrival-field motion-field" data-motion-scene>{orbit()}</div>
 <div class="essay-kicker label"><a href="/futurememo/">future(memo)</a><span>Essay {row["no"]:02d} / {esc(row["theme"])}</span><span>{row["words"]:,} words · About {row["minutes"]} min</span></div>
-<h1>{esc(row["title"])}</h1><p class="dek">{esc(row["description"])}</p>
+<h1>{esc(row["title"])}</h1>
 <div class="head-foot"><span>By Suff Syed</span><a href="#reading">Begin reading ↓</a><a href="#reading-lens" class="enhanced">Read through a different lens ↗</a></div>
 </header>
-<figure class="essay-artwork"><a href="{row["cover"]}" class="artwork-link" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])} Shown without cropping.">{image(row["cover"], row["coverAlt"], False)}</a><figcaption><span>Frontispiece / Original essay artwork</span><a href="{row["cover"]}" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])}">Enlarge the whole image ↗</a></figcaption></figure>
+<figure class="essay-artwork" style="--art-width:{cover_width}px"><a href="{row["cover"]}" class="artwork-link" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])} Shown without cropping.">{image(row["cover"], row["coverAlt"], False, f"(max-width: 700px) calc(100vw - 32px), (max-width: 1199px) min(90vw, {cover_width}px), {min(1080, cover_width)}px")}</a><figcaption><span>Frontispiece / Original essay artwork</span><a href="{row["cover"]}" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])}">Enlarge the whole image ↗</a></figcaption></figure>
+<p class="essay-dek">{esc(row["description"])}</p>
 <figure class="reading-intro" id="reading"><figcaption><span class="label">Fig. 01 / The essay in sections</span><p>Each band opens the original section. The text index below names the same places.</p></figcaption><div><nav class="section-ribbon" aria-label="Sections, widths proportional to word counts">{ribbon}</nav><p class="micro">{len(row["sections"])} sections · {row["words"]:,} words. Width follows length, not importance. <a href="/methods/#counting">Counting notes ↗</a></p></div></figure>
 <div class="reading-layout"><aside class="reading-aside"><details class="contents" open><summary>In this essay <span class="label">{len(row["sections"])} parts</span></summary><ol>{toc}</ol></details><p class="aside-note">Every paragraph has an address. The ¶ keeps your place; the ↗ follows shared vocabulary into another essay.</p>
 <button class="plain enhanced open-lens" type="button">Open the reading lens ↗</button></aside>
@@ -140,14 +176,18 @@ def archive_page(rows, data, atlas):
     entries = ""
     for row in rows:
         entries += f'''<li class="archive-entry" data-slug="{row["slug"]}" data-theme="{esc(row["theme"])}"><span class="entry-number label">{row["no"]:02d}</span>
-<a class="archive-art artwork-link" href="{row["cover"]}" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])}">{image(row["cover"], row["coverAlt"], sizes="(max-width: 700px) 36vw, 220px")}</a>
+<a class="archive-art" href="{row["url"]}" aria-label="Read {esc(row["title"])}">{image(row["cover"], row["coverAlt"], sizes="(max-width: 700px) calc(100vw - 32px), (max-width: 1599px) 44vw, 680px")}</a>
 <div class="entry-copy"><div class="label">{esc(row["theme"])} <span>· {row["words"]:,} words</span></div><h2><a href="{row["url"]}">{esc(row["title"])}</a></h2><p>{esc(row["description"])}</p><div class="entry-thread"><span class="label">A word to follow</span><a href="{row["url"]}?term={quote(row["terms"][0]["term"])}#reading-lens">{esc(row["terms"][0]["term"])} <small>{row["terms"][0]["count"]} occurrences ↗</small></a></div><div class="archive-matches"></div></div>
 <a class="entry-read" href="{row["url"]}" aria-label="Read {esc(row["title"])}">↗</a></li>'''
-    body = f'''<header class="page-opening"><span class="label">The complete collection / future(memo)</span><h1>Following the<br>same restlessness.</h1><div class="page-dek"><p>Twenty essays about intelligence, creative work, and what remains ours to do.</p><p>Read the covers. Follow a word. Enter anywhere.<br><a href="/about-the-memo/">A note on the memo ↗</a></p></div></header>
+    body = f'''<header class="page-opening"><div class="arrival-field motion-field" data-motion-scene>{orbit()}</div><span class="label">future(memo) / Twenty essays</span><h1>Following the<br>same restlessness.</h1><div class="page-dek"><p>Intelligence, creative work, and what remains human.</p></div></header>
+<details class="archive-discovery"><summary>Search &amp; explore the collection</summary>
 <section class="archive-tools enhanced" aria-label="Explore the writing"><form id="archive-search"><label for="archive-query">Search every written passage</label><div class="search-line"><input id="archive-query" type="search" placeholder="A word, a phrase, a question…" maxlength="180"><button type="submit">Search</button></div><p class="micro">Case-insensitive phrase search across the full text. No network search, no generated summaries.</p></form><div><label for="archive-theme">A preoccupation</label><select id="archive-theme"><option value="">All five themes</option>{"".join(f'<option>{esc(t["name"])}</option>' for t in data["themes"])}</select><div class="archive-view"><button id="archive-list-toggle" type="button" aria-pressed="false" class="plain">Compact reading list</button><button id="archive-reset" type="button" class="plain">Reset</button></div></div></section>
-<div class="archive-meta"><p id="archive-status" role="status">{len(rows)} essays · {sum(r["words"] for r in rows):,} words</p><a class="primary-link" href="#by-preoccupation">Enter the question atlas ↓</a></div><ol id="archive-entries" class="archive-entries">{entries}</ol>
+<p class="archive-native-note">Search and filters need JavaScript. All twenty essays and the question index remain available below.</p>
+<p class="archive-notes"><a href="/about-the-memo/">A note on the memo ↗</a><a href="#by-preoccupation">Browse by question ↓</a></p>
+</details>
+<div class="archive-meta"><p id="archive-status" role="status">{len(rows)} essays · {sum(r["words"] for r in rows):,} words</p><a class="primary-link" href="#by-preoccupation">Question atlas ↓</a></div><ol id="archive-entries" class="archive-entries">{entries}</ol>
 {render_atlas(atlas)}'''
-    write("/futurememo/index.html", layout("future(memo)", "The complete collection of essays by Suff Syed.", body, "/futurememo/", "writing", styles=("atlas.css",), scripts=("atlas.js",)))
+    write("/futurememo/index.html", layout("future(memo)", "The complete collection of essays by Suff Syed.", body, "/futurememo/", "writing", kind="archive", styles=("atlas.css",), scripts=("atlas.js",)))
 
 
 def gallery_page(data):
@@ -248,7 +288,7 @@ def main():
         "signature": {"src": "/assets/suff-syed-signature.svg", "viewBox": [0, 0, 350, 148]},
         "photos": playground_photos, "passages": playground_passages,
     }))
-    write("/index.html", render_foundation(rows, data["gallery"], image))
+    write("/index.html", render_foundation(rows, image))
     archive_page(rows, data, atlas)
     gallery_page(data)
     for page in data["pages"]:

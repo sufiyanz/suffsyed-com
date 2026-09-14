@@ -29,7 +29,8 @@ def main():
         page.goto(args.url, wait_until="networkidle")
         page.screenshot(path=str(args.artifacts / "home-desktop.png"), full_page=True)
         assert page.locator("h1").count() == 1
-        page.locator(".featured [data-artwork]").first.click()
+        page.locator(".exhibition-art").first.click()
+        page.locator(".essay-artwork [data-artwork]").first.click()
         assert page.locator("#artwork-dialog").is_visible()
         page.wait_for_function("document.getElementById('artwork-image').naturalWidth > 0")
         page.keyboard.press("Escape")
@@ -106,6 +107,7 @@ def main():
         assert page.locator("#essay-body mark").count() > 0
 
         page.goto(args.url + "/futurememo/", wait_until="networkidle")
+        page.locator(".archive-discovery > summary").click()
         page.locator("#archive-query").fill("judgment")
         page.locator("#archive-search").evaluate("form => form.requestSubmit()")
         page.wait_for_function("!document.getElementById('archive-status').textContent.includes('Opening')")
@@ -158,6 +160,7 @@ def main():
         unavailable = browser.new_context()
         failed_search = unavailable.new_page()
         failed_search.goto(args.url + "/futurememo/", wait_until="networkidle")
+        failed_search.locator(".archive-discovery > summary").click()
         unavailable.set_offline(True)
         failed_search.locator("#archive-query").fill("systems")
         failed_search.locator("#archive-search").evaluate("form => form.requestSubmit()")
@@ -222,7 +225,7 @@ def main():
             assert not view.locator(".reading-lens").is_visible()
             assert view.locator(".contents a").count() > 0
         view.goto(args.url)
-        assert view.locator("#home-essay-title").inner_text()
+        assert view.locator(".writing-list h3").first.inner_text()
         assert view.locator('a[href^="/futurememo/"]').count() > 5
         no_js.close()
         browser.close()

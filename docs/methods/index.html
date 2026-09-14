@@ -1,6 +1,4 @@
-<!doctype html>
-<html lang="en" data-theme="light">
-<head>
+<!doctype html><html lang="en" data-theme="light"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How to read the data — Suff Syed</title><meta name="description" content="Transparent notes on this collection&#x27;s measurements, links and local interactions.">
 <link rel="canonical" href="https://suffsyed.com/methods/">
@@ -8,15 +6,17 @@
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="preload" href="/assets/fonts/newsreader-roman.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/foundation/instrument-sans-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/dm-mono-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/journal.css"><link rel="stylesheet" href="/assets/home.css"><link rel="stylesheet" href="/assets/questions.css">
+<link rel="stylesheet" href="/assets/journal.css"><link rel="stylesheet" href="/assets/questions.css">
 <link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">
-<script type="module" src="/assets/app.js"></script>
-</head><body id="top" class="page">
-<a class="skip" href="#main">Skip to content</a>
-<div class="sheet"><header class="mast"><a class="signature" href="/" aria-label="Suff Syed, home">Suff Syed</a><nav aria-label="Main navigation"><a href="/futurememo/">Writing</a><a href="/lightworks/">Light(works)</a><a href="/research/">The unfinished</a><a href="/about-me/">About</a></nav></header>
-<main id="main"><header class="page-opening"><span class="label">Colophon / Measurement notes</span><h1>A drawing, not<br>a verdict.</h1><div class="page-dek"><p>The data is here to make the writing more navigable, not to tell you what to think.</p></div></header><article class="document-prose">
+<script type="module" src="/assets/app.js"></script><link rel="stylesheet" href="/assets/writing.css">
+</head><body id="top" class="page writing-frame">
+<a class="skip" href="#main">Skip to content</a><header class="site-header">
+<a class="site-name" href="/" aria-label="Suff Syed, home">Suff Syed</a>
+<nav aria-label="Main navigation"><a href="/futurememo/">Writing</a><a href="/about-me/">About</a></nav>
+</header>
+<div class="sheet"><main id="main" tabindex="-1"><header class="page-opening"><span class="label">Colophon / Measurement notes</span><h1>A drawing, not<br>a verdict.</h1><div class="page-dek"><p>The data is here to make the writing more navigable, not to tell you what to think.</p></div></header><article class="document-prose">
 <h2 id="counting">What gets counted</h2><p>The current collection contains 20 complete essays, 45,284 words and 1,387 addressable text passages. Headings, paragraphs, list items, captions and nonempty quotations are counted once. A word is a run of English letters or digits, with an internal apostrophe or hyphen allowed. Curly and straight apostrophes are equivalent for search; plurals are not stemmed. Punctuation alone is not a word.</p><p>The previous migration’s counter reported 45,308 words using a looser HTML-based rule. Differences from that number reflect tokenization, not abridgement. The original text is preserved and checked against its migration fingerprint. Reading time is an estimate at 230 words per minute, rounded up.</p>
 <h2 id="sections">An essay has a shape</h2><p>Each heading begins a section. The opening before the first heading is “Opening.” Section lengths include their heading and all following passages up to the next heading. The reading band’s widths are proportional to those counts. The adjacent text index is the keyboard and touch alternative. Paragraph addresses are stored in the source, so an unrelated edit does not move every anchor.</p>
 <h2 id="reading-plates">A passage beside its measures</h2><p>The home reading plate quotes one complete original prose passage from the selected essay, with its stable address. It is a mechanical entry point, not a generated summary or a claim about the essay’s central argument. The selector prefers paragraphs of 35–100 words containing at least three of the essay’s recurring eligible terms. It favors up to four distinct terms, then length nearest 65 words, then the earliest passage. If no paragraph qualifies, it considers other prose passages of at least 20 words. Tables, headings, captions and code blocks are excluded.</p><p>Up to four words come from the existing frequency-ranked essay vocabulary; numeric-only terms and words appearing fewer than twice are omitted. Highlighting preserves the original spelling and casing. “Here” counts only the quoted passage; the full count includes every measured passage. Section bars compare occurrences of the chosen word and show up to the three most frequent matching sections, with ties in reading order. Their links open the existing reading lens with the exact word and section, at the first matching source passage. The full-count link opens that word across the whole essay. These are recurrence measures, not importance scores. An optional detour uses the same lexical-neighbor model described below.</p>
@@ -24,11 +24,21 @@
 <h2>The illustrated collection</h2><p>The five preoccupations are editorial categories inherited from the original collection. Colored bands identify them. The engraving’s lobes follow the number of essays in a theme; its fine lines and decorative motion are expressive, not measurements. Each tally above the plate represents one hundred words, rounded up. Covers and photographs come from the existing site and can be opened without cropping.</p>
 <h2 id="question-atlas">Questions, not inferred beliefs</h2><p>The <a href="/futurememo/#by-preoccupation">question atlas</a> extends the archive’s five existing editorial preoccupations. Its question labels come from the collection metadata; they are editorial index labels, not quoted questions or an assertion that every essay answers them. Each essay has one deliberately selected, complete source passage. The build resolves its stored passage ID through the same text extractor used by the reading lens, preserving punctuation and inline joins. These are entry points, not summaries. Arguments, estimates and predictions in quoted text remain part of the original essays, not independently verified findings.</p><p>Solid map lines mean an essay belongs to an existing editorial theme. Four dashed bridges are explicitly curated comparisons. Each has a written rationale and two named, directly linked source passages. They are not lexical measurements, evidence of agreement, chronology, influence or confidence scores. Position, distance and node size carry no quantitative meaning. The measured shared-word links in the reading lens remain a separate instrument.</p><p>The map loads only when opened. It shows five questions, or a neighborhood of at most eight nodes: one question, up to five essays and up to two nearby questions. There is no force simulation, idle animation, external request, storage or hidden research job. Native buttons and the complete question/passage index offer equivalent routes. Closing the map leaves the ordinary index intact; it works without JavaScript.</p>
 <p>The five-essay limit is a rendering budget, not a content cap. If a theme grows, its first five essays in archive order appear as map nodes, with an explicit “5 of N essays mapped” notice. All N essays retain their source passages in both the native index and the question’s detail list. Selecting an additional essay opens its passage without expanding the graph.</p>
-<h2>Privacy, dates and unfinished work</h2><p>Reading and searching happen locally. Only optional reader marks are stored in this browser, with a visible reset. There is no analytics endpoint, live poll or tracking pixel. The research cycle is an authored demonstration, not a running agent system, and gathers no external evidence. The archive’s historical dates came from a sitemap’s last-modified field; unverified publication dates are not presented as publication dates or put into RSS pubDate fields.</p><p>The complete site is static HTML. Reading, section navigation, images and the alternative theme index work without JavaScript. Search and the optional reading lens require JavaScript; no API key or backend is required.</p></article></main>
-<footer class="foot"><div><a class="signature" href="/">Suff Syed</a><p>A mind at work. A work in progress.</p><p><a href="/about-me/">About the person behind these questions ↗</a></p></div>
-<nav aria-label="Further reading"><a href="/about-the-memo/">About the memo</a><a href="/faqs/">FAQs</a><a href="/the-end-of-design-report/">The End of Design</a><a href="/store/">A coffee, perhaps</a><a href="/methods/">How to read the data</a><a href="/futurememo/rss.xml">RSS</a></nav>
-<nav aria-label="Elsewhere"><a href="https://substack.com/@suffsyed">Substack ↗</a><a href="https://x.com/suff_syed">X ↗</a><a href="https://www.linkedin.com/in/suffsyed/">LinkedIn ↗</a><a href="#top">Back to top ↑</a></nav></footer></div>
-<div class="outside-caption"><span>SUFF SYED / NOTES FROM THE FRONTIER</span><span>Independent writing · No tracking</span></div>
+<h2>Privacy, dates and unfinished work</h2><p>Reading and searching happen locally. Only optional reader marks are stored in this browser, with a visible reset. There is no analytics endpoint, live poll or tracking pixel. The research cycle is an authored demonstration, not a running agent system, and gathers no external evidence. The archive’s historical dates came from a sitemap’s last-modified field; unverified publication dates are not presented as publication dates or put into RSS pubDate fields.</p><p>The complete site is static HTML. Reading, section navigation, images and the alternative theme index work without JavaScript. Search and the optional reading lens require JavaScript; no API key or backend is required.</p></article></main></div><footer class="site-footer">
+<p class="footer-note">An independent point of view.<br>Thanks for spending a little time here.</p>
+<nav aria-label="Further reading"><a href="/futurememo/">Writing</a><a href="/about-the-memo/">The memo</a>
+<a href="/futurememo/rss.xml">RSS</a><a href="#top">Back to top <span aria-hidden="true">↑</span></a></nav>
+<a class="footer-signature" href="/" aria-label="Suff Syed, home"><span class="signature-ink">
+<img src="/assets/suff-syed-signature-reversed.svg" width="350" height="148" alt="" loading="lazy">
+</span></a>
+<p class="footer-colophon">Independent writing<br>by Suff Syed</p>
+<details class="footer-more"><summary>Elsewhere &amp; site notes</summary>
+<nav aria-label="Site notes"><a href="/research/">The unfinished</a>
+<a href="/faqs/">FAQs</a><a href="/the-end-of-design-report/">The End of Design</a>
+<a href="/store/">A coffee, perhaps</a><a href="/methods/">How to read the data</a>
+<a href="https://substack.com/@suffsyed">Substack ↗</a><a href="https://x.com/suff_syed">X ↗</a>
+<a href="https://www.linkedin.com/in/suffsyed/">LinkedIn ↗</a></nav></details>
+</footer>
 <dialog id="artwork-dialog" aria-labelledby="artwork-title"><div class="dialog-head"><h2 id="artwork-title">A closer look.</h2><button class="close" data-close-dialog aria-label="Close artwork">×</button></div>
 <figure><img id="artwork-image" alt=""><figcaption id="artwork-caption"></figcaption></figure>
 <div class="artwork-actions"><button id="artwork-prev" class="plain" aria-label="Previous photograph">← Previous</button><a id="artwork-original">Open image file ↗</a><button id="artwork-next" class="plain" aria-label="Next photograph">Next →</button></div></dialog>

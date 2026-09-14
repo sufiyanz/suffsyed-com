@@ -1,4 +1,4 @@
-"""Original, static line studies. Geometry is decorative, never measured data."""
+"""Original line studies, complete without motion. Never measured data."""
 import math
 import random
 
@@ -31,9 +31,9 @@ def ribbon():
     nodes = "".join(f'<circle class="art-node" cx="{x:.2f}" cy="{y:.2f}" r="4"/>'
                     for x, y in (point(.55, -1), point(2.1, 1), point(4.4, -.6)))
     return f'''<svg class="hero-geometry line-study" viewBox="0 0 960 840" aria-hidden="true" focusable="false">
-<g>{"".join(curves)}</g>
+<g data-motion-track="depth">{"".join(curves)}</g>
 <path class="construction" d="M40 430H880M460 0V810"/>
-{nodes}</svg>'''
+<g data-motion-track="orbit">{nodes}</g></svg>'''
 
 
 def writing_study(index):
@@ -62,5 +62,5 @@ def orbit():
     curves = "".join(f'<ellipse cx="520" cy="490" rx="{radius}" ry="{radius * .53:.2f}" transform="rotate({angle} 520 490)"/>'
                      for radius, angle in ((340, -26), (380, -12), (420, 2), (460, 16), (500, 30)))
     return f'''<svg class="photo-geometry line-study" viewBox="0 0 1040 1000" aria-hidden="true" focusable="false">
-{curves}<path class="construction" d="M0 490h1040M520 0v1000"/>
+<g data-motion-track="depth">{curves}</g><path class="construction" d="M0 490h1040M520 0v1000"/>
 <circle class="art-node" cx="520" cy="490" r="5"/></svg>'''

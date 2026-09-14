@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 
 from corpus import content_digest, flat_text, reading_plate, tokens
 from build_site import journal_home_page
-from foundation_home import DESCRIPTION, IDENTITY, SELECTED_ESSAYS, SELECTED_PHOTOS
+from foundation_home import DESCRIPTION, IDENTITY, SELECTED_ESSAYS
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs"
@@ -34,20 +34,23 @@ class JournalTests(unittest.TestCase):
                         "readingPlate": reading_plate(row)} for row in rows]
         cls.journal_home = BeautifulSoup(journal_home_page(public_rows, DATA), "html.parser")
 
-    def test_foundation_identity_and_narrow_scope(self):
+    def test_foundation_identity_and_writing_gallery(self):
         home = self.pages[OUT / "index.html"]
         self.assertEqual(home.h1.get_text(strip=True), "Suff Syed")
         self.assertEqual(len(home.select("h1")), 1)
         self.assertEqual(home.select_one(".cover-role").get_text(), IDENTITY)
         self.assertEqual(home.select_one(".cover-description").get_text(), DESCRIPTION)
         self.assertEqual([a["href"] for a in home.select(".site-header nav a")],
-                         ["#writing", "#photography", "/about-me/"])
+                         ["#writing", "/about-me/"])
         self.assertEqual([link["href"] for link in home.select('link[rel="stylesheet"]')],
-                         ["/assets/foundation.css"])
-        self.assertFalse(home.select("script, button, canvas, dialog, iframe, form"))
+                         ["/assets/foundation.css", "/assets/frame.css"])
+        self.assertFalse(home.select("canvas, dialog, iframe, form"))
+        self.assertEqual([script["src"] for script in home.select("script")], ["/assets/motion.js"])
+        self.assertEqual(len(home.select("button")), 1)
+        self.assertTrue(home.select_one("[data-motion-toggle]").has_attr("hidden"))
         self.assertFalse(home.select("h1 a, h1 button"))
         self.assertEqual(len(home.select("main > section")), 3)
-        self.assertEqual(len(home.select("svg.line-study")), 5)
+        self.assertEqual(len(home.select("svg.line-study")), 2)
         self.assertEqual(len(home.select(".hero-geometry")), 1)
         for svg in home.select("svg.line-study"):
             self.assertEqual(svg["aria-hidden"], "true")
@@ -62,16 +65,18 @@ class JournalTests(unittest.TestCase):
             self.assertEqual(item.h3.a["href"], f"/futurememo/{slug}/")
             self.assertEqual(item.h3.get_text(), rows[slug]["title"])
             self.assertTrue(rows[slug]["description"].startswith(item.p.get_text()))
-        descriptions = json.loads((ROOT / "content/photograph-descriptions.json").read_text())
-        photos = home.select(".photo-pair figure")
-        self.assertEqual(len(photos), 2)
-        for figure, index in zip(photos, SELECTED_PHOTOS):
-            self.assertEqual(figure.a["href"], f"/lightworks/#plate-{index + 1:02d}")
-            self.assertEqual(figure.img["src"], DATA["gallery"][index]["src"])
-            self.assertEqual(figure.img["alt"], descriptions[index])
-            self.assertEqual(figure.figcaption.get_text(), descriptions[index])
-            for source in figure.img["srcset"].split(", "):
+            self.assertEqual(item.select_one(".exhibition-art")["href"], item.h3.a["href"])
+            self.assertEqual(item.img["src"], rows[slug]["cover"])
+            for source in item.img["srcset"].split(", "):
                 self.assertTrue((OUT / source.split()[0].lstrip("/")).is_file())
+        self.assertFalse(home.select(".photo-pair, #photography"))
+        self.assertFalse(home.select('main a[href^="/lightworks/"]'))
+        self.assertEqual(len(home.select("[data-motion-scene]")), 2)
+        archive = self.pages[OUT / "futurememo/index.html"]
+        for entry, row in zip(archive.select(".archive-entry"), DATA["essays"]):
+            self.assertEqual(entry.select_one(".archive-art")["href"], f'/futurememo/{row["slug"]}/')
+            self.assertEqual(entry.img["src"], row["cover"])
+            self.assertEqual(entry.h2.get_text(), row["title"])
 
     def test_preserved_journal_cover_and_internal_header(self):
         home = self.journal_home
@@ -96,17 +101,19 @@ class JournalTests(unittest.TestCase):
         self.assertEqual(cover.find_next_sibling().get("class"), ["mast"])
         self.assertEqual(home.select_one(".mast").find_next_sibling().get("id"), "main")
         self.assertEqual(len(home.select("h1")), 1)
-        links = [a["href"] for a in home.select(".mast nav a")]
         for path, soup in self.pages.items():
             if path == OUT / "index.html":
                 continue
-            self.assertEqual(len(soup.select(".mast")), 1)
-            self.assertEqual([a["href"] for a in soup.select(".mast nav a")], links)
+            self.assertEqual(len(soup.select(".site-header")), 1)
+            self.assertEqual([a["href"] for a in soup.select(".site-header nav a")],
+                             ["/futurememo/", "/about-me/"])
+            self.assertEqual(len(soup.select(".site-footer")), 1)
+            self.assertFalse(soup.select('.site-header a[href="/lightworks/"], .site-footer a[href="/lightworks/"]'))
             if path != OUT / "index.html":
                 self.assertIsNone(soup.select_one(".home-cover"))
 
     def test_foundation_text_contrast(self):
-        css = (ROOT / "site/foundation.css").read_text()
+        css = (ROOT / "site/frame.css").read_text()
         palette = dict(re.findall(r"--(site-[a-z-]+):\s*(#[0-9a-f]{6});", css))
 
         def luminance(value):
