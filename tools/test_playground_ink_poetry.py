@@ -1,11 +1,14 @@
-"""WebKit interaction checks for the v1 ink/poetry modules.
+"""WebKit interaction and V2 composition checks for the ink/poetry modules.
 
 Runs an artifact-only mount harness on an OS-assigned loopback port. Pass the
 host's --data-url to exercise its exact published passage payload.
 """
 import argparse
+import base64
 import gzip
 import json
+import math
+import re
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -31,11 +34,11 @@ HARNESS = """<!doctype html>
 <link rel="stylesheet" href="/site/playground/blackout-poetry.css">
 <style>
 body { margin: 0; padding: 12px; }
-#frame { position: static; display: block; padding: 0; width: calc(100% - 16px); max-width: 1100px; overflow: visible; }
+#frame { position: static; display: block; padding: 0; width: calc(100% - 16px); max-width: 1100px; overflow: visible; background: var(--pg-world-bg); }
 #experience { position: relative; inset: auto; height: 520px; }
 #status, #errors { font: 12px/1.3 var(--font-technical); margin-top: 8px; }
 </style></head><body><button id="close">Close experiment</button>
-<div id="frame" class="pg-shell"><div id="experience" class="pg-instance"></div></div>
+<div id="frame" class="pg-shell"><div id="cover-playground"><div id="experience" class="pg-instance"></div></div></div>
 <p id="status" role="status"></p><p id="errors" role="alert"></p>
 <script type="module">
 import { mount as ink } from '/site/playground/ink-studio.js';
@@ -68,6 +71,8 @@ window.openExperience = async (id, passages = window.fixture.passages, activate 
   window.abort = new AbortController();
   if (preAbort) window.abort.abort();
   root.dataset.experience = id;
+  document.getElementById('cover-playground').dataset.world = id;
+  document.getElementById('cover-playground').style.background = 'var(--pg-world-bg)';
   document.getElementById('errors').textContent = '';
   window.statuses = []; window.failures = [];
   window.controller = await (id === 'ink-studio' ? ink : poetry)(root, {
@@ -128,6 +133,18 @@ def stats(page):
     return page.locator(".ink-paper").evaluate(INK_STATS)
 
 
+def choose_material(page, label, value):
+    page.get_by_role("button", name="Tools", exact=True).click()
+    page.get_by_label(label, exact=True).select_option(value)
+    page.get_by_role("button", name="Done", exact=True).click()
+
+
+def tool_action(page, name):
+    page.get_by_role("button", name="Tools", exact=True).click()
+    page.get_by_role("button", name=name, exact=True).click()
+    page.get_by_role("button", name="Done", exact=True).click()
+
+
 def line(page, start=(.16, .35), end=(.8, .55), steps=30):
     box = page.locator(".ink-paper").bounding_box()
     page.mouse.move(box["x"] + box["width"] * start[0], box["y"] + box["height"] * start[1])
@@ -144,12 +161,15 @@ def line(page, start=(.16, .35), end=(.8, .55), steps=30):
 def assert_layout(page):
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), "page overflow"
     assert page.locator("#experience").evaluate("el => el.scrollWidth <= el.clientWidth + 1"), "root overflow"
-    small = page.locator("#experience").evaluate("""el => [...el.querySelectorAll('button,select')].map(node => {
+    small = page.locator("#experience").evaluate("""el => [...el.querySelectorAll('button,select')].filter(
+      node=>node.getClientRects().length).map(node => {
       const r=node.getBoundingClientRect(); return {text:node.textContent, width:r.width, height:r.height};
     }).filter(r=>r.width<43.9 || r.height<43.9)""")
     assert not small, small
-    assert page.locator("#experience").evaluate("""el=>[...el.querySelectorAll('button')].every(
-      button=>button.scrollWidth<=button.clientWidth+1)"""), "clipped button label"
+    clipped = page.locator("#experience").evaluate("""el=>[...el.querySelectorAll('button')].filter(
+      node=>node.getClientRects().length && node.scrollWidth>node.clientWidth+1).map(
+      node=>({text:node.textContent.slice(0,80),scroll:node.scrollWidth,client:node.clientWidth}))""")
+    assert not clipped, clipped
     assert page.locator("#close").is_visible()
 
 
@@ -163,11 +183,18 @@ def ink_checks(page, artifacts, width):
     if width < 600:
         assert root_box["width"] == width - 40
         assert root_box["height"] == (320 if width == 320 else 310)
-        assert page.locator(".ink-paper").bounding_box()["height"] >= 76
+        assert page.locator(".ink-paper").bounding_box()["height"] >= root_box["height"] * .55
         assert page.locator("#experience").evaluate("el=>el.scrollHeight<=el.clientHeight+1")
     canvas = page.locator(".ink-paper")
-    page.get_by_label("Size", exact=True).select_option("10")
-    page.get_by_label("Nib", exact=True).select_option("round")
+    blank_geometry = canvas.bounding_box()
+    page.screenshot(path=str(artifacts / f"ink-blank-{width}.png"))
+    page.get_by_role("button", name="Tools", exact=True).click()
+    assert_layout(page)
+    assert canvas.bounding_box() == blank_geometry
+    page.keyboard.press("Escape")
+    assert page.get_by_role("button", name="Tools", exact=True).get_attribute("aria-expanded") == "false"
+    choose_material(page, "Size", "10")
+    choose_material(page, "Nib", "round")
     line(page)
     drawn = stats(page)
     assert drawn["count"] > 250
@@ -176,7 +203,7 @@ def ink_checks(page, artifacts, width):
     assert not page.evaluate("failures")
     page.get_by_role("button", name="Undo", exact=True).click()
     assert stats(page)["count"] == 0
-    assert page.get_by_role("button", name="Clear", exact=True).is_disabled()
+    assert page.get_by_role("button", name="Clear", exact=True, include_hidden=True).is_disabled()
 
     # Pen pressure is supplied through PointerEvents; pixel widths prove pressure use.
     box = canvas.bounding_box()
@@ -227,7 +254,7 @@ def ink_checks(page, artifacts, width):
     assert (artifacts / f"ink-export-{width}.png").read_bytes().startswith(b"\x89PNG")
     assert page.evaluate("urlsCreated === urlsRevoked && urlsCreated > 0")
 
-    page.get_by_role("button", name="Clear", exact=True).click()
+    tool_action(page, "Clear")
     assert stats(page)["count"] == 0
     if width < 600:
         canvas.tap()
@@ -244,8 +271,8 @@ def ink_checks(page, artifacts, width):
     for _ in range(4):
         page.keyboard.press("ArrowDown")
     assert stats(page)["count"] == keyboard_ink, "pen should be up"
-    page.get_by_label("Nib", exact=True).select_option("fountain")
-    page.get_by_label("Ink", exact=True).select_option("green")
+    choose_material(page, "Nib", "fountain")
+    choose_material(page, "Ink", "green")
     line(page, (.12, .7), (.85, .25), 60)
     line(page, (.25, .25), (.45, .8), 35)
     page.mouse.move(0, 0)
@@ -274,7 +301,8 @@ def ink_checks(page, artifacts, width):
     assert stats(page)["count"] == 0
     open_experience(page, "ink-studio", pre_abort=True)
     assert page.locator("#experience").evaluate("el => !el.childElementCount")
-    return {"width": width, "pressure_pixels": pressure, "drawn_pixels": drawn["count"]}
+    return {"width": width, "pressure_pixels": pressure, "drawn_pixels": drawn["count"],
+            "root": root_box, "stage": blank_geometry}
 
 
 def poetry_checks(page, artifacts, width):
@@ -286,10 +314,14 @@ def poetry_checks(page, artifacts, width):
     assert page.locator(".poetry-poem").text_content() == original["text"]
     assert page.locator(".poetry-source-link").text_content() == original["title"]
     assert page.locator(".poetry-source-link").evaluate("el => new URL(el.href).hash") != ""
+    page.get_by_role("button", name="Tools", exact=True).click()
     page.locator(".poetry-source summary").click()
     assert page.locator(".poetry-source-link").is_visible()
     page.locator(".poetry-source summary").click()
+    page.get_by_role("button", name="Done", exact=True).click()
     assert_layout(page)
+    source_geometry = page.locator(".poetry-reading").bounding_box()
+    poem_geometry = page.locator(".poetry-remix-body").bounding_box()
     words = page.locator(".poetry-word")
     total = words.count()
     assert total == len(original["text"].split())
@@ -311,9 +343,9 @@ def poetry_checks(page, artifacts, width):
     assert words.last.evaluate("el => el === document.activeElement")
     page.keyboard.press("Home")
     assert words.first.evaluate("el => el === document.activeElement")
-    page.get_by_role("button", name="Reset", exact=True).click()
+    tool_action(page, "Reset")
     assert page.locator(".poetry-poem").text_content() == original["text"]
-    page.get_by_role("button", name="Clear", exact=True).click()
+    tool_action(page, "Clear")
     assert page.locator(".poetry-empty").is_visible()
     assert page.locator(".poetry-poem").text_content() == ""
     assert page.get_by_role("button", name="Copy poem", exact=True).is_disabled()
@@ -325,7 +357,7 @@ def poetry_checks(page, artifacts, width):
     }""")
     assert page.locator(".poetry-poem").text_content() == expected
 
-    page.get_by_label("Poetry brush", exact=True).select_option("remove")
+    choose_material(page, "Poetry brush", "remove")
     page.locator(".poetry-reading").evaluate("el => el.scrollTop=0")
     first_box = words.first.bounding_box()
     third_box = words.nth(2).bounding_box()
@@ -337,15 +369,16 @@ def poetry_checks(page, artifacts, width):
     page.mouse.up()
     assert words.first.get_attribute("aria-pressed") == "false"
     assert words.nth(2).get_attribute("aria-pressed") == "false"
-    page.get_by_label("Poetry brush", exact=True).select_option("restore")
+    choose_material(page, "Poetry brush", "restore")
     words.first.click()
     assert words.first.get_attribute("aria-pressed") == "true"
-    page.get_by_label("Poetry brush", exact=True).select_option("tap")
+    choose_material(page, "Poetry brush", "tap")
     assert page.locator(".poetry-passage").evaluate("el=>getComputedStyle(el).touchAction") == "auto"
     assert page.locator(".poetry-word").first.evaluate("el=>getComputedStyle(el).textDecorationLine") == "underline"
     page.locator(".poetry-reading").evaluate("el => el.scrollTop=0")
     page.screenshot(path=str(artifacts / f"poetry-selection-{width}.png"))
-    page.locator(".poetry-remix").scroll_into_view_if_needed()
+    assert page.locator(".poetry-remix-body").bounding_box()["height"] >= 28
+    page.locator(".poetry-remix-body").evaluate("el => el.scrollTop=0")
     page.screenshot(path=str(artifacts / f"poetry-remix-{width}.png"))
     assert page.locator("#experience").evaluate("el => el.scrollHeight <= el.clientHeight + 1")
     assert not page.evaluate("failures")
@@ -358,7 +391,7 @@ def poetry_checks(page, artifacts, width):
     assert page.evaluate("failures.length") == 1
     page.get_by_role("button", name="New passage", exact=True).click()
     assert page.locator(".poetry-passage").text_content() == page.evaluate("fixture.passages[1].text")
-    page.get_by_role("button", name="Reset", exact=True).click()
+    tool_action(page, "Reset")
     assert page.locator(".poetry-poem").text_content() == page.locator(".poetry-passage").text_content()
     page.evaluate("controller.setPreferences({reducedMotion:true, forcedColors:true})")
     assert page.locator("#experience").get_attribute("data-poetry-forced") == "true"
@@ -371,7 +404,8 @@ def poetry_checks(page, artifacts, width):
     assert page.locator(".poetry-poem").text_content() == original["text"]
     open_experience(page, "blackout-poetry", pre_abort=True)
     assert page.locator("#experience").evaluate("el => !el.childElementCount")
-    return {"width": width, "source_words": total, "exact_source": True, "touch_tap": width < 600}
+    return {"width": width, "source_words": total, "exact_source": True, "touch_tap": width < 600,
+            "source_stage": source_geometry, "poem_stage": poem_geometry}
 
 
 def edge_checks(page):
@@ -406,8 +440,8 @@ def edge_checks(page):
 
 def ink_edge_checks(page):
     open_experience(page, "ink-studio")
-    page.get_by_label("Size", exact=True).select_option("10")
-    page.get_by_label("Nib", exact=True).select_option("round")
+    choose_material(page, "Size", "10")
+    choose_material(page, "Nib", "round")
     canvas = page.locator(".ink-paper")
     box = canvas.bounding_box()
     page.mouse.move(box["x"] + 12, box["y"] + box["height"] / 2)
@@ -416,10 +450,10 @@ def ink_edge_checks(page):
       const c=root.querySelector('canvas'), r=c.getBoundingClientRect();
       const id=events.filter(e=>e.name==='pointerdown').at(-1).id;
       let time=performance.now();
-      for(let i=1; i<=80; i++) {
-        time+=i<40 ? 90 : 1;
+      for(let i=1; i<=40; i++) {
+        time+=i<20 ? 90 : 1;
         const event=new PointerEvent('pointermove', {pointerId:id, pointerType:'mouse', buttons:1,
-          clientX:r.left+12+(r.width-24)*i/80, clientY:r.top+r.height/2, pressure:.5});
+          clientX:r.left+12+(r.width-24)*i/40, clientY:r.top+r.height/2, pressure:.5});
         Object.defineProperty(event,'timeStamp',{value:time});
         c.dispatchEvent(event);
       }
@@ -437,7 +471,7 @@ def ink_edge_checks(page):
     }""")
     assert widths[0] > widths[1] * 1.3, widths
     assert page.evaluate("cancelledCapture")
-    page.get_by_role("button", name="Clear", exact=True).click()
+    tool_action(page, "Clear")
     # Keep at most 900 points in a stroke, report the cap, and release capture.
     box = canvas.bounding_box()
     page.mouse.move(box["x"] + 20, box["y"] + 20)
@@ -462,7 +496,7 @@ def ink_edge_checks(page):
     assert abs(before_budget_resize["x"] - after_budget_resize["x"]) < .02
     assert abs(before_budget_resize["y"] - after_budget_resize["y"]) < .02
     # 96 independent taps reach the separate stroke cap without dropping old art.
-    page.get_by_role("button", name="Clear", exact=True).click()
+    tool_action(page, "Clear")
     canvas.focus()
     page.evaluate("""() => {
       const c=root.querySelector('canvas');
@@ -481,7 +515,7 @@ def ink_edge_checks(page):
     }""")
     assert page.locator(".ink-stage").evaluate("el=>getComputedStyle(el).touchAction") == "auto"
     assert page.locator(".ink-paper").evaluate("el=>getComputedStyle(el).touchAction") == "none"
-    page.get_by_role("button", name="Clear", exact=True).click()
+    tool_action(page, "Clear")
     for _ in range(14):
         box = canvas.bounding_box()
         page.mouse.move(box["x"] + 20, box["y"] + 20)
@@ -504,14 +538,159 @@ def ink_edge_checks(page):
     page.evaluate("window.removedPoem=root.querySelector('.poetry-poem'); window.removedWords=root.querySelector('.poetry-passage')")
     page.locator("#close").click()
     assert page.evaluate("removedPoem.textContent === '' && removedWords.childElementCount === 0")
+    page.evaluate("""() => {
+      Object.defineProperty(document.fonts, 'ready', {configurable:true, value:new Promise(
+        resolve=>{window.resolveDelayedFonts=resolve;})});
+      window.delayedMount=openExperience('ink-studio');
+    }""")
+    page.wait_for_function("root.querySelector('.ink-paper') !== null")
+    page.evaluate("abort.abort(); resolveDelayedFonts()")
+    page.evaluate("delayedMount")
+    assert page.locator("#experience").evaluate("el=>!el.childElementCount")
+    page.evaluate("delete document.fonts.ready")
     return {"velocity_pixels": widths, "stroke_point_cap": 900, "stroke_count_cap": 96, "total_point_cap": 12000}
+
+
+def check_world_css():
+    allowed = {"color-scheme", "--pg-world-bg", "--pg-world-surface", "--pg-world-ink",
+               "--pg-world-muted", "--pg-world-accent", "--pg-world-line",
+               "--pg-world-signature", "--pg-world-signature-opacity"}
+    for identifier in ["ink-studio", "blackout-poetry"]:
+        css = (ROOT / f"site/playground/{identifier}.css").read_text()
+        selector, block = css.split("{", 1)
+        assert selector.strip() == f"#cover-playground[data-world='{identifier}'], [data-experience='{identifier}']"
+        properties = {part.split(":", 1)[0].strip() for part in block.split("}", 1)[0].split(";") if part.strip()}
+        assert properties == allowed, properties
+        assert css.count("#cover-playground") == 1
+        for selector in re.findall(r"(?:^|[{}])\s*([^{}]+)\{", css):
+            assert selector.strip().startswith(("@", "#cover-playground", f"[data-experience='{identifier}']")), selector
+
+
+def live_host_checks(browser, url, artifacts):
+    """Route only owned authored modules into the real host; do not rebuild docs."""
+    report = []
+    scene_costs = {}
+    for width, height in [(320, 740), (390, 844), (1028, 900), (1600, 1000)]:
+        context = browser.new_context(viewport={"width": width, "height": height},
+                                      has_touch=width < 600, reduced_motion="reduce",
+                                      accept_downloads=True)
+        for identifier in ["ink-studio", "blackout-poetry"]:
+            for extension in ["js", "css"]:
+                source = ROOT / f"site/playground/{identifier}.{extension}"
+                context.route(f"**/assets/playground/{identifier}.{extension}",
+                              lambda route, request, path=source: route.fulfill(path=path))
+        page = context.new_page()
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(url, wait_until="networkidle")
+        page.evaluate("document.fonts.ready")
+        cover_height = page.locator(".home-cover").bounding_box()["height"]
+        page.get_by_role("button", name="Open cover experiments", exact=True).click()
+        for identifier in ["ink-studio", "blackout-poetry"]:
+            print(f"Real host V2: {identifier} / {width}px", flush=True)
+            page.get_by_role("combobox", name="Choose experiment", exact=True).select_option(identifier)
+            root = page.locator(f'[data-experience="{identifier}"]')
+            root.wait_for()
+            page.wait_for_function("document.querySelector('.pg-shell').dataset.state === 'ready'")
+            page.evaluate("document.fonts.ready")
+            page.wait_for_timeout(150)
+            bounds = root.bounding_box()
+            assert root.evaluate("el=>getComputedStyle(el).backgroundColor") == "rgba(0, 0, 0, 0)"
+            assert root.evaluate("el=>el.scrollWidth <= el.clientWidth+1 && el.scrollHeight <= el.clientHeight+1")
+            assert page.locator(".home-cover").bounding_box()["height"] == cover_height
+            if identifier == "ink-studio":
+                canvas = root.locator(".ink-paper")
+                assert canvas.evaluate(INK_STATS)["count"] == 0
+                before = canvas.bounding_box()
+                canvas.focus()
+                page.keyboard.press("Space")
+                for _ in range(5):
+                    page.keyboard.press("Shift+ArrowRight")
+                page.keyboard.press("Space")
+                assert canvas.bounding_box() == before, "host status resized the drawing surface"
+                root.get_by_role("button", name="Undo", exact=True).click()
+                assert canvas.evaluate(INK_STATS)["count"] == 0
+                choose_material(page, "Size", "10")
+                choose_material(page, "Ink", "forest")
+                for phase in [0, .85, 1.7]:
+                    points = [(before["x"] + before["width"] * (.17 + .66 * step / 60),
+                               before["y"] + before["height"] * (.48 + .22 * math.sin(step / 60 * math.pi * 2 + phase)))
+                              for step in range(61)]
+                    page.mouse.move(*points[0])
+                    page.mouse.down()
+                    for point in points[1:]:
+                        page.mouse.move(*point)
+                    page.mouse.up()
+                assert canvas.evaluate(INK_STATS)["count"] > 400
+                with page.expect_download() as download:
+                    root.get_by_role("button", name="Save PNG", exact=True).click()
+                export_path = artifacts / f"host-ink-export-{width}.png"
+                download.value.save_as(export_path)
+                rgba = page.evaluate("""async data => {
+                  const image = new Image(); image.src = 'data:image/png;base64,'+data;
+                  await image.decode();
+                  const c=document.createElement('canvas'); c.width=image.width; c.height=image.height;
+                  const ctx=c.getContext('2d'); ctx.drawImage(image,0,0);
+                  return [...ctx.getImageData(0,0,1,1).data];
+                }""", base64.b64encode(export_path.read_bytes()).decode())
+                assert rgba == [239, 237, 230, 255], "world decoration contaminated exported paper"
+                geometry = {"canvas": canvas.bounding_box(), "export_corner_rgba": rgba}
+            else:
+                source = root.locator(".poetry-passage").text_content()
+                assert root.locator(".poetry-poem").text_content() == source
+                tool_action(page, "Clear")
+                for index in [0, 2, 5, 9, 12]:
+                    word = root.locator(".poetry-word").nth(index)
+                    word.focus()
+                    page.keyboard.press("Space")
+                assert len(root.locator(".poetry-poem").text_content().split()) == 5
+                root.locator(".poetry-reading").evaluate("el=>el.scrollTop=0")
+                root.locator(".poetry-remix-body").evaluate("el=>el.scrollTop=0")
+                assert root.locator(".poetry-remix-body").bounding_box()["height"] >= 28
+                geometry = {"source": root.locator(".poetry-reading").bounding_box(),
+                            "poem": root.locator(".poetry-remix-body").bounding_box()}
+            page.mouse.move(0, 0)
+            scene = page.locator("[data-world-signature]")
+            assert scene.count() == 1, "host signature scene is missing"
+            assert scene.is_visible()
+            geometry["signature_marker"] = scene.get_attribute("data-world-signature")
+            geometry["signature_box"] = scene.bounding_box()
+            page.locator(".home-cover").screenshot(path=str(artifacts / f"host-{identifier}-{width}.png"))
+            root.get_by_role("button", name="Tools", exact=True).click()
+            heading_fonts = root.locator("h3").evaluate_all("""nodes=>nodes.filter(
+              el=>el.getClientRects().length).map(el=>getComputedStyle(el).fontFamily)""")
+            assert heading_fonts and all("Kyoto" not in font for font in heading_fonts), heading_fonts
+            geometry["public_heading_fonts"] = heading_fonts
+            if width in [390, 1600]:
+                page.locator(".home-cover").screenshot(path=str(artifacts / f"host-{identifier}-tools-{width}.png"))
+            root.get_by_role("button", name="Done", exact=True).click()
+            for asset in page.evaluate("""performance.getEntriesByType('resource').map(
+              entry=>entry.name).filter(url=>url.includes('/scene-') && url.endsWith('.js'))"""):
+                assert asset.startswith(url + "/")
+                if asset not in scene_costs:
+                    with urlopen(asset, timeout=10) as response:
+                        scene_costs[asset] = len(gzip.compress(response.read(), mtime=0))
+            geometry["shared_scene_gzip_bytes"] = sum(scene_costs.values())
+            own_cost = sum(len(gzip.compress((ROOT / f"site/playground/{identifier}.{extension}").read_bytes(), mtime=0))
+                           for extension in ["js", "css"])
+            geometry["cold_code_css_gzip_bytes"] = own_cost + sum(scene_costs.values())
+            assert geometry["cold_code_css_gzip_bytes"] < 60 * 1024
+            report.append({"id": identifier, "viewport": [width, height], "root": bounds, **geometry})
+        page.get_by_role("button", name="Close experiment", exact=True).click()
+        assert page.locator(".pg-instance").count() == 0
+        assert not errors, errors
+        context.close()
+    (artifacts / "ink-poetry-real-host.json").write_text(json.dumps(report, indent=2))
+    return report
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--artifacts", type=Path, required=True)
     parser.add_argument("--data-url")
+    parser.add_argument("--host-url", help="Real host to preview with only these owned source files routed locally.")
     args = parser.parse_args()
+    check_world_css()
     args.artifacts.mkdir(parents=True, exist_ok=True)
     if args.data_url:
         with urlopen(args.data_url, timeout=10) as response:
@@ -544,7 +723,7 @@ def main():
     server = ThreadingHTTPServer(("127.0.0.1", 0), partial(Handler, directory=str(ROOT)))
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    results, errors, external = [], [], []
+    results, errors, external, host_results = [], [], [], []
     base = f"http://127.0.0.1:{server.server_port}"
     try:
         with sync_playwright() as playwright:
@@ -565,6 +744,8 @@ def main():
                     edge_checks(page)
                     results[-1]["ink_edges"] = ink_edge_checks(page)
                 context.close()
+            if args.host_url:
+                host_results = live_host_checks(browser, args.host_url, args.artifacts)
             browser.close()
     finally:
         server.shutdown()
@@ -576,7 +757,7 @@ def main():
         costs[name] = sum(len(gzip.compress((ROOT / f"site/playground/{name}.{extension}").read_bytes(), mtime=0))
                           for extension in ["js", "css"])
         assert costs[name] < 60 * 1024
-    summary = {"results": results, "gzip_bytes": costs, "page_errors": errors, "external_requests": external,
+    summary = {"results": results, "real_host": host_results, "gzip_bytes": costs, "page_errors": errors, "external_requests": external,
                "forced_colors_scope": "Runtime preference styles checked; WebKit is not a native Windows high-contrast palette test."}
     (args.artifacts / "ink-poetry-results.json").write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary, indent=2))

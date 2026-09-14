@@ -21,8 +21,17 @@ export async function mount(root, context) {
     return controller;
   }
   root.inert = true;
-  for (const [name, color] of Object.entries(context.palette)) root.style.setProperty(`--poetry-${name}`, color);
-  const intro = node("p", "poetry-invitation", "A poem between the lines.");
+  const intro = node("div", "poetry-mast");
+  const mastTitle = node("div", "poetry-title");
+  mastTitle.append(node("span", "poetry-folio", "02 / CUT & KEEP"), node("p", "poetry-invitation", "Leave a little."));
+  const mastActions = node("div", "poetry-mast-actions");
+  intro.append(mastTitle, mastActions);
+  const toolbox = node("section", "poetry-toolbox");
+  toolbox.setAttribute("aria-label", "Poetry tools and source");
+  toolbox.id = `poetry-tools-${context.seed}`;
+  toolbox.hidden = true;
+  const toolHeading = node("div", "poetry-tool-heading");
+  toolHeading.append(node("h3", "", "Edit the page"));
   const controls = node("div", "pg-controls poetry-controls");
   const label = node("label", "pg-field poetry-field");
   label.append(node("span", "", "Brush"));
@@ -35,29 +44,32 @@ export async function mount(root, context) {
   }
   label.append(brush);
   controls.append(label);
-  function button(text, handler) {
+  function button(text, handler, parent = controls) {
     const input = node("button", "pg-button", text);
     input.type = "button";
     on(input, "click", () => { if (active && !destroyed) handler(); });
-    controls.append(input);
+    parent.append(input);
     return input;
   }
+  const tools = button("Tools", () => showTools(toolbox.hidden), mastActions);
+  tools.setAttribute("aria-expanded", "false");
+  tools.setAttribute("aria-controls", toolbox.id);
+  button("Done", () => showTools(false), toolHeading);
   reset = button("Reset", () => selectAll(true, "All source words restored."));
   clear = button("Clear", () => selectAll(false, "All words blacked out. Choose words to keep."));
   next = button("New passage", () => {
     stopBrush();
     index = (index + 1) % passages.length;
     showPassage();
-    context.setStatus("New source paragraph. All words restored.");
-  });
-  copy = button("Copy poem", copyPoem);
-  const help = node("p", "pg-help poetry-help", "Tap words, or use arrows + Space.");
+    context.setStatus(current ? "New source paragraph. All words restored." : "This source is unavailable. Try another passage.");
+  }, mastActions);
+  const help = node("p", "pg-help poetry-help", "Tap to cut · arrows + Space");
   help.append(node("span", "poetry-hidden",
     " Arrows move between words; Space or Enter toggles them. Choose a brush to paint; Tap / scroll enables touch scrolling. Closing discards the remix."));
   help.id = `poetry-help-${context.seed}`;
   reading = node("div", "pg-stage poetry-reading");
   reading.setAttribute("role", "region");
-  reading.setAttribute("aria-label", "Source paragraph and your remix");
+  reading.setAttribute("aria-label", "Complete source paragraph");
   reading.tabIndex = 0;
   const source = node("details", "poetry-source");
   const attribution = node("summary", "poetry-attribution", "Source paragraph by Suff Syed");
@@ -71,19 +83,48 @@ export async function mount(root, context) {
   passage.setAttribute("aria-describedby", help.id);
   const remix = node("section", "poetry-remix");
   remix.setAttribute("aria-label", "Your visitor remix");
+  const remixHeading = node("div", "poetry-remix-heading");
   const heading = node("h3", "", "Your visitor remix");
-  const disclaimer = node("p", "poetry-disclaimer", "A selection by you, not an original quotation. Words stay in source order.");
+  copy = button("Copy poem", copyPoem, remixHeading);
+  remixHeading.prepend(heading);
+  const disclaimer = node("p", "poetry-disclaimer", "Your selection, not an original quotation.");
+  const remixBody = node("div", "poetry-remix-body");
+  remixBody.tabIndex = 0;
+  remixBody.setAttribute("role", "region");
+  remixBody.setAttribute("aria-label", "Read your visitor remix");
   const poem = node("p", "poetry-poem");
-  const empty = node("p", "poetry-empty", "No words kept yet. Restore a few and see what remains.");
+  const empty = node("p", "poetry-empty", "A little silence.\nRestore words to make a poem.");
   empty.hidden = true;
-  remix.append(heading, disclaimer, poem, empty);
-  reading.append(passage, source, remix);
+  remixBody.append(poem, empty);
+  remix.append(remixHeading, disclaimer, remixBody);
+  reading.append(passage);
+  const collage = node("div", "poetry-collage");
+  collage.append(reading, remix);
   const footer = node("p", "poetry-count");
   const errorBox = node("p", "poetry-error");
   errorBox.hidden = true;
-  root.append(intro, controls, help, reading, footer, errorBox);
+  const footerLine = node("div", "poetry-footer");
+  footerLine.append(help, footer);
+  toolbox.append(toolHeading, controls, source,
+    node("p", "poetry-tool-note", "Underlined paper fragments stay; black bars hide. Words and separators keep their original order. Tap / scroll lets you read on touch; brushes paint across words."));
+  root.append(intro, collage, footerLine, toolbox, errorBox);
   const passages = Array.isArray(context.data.passages) ? context.data.passages : [];
   index = passages.length ? Math.floor(context.random() * passages.length) % passages.length : 0;
+
+  function showTools(visible, returnFocus = true) {
+    stopBrush();
+    toolbox.hidden = !visible;
+    tools.setAttribute("aria-expanded", String(visible));
+    if (visible) (brush.disabled ? toolbox.querySelector("button") : brush).focus({ preventScroll: true });
+    else if (returnFocus) tools.focus({ preventScroll: true });
+  }
+
+  on(root, "keydown", event => {
+    if (event.key === "Escape" && !toolbox.hidden) {
+      event.preventDefault();
+      showTools(false);
+    }
+  });
 
   function fail(message, error) {
     errorBox.textContent = message;
@@ -104,6 +145,7 @@ export async function mount(root, context) {
     sourceLink.removeAttribute("href");
     errorBox.hidden = true;
     source.open = false;
+    remixBody.scrollTop = 0;
     next.disabled = passages.length <= 1;
     reset.disabled = clear.disabled = copy.disabled = brush.disabled = true;
     if (!passages.length) {
@@ -138,6 +180,7 @@ export async function mount(root, context) {
         const input = node("button", "poetry-word", text);
         input.type = "button";
         input.dataset.word = String(word);
+        input.dataset.long = String(text.length > 28);
         input.setAttribute("aria-pressed", "true");
         input.setAttribute("aria-label", `Word ${word + 1}: ${text}`);
         input.tabIndex = word === 0 ? 0 : -1;
@@ -180,7 +223,7 @@ export async function mount(root, context) {
     poem.hidden = count === 0;
     empty.hidden = count !== 0;
     copy.disabled = count === 0;
-    footer.textContent = `${count}/${words.length} kept · Underlines stay; bars hide.`;
+    footer.textContent = `${count}/${words.length} KEPT`;
   }
 
   function selectWord(word, value) {
@@ -314,7 +357,10 @@ export async function mount(root, context) {
     if (destroyed) return;
     active = Boolean(value);
     root.inert = !active;
-    if (!active) stopBrush();
+    if (!active) {
+      stopBrush();
+      showTools(false, false);
+    }
   }
 
   function resize() {
@@ -343,7 +389,6 @@ export async function mount(root, context) {
     root.replaceChildren();
     root.inert = false;
     delete root.dataset.poetryForced;
-    for (const name of Object.keys(context.palette)) root.style.removeProperty(`--poetry-${name}`);
   }
 
   setPreferences(context.preferences);
