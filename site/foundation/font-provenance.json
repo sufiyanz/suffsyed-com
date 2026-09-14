@@ -1,0 +1,13 @@
+{
+  "family": "Instrument Sans",
+  "style": "normal",
+  "weight": "400",
+  "license": "SIL Open Font License 1.1",
+  "revision": "809e4d8b8d7e9364a914909bb777679606c178b8",
+  "source": "https://raw.githubusercontent.com/google/fonts/809e4d8b8d7e9364a914909bb777679606c178b8/ofl/instrumentsans/InstrumentSans%5Bwdth%2Cwght%5D.ttf",
+  "sourceSha256": "b24f1812584816958afcf22e22d08e44318c5e51651e25d2438efdde389b33b1",
+  "file": "instrument-sans-regular.woff2",
+  "sha256": "8c1b93e922ac1377d6b7763cb96e72a659d7daab14e4973302648222f549088c",
+  "licenseSha256": "9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966",
+  "processing": "FontTools 4.59.2 + Brotli 1.1.0; static weight400, width100; existing Latin/Greek/typographic subset; timestamps preserved."
+}

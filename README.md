@@ -6,15 +6,37 @@ Python builds plain HTML, CSS, SVG and small JavaScript modules. GitHub Pages
 serves `main` / `docs`; there is no application server, tracking, model API or
 runtime dependency on Squarespace.
 
-## Quiet homepage foundation
+## Sage observatory homepage
 
-The homepage is an intentional visual reset: a continuous pale-sage field,
-native sans type, the unchanged static autograph, three real writing selections,
-two original photographs, and a generous footer. `tools/foundation_home.py`
-renders this page independently; `site/foundation.css` is its only stylesheet.
-It loads no JavaScript, webfonts, app modules, graph, research demo or data
-payloads. Native navigation, writing and photography links work without scripts.
-The autograph is not a launcher. Its source contour is unchanged.
+The homepage is a drawing-led visual foundation: sage technical paper, an
+oversized clipped ribbon study, a compact upper-right navigation strip, an
+offset pale editorial plane, three stepped writing panels, a photographic
+scene, and a dark forest closing autograph. This replaces the rejected text
+folio without porting the interactive journal. The composition applies the
+published [Frontend Design Review: Creative Frontend Design](https://raw.githubusercontent.com/microsoft/skills/main/.github/skills/frontend-design-review/SKILL.md)
+workflow: explicit observatory concept, asymmetry, scale contrast and matte
+material craft. Blink informed the spatial hierarchy, not the artwork or code;
+no proprietary fonts, branded diagrams, animation or scroll mechanics are copied.
+
+`tools/foundation_home.py` renders this page independently;
+`site/foundation.css` is its only stylesheet. `tools/foundation_art.py` produces
+original static parametric line studies and a seeded 160px grain tile. They
+are decorative, not charts or claims about measurements. The photographs are
+never tinted, cropped or covered with diagrams. There is no JavaScript,
+preloader, scroll interception, app module, graph or data payload. Content is
+visible immediately; native links work without scripts. The autograph is not
+a launcher, and its approved source contour is unchanged.
+The compact navigation stays fixed while reading. Safe-area insets and native
+scroll padding keep section headings and keyboard targets clear, without
+scroll-state JavaScript or hide/reveal behavior.
+
+Regular **Instrument Sans** supplies the deliberate grotesk hierarchy; the
+existing **DM Mono** supplies small technical annotations. A 24KB static
+Instrument Sans subset, its SIL OFL1.1 license and pinned source/output hashes
+live separately in `site/foundation/`, leaving every original font untouched.
+`tools/prepare_foundation_font.py` explicitly imports that pinned public source
+using the existing `requirements-fonts.txt` tooling; the ordinary build remains
+offline. The homepage requests exactly these two local font files.
 
 This is **not a site-wide migration**. Essays, passage IDs, the archive, gallery,
 supporting pages and public fonts retain their earlier implementation. All ten
@@ -40,8 +62,10 @@ python tools/test_foundation.py --url http://127.0.0.1:8773 --browser webkit \
 ```
 
 `--browser` also supports Chromium (the default) and Firefox. The focused check
-covers 320/390/820/1600px, native links, uncropped responsive images, keyboard
+covers 320/390/820/1440/1600px, native links, uncropped responsive images, keyboard
 focus, no-JS, reduced motion, emulated forced colors and resource isolation.
+It also verifies the floating navigation, large cropped hero art, asymmetric
+editorial plane, stepped panels, dark closing band and licensed font boundary.
 It optionally saves full-page frames and a desktop/phone contact sheet.
 The older `test_home.py`, cover, hierarchy, signature and playground browser
 suites describe the preserved interactive composition, **not** acceptance
@@ -76,6 +100,7 @@ photograph pixels are never recolored or filtered.
 | `tools/corpus.py` | Deterministic passage extraction, word counts and lexical-neighbor ranking. |
 | `tools/build_site.py` | All routes, responsive images, searchable corpus, RSS and sitemap. |
 | `tools/foundation_home.py`, `site/foundation.css` | Isolated, static homepage visual foundation. |
+| `tools/foundation_art.py`, `site/foundation/` | Original line studies, deterministic grain generator and licensed homepage font/provenance. |
 | `tools/journal_home.py`, `tools/journal_questions.py` | Opening artwork and local question/research instruments. |
 | `tools/question_atlas.py` | Validated, server-rendered question/passage index for the existing writing archive. |
 | `docs/` | Complete generated site and the preserved `CNAME`. Do not hand-edit generated HTML. |

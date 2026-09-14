@@ -47,7 +47,12 @@ class JournalTests(unittest.TestCase):
         self.assertFalse(home.select("script, button, canvas, dialog, iframe, form"))
         self.assertFalse(home.select("h1 a, h1 button"))
         self.assertEqual(len(home.select("main > section")), 3)
-        self.assertEqual(len(home.select("svg.role-mark")), 1)
+        self.assertEqual(len(home.select("svg.line-study")), 5)
+        self.assertEqual(len(home.select(".hero-geometry")), 1)
+        for svg in home.select("svg.line-study"):
+            self.assertEqual(svg["aria-hidden"], "true")
+            self.assertEqual(svg["focusable"], "false")
+        self.assertLess(len(str(home).encode()), 100 * 1024)
         self.assertEqual((ROOT / "site/foundation.css").read_bytes(),
                          (OUT / "assets/foundation.css").read_bytes())
         rows = {row["slug"]: row for row in DATA["essays"]}
@@ -112,10 +117,29 @@ class JournalTests(unittest.TestCase):
         for foreground, background in (("site-ink", "site-ground"),
                                        ("site-muted", "site-ground"),
                                        ("site-muted", "site-paper"),
-                                       ("site-ink", "site-selection")):
+                                       ("site-ink", "site-selection"),
+                                       ("site-dark-text", "site-dark"),
+                                       ("site-dark-muted", "site-dark")):
             levels = sorted((luminance(palette[foreground]), luminance(palette[background])))
             self.assertGreaterEqual((levels[1] + .05) / (levels[0] + .05), 4.5,
                                     (foreground, background))
+
+    def test_foundation_font_provenance(self):
+        source = ROOT / "site/foundation"
+        output = OUT / "assets/foundation"
+        record = json.loads((source / "font-provenance.json").read_text())
+        self.assertEqual(record["family"], "Instrument Sans")
+        self.assertEqual(record["license"], "SIL Open Font License 1.1")
+        self.assertIn(record["revision"], record["source"])
+        self.assertEqual(record["weight"], "400")
+        font = (source / record["file"]).read_bytes()
+        self.assertEqual(font[:4], b"wOF2")
+        self.assertEqual(hashlib.sha256(font).hexdigest(), record["sha256"])
+        license_text = (source / "OFL-InstrumentSans.txt").read_bytes()
+        self.assertIn(b"SIL OPEN FONT LICENSE Version 1.1", license_text)
+        self.assertEqual(hashlib.sha256(license_text).hexdigest(), record["licenseSha256"])
+        for path in source.iterdir():
+            self.assertEqual(path.read_bytes(), (output / path.name).read_bytes())
 
     def test_signature_is_the_validated_vector(self):
         vector = (ROOT / "site/suff-syed-signature.svg").read_bytes()

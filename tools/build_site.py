@@ -11,6 +11,7 @@ from PIL import Image
 
 from corpus import connect, measure, reading_plate
 from foundation_home import render_foundation
+from foundation_art import write_grain
 from journal_home import render_cover, render_home
 from journal_questions import render_margin, render_research, render_research_teaser
 from question_atlas import build_atlas, render_atlas
@@ -221,6 +222,7 @@ def main():
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
     signature = ET.fromstring((ROOT / "site/suff-syed-signature.svg").read_text())
+    write_grain(OUT / "assets/foundation")
     signature.set("color", "#FFFFFF")
     ET.register_namespace("", "http://www.w3.org/2000/svg")
     write("/assets/suff-syed-signature-reversed.svg", ET.tostring(signature, encoding="unicode") + "\n")
