@@ -1,0 +1,268 @@
+[data-experience="sound-loom"] {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  container-type: size;
+  color: var(--paper);
+  background: var(--forest);
+}
+[data-experience="sound-loom"] .loom-help {
+  margin: 0;
+  font: 400 19px/1.25 var(--font-reading);
+  color: var(--paper);
+}
+[data-experience="sound-loom"] .loom-scroll {
+  flex: 1 1 240px;
+  min-height: 110px;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--stone) var(--forest);
+  border-block: 1px solid var(--stone);
+  padding-block: 5px;
+}
+[data-experience="sound-loom"] .loom-grid {
+  min-width: 424px;
+  max-width: 840px;
+  margin-inline: auto;
+}
+[data-experience="sound-loom"] .loom-row {
+  display: grid;
+  grid-template-columns: 32px repeat(8, minmax(44px, 1fr));
+  align-items: center;
+  gap: 4px;
+  margin-block: 2px;
+}
+[data-experience="sound-loom"] .loom-headings {
+  margin-top: 0;
+}
+[data-experience="sound-loom"] .loom-pitch,
+[data-experience="sound-loom"] .loom-step {
+  color: var(--stone);
+  font: 400 10px/18px var(--font-technical);
+  text-align: center;
+}
+[data-experience="sound-loom"] .loom-pitch {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  height: 100%;
+  display: grid;
+  place-content: center;
+  background: var(--forest);
+}
+[data-experience="sound-loom"] .loom-step {
+  border-bottom: 2px solid transparent;
+}
+[data-experience="sound-loom"] .loom-step[aria-current] {
+  color: var(--white);
+  border-bottom-color: currentColor;
+}
+[data-experience="sound-loom"] .loom-cell {
+  min-width: 0;
+}
+[data-experience="sound-loom"] .loom-note {
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 100%;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 0;
+  background: var(--forest);
+  color: var(--stone);
+  font: 400 19px/1 var(--font-technical);
+}
+[data-experience="sound-loom"] .loom-note::before {
+  position: absolute;
+  content: "";
+  inset: 50% 0 auto;
+  border-top: 1px solid var(--stone);
+  opacity: .45;
+}
+[data-experience="sound-loom"] .loom-knot {
+  position: relative;
+  display: grid;
+  place-content: center;
+  width: 22px;
+  height: 30px;
+  color: transparent;
+  background: var(--forest);
+  border-inline: 1px solid var(--stone);
+  transform: skew(-16deg);
+}
+[data-experience="sound-loom"] .loom-note[aria-pressed="true"] .loom-knot {
+  background: var(--stone);
+  color: var(--forest);
+  border: 1px solid var(--paper);
+}
+[data-experience="sound-loom"] .loom-note[data-current] {
+  border-block-color: var(--stone);
+}
+[data-experience="sound-loom"] .loom-note:hover {
+  border-color: var(--paper);
+}
+[data-experience="sound-loom"] .loom-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  flex: none;
+  gap: 8px 16px;
+}
+[data-experience="sound-loom"] .loom-transport,
+[data-experience="sound-loom"] .loom-settings {
+  display: flex;
+  align-items: end;
+  gap: 6px;
+}
+[data-experience="sound-loom"] .loom-settings {
+  gap: 12px;
+}
+[data-experience="sound-loom"] .loom-tuning[open] {
+  flex-basis: 100%;
+}
+[data-experience="sound-loom"] .loom-tuning > summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-grid;
+  place-content: center;
+}
+[data-experience="sound-loom"] .loom-tuning > summary::-webkit-details-marker { display: none; }
+[data-experience="sound-loom"] .loom-tuning[open] > summary {
+  margin-bottom: 4px;
+}
+[data-experience="sound-loom"] .pg-button,
+[data-experience="sound-loom"] .pg-field {
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--stone);
+  border-radius: 0;
+  color: var(--paper);
+  background: var(--forest);
+  font: 400 12px/1.2 var(--font-technical);
+}
+[data-experience="sound-loom"] .loom-play,
+[data-experience="sound-loom"] .pg-button:hover {
+  color: var(--forest);
+  background: var(--stone);
+}
+[data-experience="sound-loom"] .loom-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  color: var(--stone);
+  font: 400 10px/1.4 var(--font-technical);
+}
+[data-experience="sound-loom"] .loom-tempo {
+  width: 140px;
+  padding: 0;
+  border: 0;
+  accent-color: var(--stone);
+}
+[data-experience="sound-loom"] .loom-summary,
+[data-experience="sound-loom"] .loom-error {
+  margin: 0;
+  flex: none;
+  min-height: 28px;
+  color: var(--stone);
+  font: 400 11px/1.35 var(--font-technical);
+}
+[data-experience="sound-loom"] .loom-error {
+  padding-left: 10px;
+  border-left: 2px solid currentColor;
+  color: var(--paper);
+}
+[data-experience="sound-loom"] .pg-button:focus-visible,
+[data-experience="sound-loom"] .pg-field:focus-visible,
+[data-experience="sound-loom"] .loom-note:focus-visible {
+  outline: 2px solid var(--white);
+  outline-offset: 2px;
+  z-index: 2;
+}
+[data-experience="sound-loom"] .loom-note:focus-visible {
+  outline-offset: -2px;
+}
+[data-experience="sound-loom"][data-forced-colors="true"] {
+  color: CanvasText;
+  background: Canvas;
+}
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-help,
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-pitch,
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-step,
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-setting,
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-summary,
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-error {
+  color: CanvasText;
+}
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-scroll {
+  border-color: CanvasText;
+  scrollbar-color: auto;
+}
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-note,
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-pitch,
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-knot,
+[data-experience="sound-loom"][data-forced-colors="true"] .pg-button,
+[data-experience="sound-loom"][data-forced-colors="true"] .pg-field {
+  color: CanvasText;
+  background: Canvas;
+  border-color: CanvasText;
+}
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-note[aria-pressed="false"] .loom-knot {
+  visibility: hidden;
+}
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-note[aria-pressed="true"] {
+  border: 3px double CanvasText;
+}
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-note[aria-pressed="true"] .loom-knot {
+  color: HighlightText;
+  background: Highlight;
+  border-color: CanvasText;
+}
+[data-experience="sound-loom"][data-forced-colors="true"] .loom-note::before {
+  border-color: CanvasText;
+}
+[data-experience="sound-loom"][data-forced-colors="true"] :focus-visible {
+  outline-color: Highlight;
+}
+@media (max-width: 580px) {
+  [data-experience="sound-loom"] .loom-help { font-size: 17px; }
+  [data-experience="sound-loom"] .loom-controls { gap: 4px; }
+  [data-experience="sound-loom"] .loom-settings { justify-content: space-between; width: 100%; }
+  [data-experience="sound-loom"] .loom-tempo { width: 172px; }
+}
+@container (max-height: 360px) {
+  [data-experience="sound-loom"] .loom-summary,
+  [data-experience="sound-loom"] .loom-headings {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    min-height: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  [data-experience="sound-loom"] .loom-scroll { padding-block: 0; }
+  [data-experience="sound-loom"] .loom-row { margin-block: 0; }
+  [data-experience="sound-loom"] .loom-note[data-row="0"]::after {
+    content: attr(data-step-number);
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    color: var(--stone);
+    font: 400 8px/1 var(--font-technical);
+  }
+  [data-experience="sound-loom"][data-forced-colors="true"] .loom-note[data-row="0"]::after { color: CanvasText; }
+}
