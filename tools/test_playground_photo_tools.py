@@ -64,33 +64,36 @@ HARNESS = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 __SHARED__
 <style>
 body{padding:12px;background:var(--cp-bg);color:var(--cp-text)}
-#fixture-shell{position:static;display:block;padding:0;overflow:visible}
+#cover-playground{position:static;display:block;padding:0;overflow:visible;background:var(--pg-world-bg)}
 #fixture{width:100%;max-width:1000px;height:400px;min-height:0;margin:auto}
 #status{font:14px var(--font-technical);padding:12px}
-</style></head><body><div id="fixture-shell" class="pg-shell"><div id="fixture"></div></div><p id="status" role="status"></p>
+</style></head><body><div id="cover-playground" class="pg-shell"><div id="fixture"></div></div><p id="status" role="status"></p>
 <script type="module">
 window.fixtureData = __DATA__;
 window.mountPhoto = async (id, options = {}) => {
   window.abortPhoto?.abort();
   const root = document.querySelector('#fixture');
   root.replaceChildren(); root.scrollTop = 0; root.dataset.experience = id;
+  document.querySelector('#cover-playground').dataset.world = id;
   document.querySelector('#experience-style')?.remove();
   const css = document.createElement('link'); css.id = 'experience-style'; css.rel = 'stylesheet';
   css.href = '/site/playground/' + id + '.css'; document.head.append(css);
   await new Promise((resolve, reject) => {css.onload = resolve; css.onerror = reject;});
   const mod = await import('/site/playground/' + id + '.js');
   window.abortPhoto = new AbortController();
-  window.failures = []; window.statuses = []; window.mounted = false;
+  window.failures = []; window.statuses = []; window.mounted = false; window.pulses = 0;
   const data = structuredClone(fixtureData);
   if (options.empty) data[options.empty] = [];
   if (options.bad) data.photos[0].src = '/missing-photo.webp';
+  if (options.laterBad) data.photos[1].src = '/missing-photo.webp';
   if (options.slow) data.photos[0].src += '?slow=1';
   if (options.crossOrigin) data.photos[0].src = 'https://invalid.example/forbidden.webp';
   window.pending = mod.mount(root, {
     signal: abortPhoto.signal, seed: options.seed ?? 12871, random: () => .5,
     preferences: {reducedMotion:false,forcedColors:false},
     palette: {forest:'#1B2915',green:'#305831',stone:'#D7CDB8',paper:'#EFEDE6',white:'#FFFFFF',ink:'#191919'},
-    data, setStatus: message => {statuses.push(message); document.querySelector('#status').textContent = message;},
+    data, pulseSignature: () => {window.pulses++;},
+    setStatus: message => {statuses.push(message); document.querySelector('#status').textContent = message;},
     reportError: message => {failures.push(message); document.querySelector('#status').textContent = message;}
   });
   if (options.abort) abortPhoto.abort();
@@ -107,8 +110,8 @@ PROBE = """(() => {
   for (const name of ['putImageData','drawImage','fillText','fillRect']) {
     const original = CanvasRenderingContext2D.prototype[name];
     CanvasRenderingContext2D.prototype[name] = function(...args) {
-      if(this.canvas.closest('[data-experience]')) {
-        probe.paints++;
+      if(this.canvas.closest('[data-experience]') || this.canvas.dataset.photoSurface) {
+        if(this.canvas.closest('[data-experience]')) probe.paints++;
         if(name === 'fillText') {
           probe.texts.push({text:args[0],font:this.font});
           const m=this.measureText(args[0]), t=this.getTransform();
@@ -160,7 +163,16 @@ def changed(first, second):
     return sum(ImageStat.Stat(ImageChops.difference(first, second)).mean) / 3
 
 
+def tools(page):
+    if page.locator(".darkroom-console").count():
+        if not page.locator(".darkroom-console").evaluate("el=>el.open"):
+            page.locator(".darkroom-console > summary").click()
+    elif page.get_by_role("button", name="Edit postcard", exact=True).get_attribute("aria-expanded") != "true":
+        page.get_by_role("button", name="Edit postcard", exact=True).click()
+
+
 def slider(page, name, value):
+    tools(page)
     page.get_by_role("slider", name=name, exact=True).evaluate("""(el, value) => {
       el.value=value; el.dispatchEvent(new Event('input',{bubbles:true}));
     }""", value)
@@ -182,20 +194,24 @@ def geometry(page):
         rootOverflow:root.scrollWidth>root.clientWidth, scrollWidth:root.scrollWidth, clientWidth:root.clientWidth,
         aspect:Math.abs(c.width/c.height-canvas.width/canvas.height),
         pixels:canvas.width*canvas.height, previewVisible:c.top>=r.top && c.bottom<=r.bottom,
-        small:[...root.querySelectorAll('button,input,select,a')].filter(el=>{
+        canvasWidth:c.width, canvasHeight:c.height, imageArea:c.width*c.height/(r.width*r.height),
+        small:[...root.querySelectorAll('button,input,select,a,summary')].filter(el=>{
+          if(!el.getClientRects().length || el.closest('[hidden]'))return false;
+          const details=el.closest('details');
+          if(details && !details.open && el.tagName!=='SUMMARY')return false;
           const b=el.getBoundingClientRect();return b.width<44 || b.height<44;
         }).map(el=>({tag:el.tagName,label:el.getAttribute('aria-label'),width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height})),
         outside:[...root.querySelectorAll('*')].filter(el=>el.getBoundingClientRect().right>r.right+1 || el.scrollWidth>el.clientWidth+1).map(el=>({tag:el.tagName,cls:el.className,width:el.getBoundingClientRect().width,scroll:el.scrollWidth,client:el.clientWidth}))};
     }""")
-    assert info["height"] in [310,320,400] and not info["overflow"] and not info["rootOverflow"], info
+    assert 300 <= info["height"] <= 480 and not info["overflow"] and not info["rootOverflow"], info
     assert info["pixels"] <= 1000000 and not info["small"], info
     assert info["aspect"] < .03, info
-    if info["clientWidth"] >= 620:
-        assert info["previewVisible"], info
+    assert info["previewVisible"], info
     return info
 
 
 def export(page, folder, identifier):
+    tools(page)
     expected_size = bitmap(page).size
     with page.expect_download() as event:
         page.get_by_role("button", name="Download PNG", exact=True).click()
@@ -208,9 +224,51 @@ def export(page, folder, identifier):
     assert page.evaluate("photoProbe.urls.size") == 0
 
 
+def theme_contract(page, identifier):
+    palettes = {
+        IDS[0]: ["#171215", "#251B20", "#FAEEE6", "#B8ABA9", "#FF6B57", "#67434A", "#D98C80", ".24"],
+        IDS[1]: ["#B23A2C", "#983124", "#FFF7ED", "#FFE0CB", "#FFE7A7", "#E78971", "#FFE3BF", ".25"],
+    }
+    keys = ["bg", "surface", "ink", "muted", "accent", "line", "signature", "signature-opacity"]
+    state = page.evaluate("""keys => {
+      const root=document.querySelector('#fixture'), css=document.querySelector('#experience-style').sheet;
+      const shared=[...css.cssRules].filter(rule=>rule.selectorText?.includes('#cover-playground'));
+      return {values:keys.map(key=>getComputedStyle(root).getPropertyValue('--pg-world-'+key).trim()),
+        rules:shared.map(rule=>({selector:rule.selectorText,properties:[...rule.style]}))};
+    }""", keys)
+    assert state["values"] == palettes[identifier], state
+    assert len(state["rules"]) == 1
+    assert set(state["rules"][0]["properties"]) == {"color-scheme", *(f"--pg-world-{key}" for key in keys)}
+    assert f'[data-world="{identifier}"]' in state["rules"][0]["selector"]
+    before = bitmap(page)
+    page.evaluate("""() => {
+      for(const key of ['bg','surface','ink','muted','accent','line','signature'])
+        fixture.style.setProperty('--pg-world-'+key,'#123456');
+      resizePhoto();
+    }""")
+    page.wait_for_timeout(100)
+    assert changed(before, bitmap(page)) == 0, "World chrome/decorative colors contaminated exported artwork."
+    page.evaluate("""() => {
+      for(const key of ['bg','surface','ink','muted','accent','line','signature'])
+        fixture.style.removeProperty('--pg-world-'+key);
+    }""")
+
+
 def test_darkroom(page, folder):
     mount(page, IDS[0], active=False)
     initial = bitmap(page)
+    original_difference = page.evaluate("""async () => {
+      const canvas=fixture.querySelector('canvas'), source=new Image();
+      source.src=fixtureData.photos[0].src; await source.decode();
+      const original=document.createElement('canvas'); original.width=canvas.width; original.height=canvas.height;
+      original.getContext('2d',{willReadFrequently:true}).drawImage(source,0,0,original.width,original.height);
+      const a=original.getContext('2d').getImageData(0,0,original.width,original.height).data;
+      const b=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+      let total=0,max=0;
+      for(let i=0;i<a.length;i++){const delta=Math.abs(a[i]-b[i]);total+=delta;max=Math.max(max,delta);}
+      return {mean:total/a.length,max};
+    }""")
+    assert original_difference["mean"] == 0, original_difference
     frozen(page)
     page.evaluate("controller.setActive(true)")
     slider(page, "Exposure", 1)
@@ -256,6 +314,7 @@ def test_darkroom(page, folder):
     page.wait_for_timeout(100)
     assert page.evaluate("photoProbe.paints") - before == 1, "Rapid input was not coalesced."
     export(page, folder, IDS[0])
+    theme_contract(page, IDS[0])
     assert not page.evaluate("failures"), page.evaluate("failures")
 
 
@@ -287,11 +346,13 @@ def test_postcard(page, folder):
     page.wait_for_timeout(100)
     assert not page.evaluate("failures"), page.evaluate("failures")
     export(page, folder, IDS[1])
+    theme_contract(page, IDS[1])
 
 
 def test_lifecycle(page, url):
     for identifier in IDS:
         mount(page, identifier, bad=True)
+        tools(page)
         assert page.locator(".photo-error").is_visible()
         page.get_by_role("combobox", name="Photograph", exact=True).select_option(index=1)
         page.wait_for_function("document.querySelector('canvas').width>1 && document.querySelector('.photo-error').hidden")
@@ -312,6 +373,7 @@ def test_lifecycle(page, url):
         assert page.locator("#fixture").inner_html() == ""
         frozen(page)
         mount(page, identifier)
+        tools(page)
         page.evaluate("""() => {
           const select=document.querySelector('[aria-label=Photograph]');
           select.selectedIndex=1;select.dispatchEvent(new Event('change'));
@@ -338,6 +400,7 @@ def test_lifecycle(page, url):
           CanvasRenderingContext2D.prototype.getImageData = () => {throw new DOMException('Canvas read blocked','SecurityError');};
         }""")
         mount(page, identifier)
+        tools(page)
         assert page.locator(".photo-error").is_visible()
         assert page.get_by_role("button", name="Download PNG", exact=True).is_disabled()
         page.evaluate("() => {CanvasRenderingContext2D.prototype.getImageData=window.readback;}")
@@ -345,6 +408,82 @@ def test_lifecycle(page, url):
         page.wait_for_function("document.querySelector('.photo-error').hidden")
         page.wait_for_timeout(100)
         assert page.get_by_role("button", name="Download PNG", exact=True).is_enabled()
+    for identifier in IDS:
+        mount(page, identifier, laterBad=True)
+        tools(page)
+        if identifier == IDS[0]:
+            slider(page, "Exposure", .8)
+        before = bitmap(page)
+        page.get_by_role("combobox", name="Photograph", exact=True).select_option(index=1)
+        page.wait_for_function("!document.querySelector('.photo-error').hidden")
+        assert changed(before, bitmap(page)) == 0, "A failed next image destroyed the last good work."
+        assert page.get_by_role("combobox", name="Photograph", exact=True).input_value() == page.evaluate("fixtureData.photos[0].id")
+        assert page.get_by_role("button", name="Download PNG", exact=True).is_enabled()
+
+
+def host_frames(browser, url, folder):
+    report = []
+    owned = ["photo-tools.js", "pocket-darkroom.js", "pocket-darkroom.css",
+             "generative-postcard.js", "generative-postcard.css"]
+    context = browser.new_context(device_scale_factor=2)
+    page = context.new_page()
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    for name in owned:
+        path = ROOT / "site/playground" / name
+        page.route(f"**/assets/playground/{name}", lambda route, request, path=path: route.fulfill(
+            path=str(path), content_type="text/css" if path.suffix == ".css" else "text/javascript"))
+    for width, height in [(320,740),(390,844),(1028,900),(1600,1000)]:
+        page.set_viewport_size({"width":width,"height":height})
+        page.goto(url, wait_until="load")
+        closed = page.locator(".home-cover").bounding_box()
+        page.locator(".signature-entry").click()
+        for identifier in IDS:
+            page.get_by_role("combobox", name="Choose experiment", exact=True).select_option(identifier)
+            page.wait_for_function("""id => document.querySelector('#cover-playground')?.dataset.state==='ready'
+                && document.querySelector(`[data-experience="${id}"] canvas`)?.width>1""", arg=identifier)
+            page.wait_for_timeout(1800)
+            root = page.locator(f'[data-experience="{identifier}"]')
+            metrics = root.evaluate("""root=>{
+              const r=root.getBoundingClientRect(), canvas=root.querySelector('canvas'), c=canvas.getBoundingClientRect();
+              const world=getComputedStyle(root);
+              const controls=[...root.querySelectorAll('button,input,select,a,summary')].filter(el=>{
+                const d=el.closest('details');return el.getClientRects().length && !el.closest('[hidden]')
+                  && (!d || d.open || el.tagName==='SUMMARY');
+              });
+              return {rootWidth:r.width,rootHeight:r.height,canvasWidth:c.width,canvasHeight:c.height,
+                previewVisible:c.top>=r.top && c.bottom<=r.bottom, imageArea:c.width*c.height/(r.width*r.height),
+                pixels:canvas.width*canvas.height,aspect:Math.abs(c.width/c.height-canvas.width/canvas.height),
+                bg:world.getPropertyValue('--pg-world-bg').trim(),
+                small:controls.filter(el=>{const b=el.getBoundingClientRect();return b.width<44||b.height<44;}).map(el=>el.outerHTML),
+                overflow:document.documentElement.scrollWidth>innerWidth||root.scrollWidth>root.clientWidth};
+            }""")
+            assert metrics["previewVisible"] and not metrics["overflow"] and not metrics["small"], metrics
+            assert metrics["pixels"] <= 1000000 and metrics["aspect"] < .03, metrics
+            assert page.locator(".home-cover").bounding_box()["height"] == closed["height"]
+            page.locator(".home-cover").screenshot(path=str(folder / f"{identifier}-host-{width}.png"))
+            before = root.locator("canvas").evaluate("canvas=>canvas.toDataURL()")
+            if identifier == IDS[0]:
+                slider(page, "Exposure", 1)
+                assert root.locator("canvas").evaluate("canvas=>canvas.toDataURL()") != before
+                page.get_by_role("button", name="Show original", exact=True).click()
+                page.wait_for_timeout(100)
+                assert root.locator("canvas").evaluate("canvas=>canvas.toDataURL()") == before
+            else:
+                page.get_by_role("button", name="New variation", exact=True).click()
+                page.wait_for_timeout(100)
+                assert root.locator("canvas").evaluate("canvas=>canvas.toDataURL()") != before
+                tools(page)
+            page.wait_for_timeout(1800)
+            page.locator(".home-cover").screenshot(path=str(folder / f"{identifier}-host-{width}-tools.png"))
+            report.append(dict(id=identifier,viewport=width,host=True,**metrics))
+        page.get_by_role("button", name="Close experiment", exact=True).click()
+        page.wait_for_function("!document.querySelector('.pg-instance')")
+        assert page.locator(".home-cover").bounding_box()["height"] == closed["height"]
+    assert not errors, errors
+    context.close()
+    print("PASS live host own-file overlays: 320/390/1028/1600 frames, primary actions and unchanged cover geometry.", flush=True)
+    return report
 
 
 def main():
@@ -352,6 +491,7 @@ def main():
     parser.add_argument("--artifacts", required=True, type=Path)
     parser.add_argument("--data", type=Path, help="Optional authoritative v1 host data, using this worktree's existing assets.")
     parser.add_argument("--shared-css", type=Path, help="Optional read-only shared host stylesheet.")
+    parser.add_argument("--host-url", help="Optional live host for read-only integration captures with owned-module route overrides.")
     args = parser.parse_args()
     args.artifacts.mkdir(parents=True, exist_ok=True)
     sources = source_hashes()
@@ -412,12 +552,14 @@ def main():
             test_lifecycle(page, url)
             print("PASS empty/failed sources, switch/resize races, inactive and abort cleanup", flush=True)
             mount(page, IDS[0])
+            tools(page)
             for index, photo in enumerate(data["photos"]):
                 page.get_by_role("combobox", name="Photograph", exact=True).select_option(index=index)
                 page.wait_for_function("alt=>document.querySelector('canvas').getAttribute('aria-label')?.includes(alt)", arg=photo["alt"])
                 assert page.locator("canvas").evaluate("c=>c.width*c.height<=1000000")
             assert not page.evaluate("failures"), page.evaluate("failures")
             mount(page, IDS[1])
+            tools(page)
             for index in range(len(data["passages"])):
                 page.get_by_role("combobox", name="Passage", exact=True).select_option(index=index)
                 page.wait_for_timeout(60)
@@ -434,8 +576,11 @@ def main():
                     page.wait_for_timeout(120)
                     page.locator("#fixture").screenshot(path=str(args.artifacts / f"{identifier}-{width}-preview.png"))
                     info = geometry(page)
+                    tools(page)
+                    page.wait_for_timeout(50)
+                    geometry(page)
                     page.locator("#fixture").evaluate("""el=>{
-                      const scroll=el.dataset.photoLayout==='wide'?el.querySelector('.photo-controls'):el;
+                      const scroll=el.querySelector('.darkroom-console')||el.querySelector('.photo-controls');
                       scroll.scrollTop=scroll.scrollHeight;
                     }""")
                     page.locator("#fixture").screenshot(path=str(args.artifacts / f"{identifier}-{width}-controls.png"))
@@ -453,6 +598,9 @@ def main():
                     page.wait_for_timeout(100)
                     report.append(dict(id=identifier,width=width,**geometry(page)))
                     page.locator("#fixture").screenshot(path=str(args.artifacts / f"{identifier}-compact-{width-24}x{height}.png"))
+                    tools(page)
+                    geometry(page)
+                    page.locator("#fixture").screenshot(path=str(args.artifacts / f"{identifier}-compact-{width-24}x{height}-tools.png"))
             assert not errors, errors
             assert not external, external
             assert not page.evaluate("photoProbe.clips"), page.evaluate("photoProbe.clips")
@@ -464,11 +612,14 @@ def main():
             page.goto(url + "/__photo_harness")
             page.wait_for_function("window.ready")
             mount(page, IDS[1])
+            tools(page)
             assert page.locator(".photo-error").is_visible()
             assert page.get_by_role("button", name="Download PNG", exact=True).is_enabled()
             page.unroute("**/*.woff2")
             page.get_by_role("button", name="Reload image & fonts", exact=True).click()
             page.wait_for_timeout(500)
+            if args.host_url:
+                report.extend(host_frames(browser, args.host_url, args.artifacts))
             browser.close()
         assert sources == source_hashes(), "Original source assets changed."
         (args.artifacts / "photo-results.json").write_text(json.dumps(

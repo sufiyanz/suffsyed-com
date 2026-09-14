@@ -36,32 +36,47 @@ export async function mount(root, ctx) {
   const controller = {setActive, resize, setPreferences: value => life.preferences(value), destroy: () => life.destroy()};
   if (!life.live) return controller;
   const layout = element("div", "photo-layout");
+  const postal = element("div", "postcard-postmark");
+  postal.setAttribute("aria-hidden", "true");
+  postal.append(element("span", "", "LOCAL POST"), element("strong", "", "01"), element("span", "", "ONE OF ONE"));
+  const edition = postal.querySelector("strong");
   const stage = element("figure", "pg-stage photo-preview");
   const canvas = element("canvas", "", "A visitor-composed postcard combining a site photograph with an exact sentence from the journal.");
   canvas.setAttribute("role", "img");
-  const caption = element("figcaption", "pg-help", "Generative composition / your arrangement, Suff Syed's photograph and words.");
-  stage.append(canvas, caption);
+  const print = element("div", "postcard-print");
+  print.append(canvas);
+  const caption = element("figcaption", "postcard-caption", "Generative composition / your arrangement, Suff Syed's photograph and words.");
+  stage.append(print, caption);
+  const dock = element("div", "postcard-dock");
+  const variation = button("New variation");
+  variation.classList.add("postcard-variation");
+  const edit = button("Edit postcard");
+  edit.setAttribute("aria-expanded", "false");
+  edit.setAttribute("aria-controls", "postcard-editing-tools");
+  dock.append(variation, edit);
   const controls = element("div", "pg-controls photo-controls");
-  const photoSelect = choices(controls, "Photograph", ctx.data.photos);
-  const quoteSelect = choices(controls, "Passage", ctx.data.passages);
+  controls.id = "postcard-editing-tools";
+  controls.hidden = true;
+  const materials = element("div", "postcard-materials");
+  const photoSelect = choices(materials, "Photograph", ctx.data.photos);
+  const quoteSelect = choices(materials, "Passage", ctx.data.passages);
   const quote = element("blockquote", "photo-quote");
   const source = element("a", "photo-source");
-  controls.append(quote, source);
+  const provenance = element("div", "postcard-provenance");
+  provenance.append(quote, source);
   const adjustments = element("fieldset", "photo-adjustments");
-  adjustments.append(element("legend", "", "Compose the card"));
+  adjustments.append(element("legend", "", "Set the print"));
   const balance = slider(adjustments, "Photo balance", 32, 65, 1, 50, n => `${n}%`);
   const crop = slider(adjustments, "Crop position", 0, 100, 1, 50, n => `${n}%`);
   const accent = choices(adjustments, "Accent", [
     {id: "forest", title: "Forest"}, {id: "green", title: "Green"}, {id: "ink", title: "Ink"},
   ]);
-  controls.append(adjustments);
   const actions = element("div", "photo-actions");
-  const variation = button("New variation");
   const save = button("Download PNG");
   const retry = button("Reload image & fonts");
-  actions.append(variation, save, retry);
-  controls.append(actions, element("p", "pg-help", "A seeded editorial arrangement, not a new essay. No automatic changes; no saved state."));
-  layout.append(stage, controls);
+  actions.append(save, retry, element("p", "pg-help", "Your arrangement; Suff Syed's photograph and words. Ephemeral, not a new essay."));
+  controls.append(materials, adjustments, provenance, actions);
+  layout.append(postal, stage, dock, controls);
   root.append(layout);
   let image = null;
   let imageId = null;
@@ -79,6 +94,11 @@ export async function mount(root, ctx) {
   enabled(false);
   life.preferences(ctx.preferences);
   life.cleanup(() => { image = null; canvas.width = canvas.height = 1; });
+  function showTools(value) {
+    controls.hidden = !value;
+    edit.setAttribute("aria-expanded", String(value));
+    root.dataset.photoEditing = String(value);
+  }
 
   function render() {
     if (!life.live || !image || imageId !== photoSelect.value || !passage()) return false;
@@ -86,27 +106,27 @@ export async function mount(root, ctx) {
       const selected = passage();
       const text = excerpt(selected.text);
       if (!text || text.length > 1600) throw new Error("Choose a shorter passage for a legible postcard.");
-      source.href = localURL(selected.href);
-      source.textContent = `Suff Syed / ${selected.title} / read source`;
-      quote.textContent = text;
+      const href = localURL(selected.href);
       const wide = size.width >= 620;
-      const width = Math.max(180, Math.min(wide ? Math.max(220, size.height) : 440, wide ? size.width - 265 : size.width - 24));
+      const width = Math.max(180, Math.min(wide ? 440 : 340, size.width - (wide ? 180 : 44)));
       const random = randomFor(seed);
       const style = Math.floor(random() * 3);
       const margin = Math.round(width * (.055 + random() * .018));
       const photoHeight = Math.round(width * Number(balance.input.value) / 100);
       const reading = fontFallback ? "Georgia, serif" : getComputedStyle(root).getPropertyValue("--font-reading").trim() || '"Newsreader", Georgia, serif';
       const technical = fontFallback ? "monospace" : getComputedStyle(root).getPropertyValue("--font-technical").trim() || '"DM Mono", monospace';
-      const fontSize = width < 340 ? 19 : 23;
-      let context = context2d(canvas);
+      const fontSize = width < 340 ? 18 : 23;
+      const surface = element("canvas");
+      surface.dataset.photoSurface = "postcard";
+      let context = context2d(surface);
       context.font = `400 ${fontSize}px ${reading}`;
       const lines = linesFor(context, text, width - margin * 2);
       const lineHeight = fontSize * 1.22;
       const height = Math.ceil(margin * 3 + 20 + photoHeight + lines.length * lineHeight + 36);
       const bounds = fitSize(width * 2, height * 2, width, height, size.dpr);
-      canvas.width = bounds.width;
-      canvas.height = bounds.height;
-      context = context2d(canvas);
+      surface.width = bounds.width;
+      surface.height = bounds.height;
+      context = context2d(surface);
       context.scale(bounds.width / width, bounds.height / height);
       const pigment = ctx.palette[accent.value];
       context.fillStyle = ctx.palette.paper;
@@ -143,13 +163,22 @@ export async function mount(root, ctx) {
       context.fillText(`VISITOR COMPOSITION / ${seed.toString(16).padStart(8, "0")}`, margin, height - 17);
       // Readback verifies both the image and local export are canvas-safe.
       context.getImageData(0, 0, 1, 1);
+      const display = context2d(canvas);
+      canvas.width = bounds.width;
+      canvas.height = bounds.height;
+      display.drawImage(surface, 0, 0);
+      source.href = href;
+      source.textContent = `Suff Syed / ${selected.title} / read source`;
+      quote.textContent = text;
+      edition.textContent = String(generation + 1).padStart(2, "0");
+      caption.textContent = `VISITOR COMPOSITION / ${canvas.width} × ${canvas.height}${fontFallback ? " / fallback typography" : ""}`;
       canvas.setAttribute("aria-label", `Visitor-composed postcard. ${photo()?.alt || photo()?.title}. ${text} Words by Suff Syed, from ${selected.title}.`);
-      caption.textContent = `Generative composition / your arrangement / ${canvas.width} × ${canvas.height}${fontFallback ? " / fallback typography" : ""}`;
       dirty = false;
       enabled(true);
       return true;
     } catch (cause) {
       enabled(false);
+      showTools(true);
       life.fail("The postcard could not be composed. Try another passage or reload the image and fonts.", cause);
       return false;
     }
@@ -165,6 +194,7 @@ export async function mount(root, ctx) {
       return;
     }
     const task = life.begin();
+    const previous = {image, imageId};
     loading = true;
     enabled(false);
     life.clearError();
@@ -187,13 +217,19 @@ export async function mount(root, ctx) {
       image = loaded;
       imageId = selected.id;
       if (render()) life.status("Postcard ready. Its words link to the original essay; the arrangement is yours.");
+      else { image = previous.image; imageId = previous.imageId; if (imageId) photoSelect.value = imageId; }
     } catch (cause) {
       if (!task.valid()) return;
-      image = null;
-      imageId = null;
-      canvas.width = canvas.height = 1;
-      caption.textContent = "Photograph unavailable. Choose another or reload.";
-      life.fail("The photograph could not be opened. Choose another photograph or reload.", cause);
+      if (image) {
+        photoSelect.value = imageId;
+        enabled(true);
+        caption.textContent = "LAST GOOD POSTCARD / your arrangement is unchanged";
+      } else {
+        canvas.width = canvas.height = 1;
+        caption.textContent = "Choose another photograph or reload.";
+      }
+      showTools(true);
+      life.fail("The photograph could not be opened. Your last good postcard is unchanged. Choose another photograph or reload.", cause);
     } finally {
       if (task.valid()) loading = false;
     }
@@ -218,6 +254,7 @@ export async function mount(root, ctx) {
   }
 
   life.on(photoSelect, "change", () => { dirty = true; if (life.active) void selectPhoto(); });
+  life.on(edit, "click", () => showTools(controls.hidden));
   life.on(quoteSelect, "change", () => {
     dirty = true;
     life.clearError();
@@ -233,6 +270,7 @@ export async function mount(root, ctx) {
     seed = (ctx.seed + Math.imul(generation, 0x9e3779b9)) >>> 0;
     dirty = true;
     life.queue(render);
+    if (life.active) ctx.pulseSignature?.();
     life.status(`New editorial arrangement ${generation + 1}. The photograph and original words are unchanged.`);
   });
   life.on(retry, "click", () => { fontChecked = false; if (life.active) void selectPhoto(); });

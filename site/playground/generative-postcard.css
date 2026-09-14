@@ -1,37 +1,63 @@
-[data-experience="generative-postcard"] { height: 100%; min-height: 0; overflow: auto; color: var(--cp-text); background: var(--cp-bg); }
-[data-experience="generative-postcard"] .photo-layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; height: 100%; min-height: 0; gap: 16px; padding: 12px; }
-[data-experience="generative-postcard"] .photo-preview { min-width: 0; min-height: 0; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
-[data-experience="generative-postcard"] canvas { display: block; flex: none; max-width: 100%; max-height: calc(100% - 52px); width: auto; height: auto; object-fit: contain; background: var(--cp-bg); border: 1px solid var(--cp-border-strong); }
-[data-experience="generative-postcard"] .photo-controls { min-width: 0; min-height: 0; overflow: auto; display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 12px; }
-[data-experience="generative-postcard"] .photo-controls > * { flex: none; }
-[data-experience="generative-postcard"] .pg-field { display: flex; flex-direction: column; gap: 0; margin: 0; font: 400 12px/1.5 var(--font-technical); min-width: 0; overflow: hidden; }
-[data-experience="generative-postcard"] .pg-field > span { display: flex; justify-content: space-between; gap: 8px; }
-[data-experience="generative-postcard"] :is(input, select, button) { min-height: 44px; min-width: 44px; max-width: 100%; font: 400 12px/1.4 var(--font-technical); color: var(--cp-text); background: var(--cp-bg); border: 1px solid var(--cp-border-strong); border-radius: 0; }
-[data-experience="generative-postcard"] :is(button, select) { padding: 8px; }
-[data-experience="generative-postcard"] select { appearance: none; width: 100%; height: 44px; padding-right: 26px; }
+#cover-playground[data-world="generative-postcard"],
+[data-experience="generative-postcard"] {
+  --pg-world-bg: #B23A2C;
+  --pg-world-surface: #983124;
+  --pg-world-ink: #FFF7ED;
+  --pg-world-muted: #FFE0CB;
+  --pg-world-accent: #FFE7A7;
+  --pg-world-line: #E78971;
+  --pg-world-signature: #FFE3BF;
+  --pg-world-signature-opacity: .25;
+  color-scheme: dark;
+}
+[data-experience="generative-postcard"] { height: 100%; min-height: 0; overflow: auto; color: var(--pg-world-ink); background: transparent; font-family: "Helvetica Neue", Arial, sans-serif; }
+[data-experience="generative-postcard"] .photo-layout { position: relative; display: flex; flex-direction: column; height: 100%; min-height: 0; gap: 10px; padding: 14px 24px 10px; }
+[data-experience="generative-postcard"] .postcard-postmark { position: absolute; top: 24px; right: 6%; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 94px; height: 112px; color: var(--pg-world-accent); outline: 1px solid currentColor; outline-offset: -6px; border: 3px dotted var(--pg-world-line); transform: rotate(8deg); pointer-events: none; font: 400 9px/1.4 var(--font-technical); letter-spacing: .04em; }
+[data-experience="generative-postcard"] .postcard-postmark strong { color: inherit; font: 400 40px/1.2 var(--font-reading); }
+[data-experience="generative-postcard"] .postcard-postmark::after { content: ""; position: absolute; width: 140px; height: 22px; top: 80px; right: 38px; background: repeating-linear-gradient(0deg, transparent 0 5px, currentColor 5px 6px); transform: rotate(-16deg); opacity: .45; }
+[data-experience="generative-postcard"] .photo-preview { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-width: 0; min-height: 0; margin: 0; }
+[data-experience="generative-postcard"] .postcard-print { position: relative; flex: 1; width: 100%; min-width: 0; min-height: 0; }
+[data-experience="generative-postcard"] canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: block; max-width: calc(100% - 16px); max-height: calc(100% - 8px); width: auto; height: auto; object-fit: contain; box-shadow: 4px 4px 0 var(--pg-world-accent), 8px 9px 0 #501d1d32, 0 2px 5px #4c17184d; }
+[data-experience="generative-postcard"] .postcard-caption { flex: none; margin: 0; font: 400 9px/1.4 var(--font-technical); letter-spacing: .05em; color: var(--pg-world-muted); text-align: center; }
+[data-experience="generative-postcard"] .postcard-dock { position: relative; display: flex; flex: none; align-items: stretch; justify-content: center; gap: 12px; }
+[data-experience="generative-postcard"] :is(input, select, .pg-button) { min-height: 44px; min-width: 44px; max-width: 100%; margin: 0; border: 1px solid var(--pg-world-line); border-radius: 0; color: var(--pg-world-ink); background: var(--pg-world-surface); font: 500 12px/1.3 "Helvetica Neue", Arial, sans-serif; }
+[data-experience="generative-postcard"] :is(select, .pg-button) { padding: 8px 12px; }
+[data-experience="generative-postcard"] .pg-button:hover { color: var(--pg-world-bg); background: var(--pg-world-accent); }
+[data-experience="generative-postcard"] .postcard-variation { padding: 8px 23px; color: var(--pg-world-bg); background: var(--pg-world-accent); border: 2px solid var(--pg-world-accent); box-shadow: inset 0 0 0 2px var(--pg-world-bg), 3px 3px 0 #601e2044; font: 500 13px/1.2 var(--font-technical); }
+[data-experience="generative-postcard"] .postcard-dock > :last-child { color: var(--pg-world-ink); background: transparent; border-color: var(--pg-world-line); }
+[data-experience="generative-postcard"] .postcard-dock [aria-expanded="true"] { background: var(--pg-world-surface); text-decoration: underline; text-underline-offset: 4px; }
+[data-experience="generative-postcard"] .photo-controls { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); flex: none; align-items: start; gap: 18px; min-width: 0; min-height: 0; max-height: 45%; overflow: auto; border-top: 1px solid var(--pg-world-line); padding: 12px 0 0; }
+[data-experience="generative-postcard"] .photo-controls[hidden] { display: none; }
+[data-experience="generative-postcard"] .postcard-materials { display: flex; flex-direction: column; gap: 12px; }
+[data-experience="generative-postcard"] .pg-field { display: flex; flex-direction: column; gap: 3px; min-width: 0; margin: 0; overflow: hidden; color: var(--pg-world-ink); background: transparent; font: 500 11px/1.3 "Helvetica Neue", Arial, sans-serif; }
+[data-experience="generative-postcard"] .pg-field > span { display: flex; justify-content: space-between; gap: 6px; }
+[data-experience="generative-postcard"] output { color: var(--pg-world-accent); font: 400 11px/1.3 var(--font-technical); }
+[data-experience="generative-postcard"] select { appearance: none; width: 100%; height: 44px; padding-right: 25px; }
 [data-experience="generative-postcard"] .photo-select { position: relative; min-width: 0; }
-[data-experience="generative-postcard"] .photo-select::after { content: ""; position: absolute; right: 12px; top: 17px; width: 6px; height: 6px; border-right: 1px solid var(--cp-text); border-bottom: 1px solid var(--cp-text); transform: rotate(45deg); pointer-events: none; }
-[data-experience="generative-postcard"] input[type="range"] { width: 100%; padding: 0; margin: 0; accent-color: var(--cp-accent); border: 0; }
-[data-experience="generative-postcard"] .pg-field :focus-visible { outline: 2px solid var(--cp-accent); outline-offset: -2px; }
-[data-experience="generative-postcard"] :is(button, select, input, a):focus-visible { outline: 2px solid var(--cp-accent); outline-offset: 2px; }
-[data-experience="generative-postcard"] .photo-quote { margin: 0; padding: 0; font: 400 18px/1.4 var(--font-reading); overflow-wrap: anywhere; }
-[data-experience="generative-postcard"] .photo-source { display: block; min-height: 44px; padding-block: 8px; font: 400 12px/1.5 var(--font-technical); color: var(--cp-text-muted); overflow-wrap: anywhere; }
-[data-experience="generative-postcard"] .photo-adjustments { padding: 0; margin: 0; border: 0; min-width: 0; }
-[data-experience="generative-postcard"] legend { margin-bottom: 8px; font: 500 19px/1.2 var(--font-reading); }
-[data-experience="generative-postcard"] .photo-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-[data-experience="generative-postcard"] .photo-actions > :last-child { grid-column: 1 / -1; }
-[data-experience="generative-postcard"] :is(.pg-help, .photo-error) { font: 400 13px/1.5 var(--font-reading); margin: 0; overflow-wrap: anywhere; }
-[data-experience="generative-postcard"] .photo-error { padding: 12px; border-top: 1px solid var(--cp-border-strong); }
-[data-experience="generative-postcard"][data-photo-contrast="forced"] { color: CanvasText; background: Canvas; }
-[data-experience="generative-postcard"][data-photo-contrast="forced"] .pg-field { color: CanvasText; background: Canvas; }
-[data-experience="generative-postcard"][data-photo-contrast="forced"] .pg-help { color: CanvasText; }
-[data-experience="generative-postcard"][data-photo-contrast="forced"] .photo-select::after { border-color: ButtonText; }
-[data-experience="generative-postcard"][data-photo-contrast="forced"] .pg-button:hover { color: ButtonText; background: ButtonFace; }
+[data-experience="generative-postcard"] .photo-select::after { content: ""; position: absolute; right: 11px; top: 17px; width: 6px; height: 6px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(45deg); pointer-events: none; }
+[data-experience="generative-postcard"] input[type="range"] { width: 100%; padding: 0; accent-color: var(--pg-world-accent); border: 0; background: transparent; }
+[data-experience="generative-postcard"] :is(button, select, input, a):focus-visible { outline: 2px solid var(--pg-world-accent); outline-offset: -2px; }
+[data-experience="generative-postcard"] .photo-quote { padding: 0; margin: 0; color: var(--pg-world-ink); font: 400 17px/1.35 var(--font-reading); overflow-wrap: anywhere; }
+[data-experience="generative-postcard"] .photo-source,
+[data-experience="generative-postcard"] .photo-source:visited { display: block; min-height: 44px; padding: 8px 0; color: var(--pg-world-muted); font: 400 11px/1.5 var(--font-technical); overflow-wrap: anywhere; }
+[data-experience="generative-postcard"] .photo-adjustments { min-width: 0; margin: 0; padding: 0; border: 0; }
+[data-experience="generative-postcard"] legend { margin-bottom: 8px; padding: 0; color: var(--pg-world-muted); font: 400 11px/1.2 var(--font-technical); text-transform: uppercase; }
+[data-experience="generative-postcard"] .photo-actions { display: flex; flex-direction: column; gap: 8px; }
+[data-experience="generative-postcard"] :is(.pg-help, .photo-error) { margin: 0; color: var(--pg-world-muted); font: 400 11px/1.5 "Helvetica Neue", Arial, sans-serif; overflow-wrap: anywhere; }
+[data-experience="generative-postcard"] .photo-error { padding: 10px; border: 1px solid var(--pg-world-accent); color: var(--pg-world-ink); background: var(--pg-world-surface); }
+[data-experience="generative-postcard"][data-photo-layout="narrow"] .photo-layout { padding: 10px 14px 6px; gap: 8px; }
+[data-experience="generative-postcard"][data-photo-layout="narrow"] .photo-preview { min-height: 140px; }
+[data-experience="generative-postcard"][data-photo-layout="narrow"] .postcard-postmark { top: 12px; right: 10px; width: 46px; height: 68px; font-size: 5px; }
+[data-experience="generative-postcard"][data-photo-layout="narrow"] .postcard-postmark strong { font-size: 24px; }
+[data-experience="generative-postcard"][data-photo-layout="narrow"] .postcard-postmark::after { width: 52px; height: 16px; top: 40px; right: 15px; }
+[data-experience="generative-postcard"][data-photo-layout="narrow"] .photo-controls { grid-template-columns: minmax(0, 1fr); max-height: 42%; gap: 14px; }
+[data-experience="generative-postcard"][data-photo-layout="narrow"] .postcard-dock { gap: 8px; }
+[data-experience="generative-postcard"][data-photo-layout="narrow"] .postcard-variation { padding-inline: 12px; }
+[data-experience="generative-postcard"][data-photo-layout="narrow"] .photo-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+[data-experience="generative-postcard"][data-photo-layout="narrow"] .photo-actions .pg-help { grid-column: 1 / -1; }
+[data-experience="generative-postcard"][data-photo-contrast="forced"] { color: CanvasText; }
+[data-experience="generative-postcard"][data-photo-contrast="forced"] :is(.pg-field, .photo-error, .postcard-dock > button) { color: CanvasText; background: Canvas; border-color: CanvasText; box-shadow: none; }
 [data-experience="generative-postcard"][data-photo-contrast="forced"] :is(button, input, select) { color: ButtonText; background: ButtonFace; border-color: ButtonText; accent-color: Highlight; }
+[data-experience="generative-postcard"][data-photo-contrast="forced"] :is(.pg-help, .postcard-postmark, .postcard-caption, .photo-quote, legend, output) { color: CanvasText; }
 [data-experience="generative-postcard"][data-photo-contrast="forced"] .photo-source { color: LinkText; }
 [data-experience="generative-postcard"][data-photo-contrast="forced"] :focus-visible { outline-color: Highlight; }
-[data-experience="generative-postcard"][data-photo-layout="narrow"] .photo-layout { grid-template-columns: minmax(0, 1fr); height: auto; min-height: 100%; }
-[data-experience="generative-postcard"][data-photo-layout="narrow"] canvas { max-height: none; }
-[data-experience="generative-postcard"][data-photo-layout="narrow"] .photo-controls { overflow: visible; }
-[data-experience="generative-postcard"][data-photo-layout="narrow"] .photo-adjustments { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 16px; }
-[data-experience="generative-postcard"][data-photo-layout="narrow"] .photo-adjustments > :last-child { grid-column: 1 / -1; }
