@@ -25,12 +25,14 @@ photograph pixels are never recolored or filtered.
 | `content/pages/*.html` | Preserved About, About the Memo, FAQ, report and store content. |
 | `content/photograph-descriptions.json` | Descriptions of visible photographs, in original gallery order; not inferred locations or dates. |
 | `content/research-example.json` | Public-data record schema and empty evidence register; no live ingestion. |
+| `content/question-atlas.json` | Twenty curated passage IDs and four editorial source-pair bridges; no copied quotations or inferred beliefs. |
 | `docs/assets/img/` | **Committed source image originals from the migration.** The builder reads these; do not delete this directory when rebuilding. |
 | `site/` | Authored CSS, ES modules, favicon and self-hosted font assets, copied recursively to `docs/assets/`. |
 | `site/suff-syed-signature.svg` | User-supplied, visually validated vector autograph; exact master paths, not a font or embedded raster. |
 | `tools/corpus.py` | Deterministic passage extraction, word counts and lexical-neighbor ranking. |
 | `tools/build_site.py` | All routes, responsive images, searchable corpus, RSS and sitemap. |
 | `tools/journal_home.py`, `tools/journal_questions.py` | Opening artwork and local question/research instruments. |
+| `tools/question_atlas.py` | Validated, server-rendered question/passage index for the existing writing archive. |
 | `docs/` | Complete generated site and the preserved `CNAME`. Do not hand-edit generated HTML. |
 
 The one-time migration used the existing committed static pages as the full-text
@@ -357,6 +359,75 @@ alternatives to the illustrated index. Default essays remain calm and complete;
 the analytical layer is reversible and closing it removes all highlights.
 
 ## Local instruments and privacy
+
+### Question atlas
+
+`/futurememo/#by-preoccupation` extends the existing alternative theme index,
+rather than adding another lexical instrument or a new research feed. The five
+question labels and essay memberships come from `content/corpus.json`; they are
+explicitly **editorial index questions**, not quotations or claims that an essay
+answers a question. The original `#theme-1` through `#theme-5` links still work.
+Home's reading-plate chapter and the research notebook link to this same surface.
+
+Each of the twenty essays has one deliberately selected complete prose passage.
+`content/question-atlas.json` stores only its slug and persistent passage ID.
+`question_atlas.build_atlas()` resolves exact text, section, word count and URL
+from `corpus.measure()`, never a second HTML-to-text reconstruction. Missing IDs,
+non-prose/oversized passages, omitted essays, mismatched bridge endpoints and
+unexplained or disconnected bridges fail the build. Changing an original essay
+does not silently invent a replacement passage.
+
+The four bridges are named, curated comparisons: autonomy and judgment, work
+beyond code, earning understanding, and depth and direction. Each explanation
+names two actual source passages, shown side by side in the map or linked in the
+ordinary index. They are reading suggestions, not measured similarity, author
+endorsement, influence, agreement, confidence or empirical evidence. Speculation
+and claims within a quotation remain the original essay's argument, not a new
+finding. Existing measured lexical neighbors remain unchanged and separate.
+
+Only the archive loads scoped `site/atlas.css` and the small `site/atlas.js`
+loader. Opening the native map disclosure imports `site/atlas-map.js`, which reads
+the already-rendered text index; there is no extra corpus JSON or search-index
+request. The deterministic SVG/HTML plate shows five questions or a neighborhood
+of at most eight native buttons: one question, up to five essays and up to two
+adjacent questions. Solid lines indicate theme membership; dashed lines indicate
+curated source-pair bridges. Position, size and distance are not measurements.
+Phones get full-size text and a vertical connected route, not a shrunken desktop
+diagram. All five questions returns to the overview; source links keep their
+original paragraph addresses. Map selection does not rewrite archive filters or
+the URL. Browser back preserves the live map when the browser retains the page;
+a full reload starts at the readable overview.
+
+The complete index, native passage disclosures and all bridge rationales work
+without JavaScript. No source text is hidden by successful enhancement. Failures
+leave an explicit notice and the index available. Retry uses up to three distinct
+local module URLs because browsers cache rejected imports; after that the notice
+asks for a page reload. No storage, timers, simulation, animation or external
+services are used. SVG lines redraw only for visible changes, resizing or font
+readiness; observers disconnect and pending work cancels when closed, offscreen,
+hidden or leaving the page. Reduced motion needs no alternative animation.
+Forced colors retain native control borders and system-color lines; WebKit media
+checks are not proof of native OS palette remapping.
+
+```sh
+python3 tools/build_site.py
+python3 tools/test_atlas.py --static-only
+python3 tools/serve.py --port 8772
+# Use an existing Playwright environment with its installed WebKit browser:
+python tools/test_atlas.py --browser-only --browser webkit \
+  --url http://127.0.0.1:8772 --artifacts /absolute/path/to/session-artifacts
+```
+
+The atlas checks compare all twenty rendered quotes with canonical extraction,
+test invalid source fixtures and payload limits (5 KiB initial CSS/loader and
+6 KiB lazy map, gzip), then exercise real pointer/keyboard controls, all four
+source-pair routes, no-JS, failed-load Retry, close-during-load, archive-filter
+independence, exact paragraph destinations and settled/offscreen/hidden work.
+They capture readable overview, neighborhood, quotation and bridge plates at
+320/390/1028/1600px. The general `tools/test_browser.py` also accepts
+`--browser webkit` without changing the default Chromium runner.
+
+### Reader's Margin and research
 
 Reader’s Margin positions are optional browser-only marks, not a poll. Storage
 is validated, errors are visible, and marks can be reset. No data is uploaded.

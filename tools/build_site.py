@@ -12,6 +12,7 @@ from PIL import Image
 from corpus import connect, measure, reading_plate
 from journal_home import render_cover, render_home
 from journal_questions import render_margin, render_research, render_research_teaser
+from question_atlas import build_atlas, render_atlas
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs"
@@ -41,13 +42,15 @@ def image(src, alt, lazy=True, sizes="(max-width: 700px) 90vw, 70vw"):
     return f'<img src="{src}" srcset="{", ".join(sources)}" sizes="{sizes}" width="{width}" height="{height}" alt="{esc(alt)}" {"loading=" + chr(34) + "lazy" + chr(34) if lazy else "fetchpriority=" + chr(34) + "high" + chr(34)} decoding="async">'
 
 
-def layout(title, description, body, path, current="", cover=None, kind="page"):
+def layout(title, description, body, path, current="", cover=None, kind="page", styles=(), scripts=()):
     nav = [("Writing", "/futurememo/", "writing"), ("Light(works)", "/lightworks/", "light"), ("The unfinished", "/research/", "research"), ("About", "/about-me/", "about")]
     links = "".join(f'<a href="{url}"{" aria-current=" + chr(34) + "page" + chr(34) if key == current else ""}>{label}</a>' for label, url, key in nav)
     opening = render_cover() if kind == "home" else ""
     cover_script = '<script src="/assets/home-cover-init.js"></script>\n' if kind == "home" else ""
     playground_style = '<link rel="stylesheet" href="/assets/playground.css">' if kind == "home" else ""
     og = f'<meta property="og:image" content="{DOMAIN}{cover}">' if cover else ""
+    page_assets = "".join(f'<link rel="stylesheet" href="/assets/{esc(name)}">' for name in styles)
+    page_assets += "".join(f'<script type="module" src="/assets/{esc(name)}"></script>' for name in scripts)
     return f'''<!doctype html>
 <html lang="en" data-theme="light">
 <head>
@@ -62,7 +65,7 @@ def layout(title, description, body, path, current="", cover=None, kind="page"):
 <link rel="preload" href="/assets/fonts/dm-mono-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/journal.css"><link rel="stylesheet" href="/assets/home.css"><link rel="stylesheet" href="/assets/questions.css">{playground_style}
 <link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">
-<script type="module" src="/assets/app.js"></script>
+<script type="module" src="/assets/app.js"></script>{page_assets}
 </head><body id="top" class="{kind}">
 <a class="skip" href="#main">Skip to content</a>
 <div class="sheet">{opening}<header class="mast"><a class="signature" href="/" aria-label="Suff Syed, home">Suff Syed</a><nav aria-label="Main navigation">{links}</nav></header>
@@ -131,24 +134,18 @@ def essay_page(row, rows):
     write(f"{row['url']}index.html", layout(row["title"], row["description"], content, row["url"], "writing", row["cover"], "essay"))
 
 
-def archive_page(rows, data):
-    theme_links = "".join(f'<a href="#theme-{i}" data-filter-theme="{esc(t["name"])}">{esc(t["name"])}</a>' for i, t in enumerate(data["themes"], 1))
+def archive_page(rows, data, atlas):
     entries = ""
     for row in rows:
         entries += f'''<li class="archive-entry" data-slug="{row["slug"]}" data-theme="{esc(row["theme"])}"><span class="entry-number label">{row["no"]:02d}</span>
 <a class="archive-art artwork-link" href="{row["cover"]}" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])}">{image(row["cover"], row["coverAlt"], sizes="(max-width: 700px) 36vw, 220px")}</a>
 <div class="entry-copy"><div class="label">{esc(row["theme"])} <span>· {row["words"]:,} words</span></div><h2><a href="{row["url"]}">{esc(row["title"])}</a></h2><p>{esc(row["description"])}</p><div class="entry-thread"><span class="label">A word to follow</span><a href="{row["url"]}?term={quote(row["terms"][0]["term"])}#reading-lens">{esc(row["terms"][0]["term"])} <small>{row["terms"][0]["count"]} occurrences ↗</small></a></div><div class="archive-matches"></div></div>
 <a class="entry-read" href="{row["url"]}" aria-label="Read {esc(row["title"])}">↗</a></li>'''
-    groups = ""
-    for i, theme in enumerate(data["themes"], 1):
-        rs = [row for row in rows if row["theme"] == theme["name"]]
-        links = "".join(f'<li><a href="{r["url"]}">{esc(r["title"])}</a><small>{r["words"]:,} w</small></li>' for r in rs)
-        groups += f'<section class="theme-list" id="theme-{i}"><div><span class="label">Preoccupation {i:02d}</span><h2>{esc(theme["name"])}</h2><p>{esc(theme["question"])}</p></div><ol>{links}</ol></section>'
     body = f'''<header class="page-opening"><span class="label">The complete collection / future(memo)</span><h1>Following the<br>same restlessness.</h1><div class="page-dek"><p>Twenty essays about intelligence, creative work, and what remains ours to do.</p><p>Read the covers. Follow a word. Enter anywhere.<br><a href="/about-the-memo/">A note on the memo ↗</a></p></div></header>
 <section class="archive-tools enhanced" aria-label="Explore the writing"><form id="archive-search"><label for="archive-query">Search every written passage</label><div class="search-line"><input id="archive-query" type="search" placeholder="A word, a phrase, a question…" maxlength="180"><button type="submit">Search</button></div><p class="micro">Case-insensitive phrase search across the full text. No network search, no generated summaries.</p></form><div><label for="archive-theme">A preoccupation</label><select id="archive-theme"><option value="">All five themes</option>{"".join(f'<option>{esc(t["name"])}</option>' for t in data["themes"])}</select><div class="archive-view"><button id="archive-list-toggle" type="button" aria-pressed="false" class="plain">Compact reading list</button><button id="archive-reset" type="button" class="plain">Reset</button></div></div></section>
-<div class="archive-meta"><p id="archive-status" role="status">{len(rows)} essays · {sum(r["words"] for r in rows):,} words</p><a href="#by-preoccupation">Browse by preoccupation ↓</a></div><ol id="archive-entries" class="archive-entries">{entries}</ol>
-<section id="by-preoccupation"><header class="section-heading"><span class="label">An alternative index</span><h2>Five preoccupations.</h2><p>Editorial groupings, not machine-inferred categories.</p></header><nav class="theme-jumps" aria-label="Theme index">{theme_links}</nav>{groups}</section>'''
-    write("/futurememo/index.html", layout("future(memo)", "The complete collection of essays by Suff Syed.", body, "/futurememo/", "writing"))
+<div class="archive-meta"><p id="archive-status" role="status">{len(rows)} essays · {sum(r["words"] for r in rows):,} words</p><a class="primary-link" href="#by-preoccupation">Enter the question atlas ↓</a></div><ol id="archive-entries" class="archive-entries">{entries}</ol>
+{render_atlas(atlas)}'''
+    write("/futurememo/index.html", layout("future(memo)", "The complete collection of essays by Suff Syed.", body, "/futurememo/", "writing", styles=("atlas.css",), scripts=("atlas.js",)))
 
 
 def gallery_page(data):
@@ -168,6 +165,7 @@ def methods_page(rows):
 <h2 id="reading-plates">A passage beside its measures</h2><p>The home reading plate quotes one complete original prose passage from the selected essay, with its stable address. It is a mechanical entry point, not a generated summary or a claim about the essay’s central argument. The selector prefers paragraphs of 35–100 words containing at least three of the essay’s recurring eligible terms. It favors up to four distinct terms, then length nearest 65 words, then the earliest passage. If no paragraph qualifies, it considers other prose passages of at least 20 words. Tables, headings, captions and code blocks are excluded.</p><p>Up to four words come from the existing frequency-ranked essay vocabulary; numeric-only terms and words appearing fewer than twice are omitted. Highlighting preserves the original spelling and casing. “Here” counts only the quoted passage; the full count includes every measured passage. Section bars compare occurrences of the chosen word and show up to the three most frequent matching sections, with ties in reading order. Their links open the existing reading lens with the exact word and section, at the first matching source passage. The full-count link opens that word across the whole essay. These are recurrence measures, not importance scores. An optional detour uses the same lexical-neighbor model described below.</p>
 <h2 id="connections">Shared words, not shared beliefs</h2><p>Connections compare prose paragraphs, list items and quotations of at least 20 words from different essays. Tables, headings, captions and code remain counted and searchable, but are not suggested as prose neighbors. Four tables flattened by the previous migration have their original rows and columns restored without changing their text or passage IDs.</p><p>Common function words and “AI” are excluded. A candidate must share at least two eligible words. Shared words that occur in fewer passages receive more weight: squared log(1 + eligible passage count / passages containing the word), summed and divided by the geometric mean of the two vocabulary sizes. Ties use the essay slug and passage ID. At most three different essays are suggested.</p><p>The displayed words are the reasons for a connection. These are lexical neighbors, not semantic similarity scores, fact checks, influence claims, endorsements, or evidence of agreement. A match may be illuminating precisely because the arguments differ. Short passages and passages with no qualifying neighbors say so.</p>
 <h2>The illustrated collection</h2><p>The five preoccupations are editorial categories inherited from the original collection. Colored bands identify them. The engraving’s lobes follow the number of essays in a theme; its fine lines and decorative motion are expressive, not measurements. Each tally above the plate represents one hundred words, rounded up. Covers and photographs come from the existing site and can be opened without cropping.</p>
+<h2 id="question-atlas">Questions, not inferred beliefs</h2><p>The <a href="/futurememo/#by-preoccupation">question atlas</a> extends the archive’s five existing editorial preoccupations. Its question labels come from the collection metadata; they are editorial index labels, not quoted questions or an assertion that every essay answers them. Each essay has one deliberately selected, complete source passage. The build resolves its stored passage ID through the same text extractor used by the reading lens, preserving punctuation and inline joins. These are entry points, not summaries. Arguments, estimates and predictions in quoted text remain part of the original essays, not independently verified findings.</p><p>Solid map lines mean an essay belongs to an existing editorial theme. Four dashed bridges are explicitly curated comparisons. Each has a written rationale and two named, directly linked source passages. They are not lexical measurements, evidence of agreement, chronology, influence or confidence scores. Position, distance and node size carry no quantitative meaning. The measured shared-word links in the reading lens remain a separate instrument.</p><p>The map loads only when opened. It shows five questions, or a neighborhood of at most eight nodes: one question, up to five essays and up to two nearby questions. There is no force simulation, idle animation, external request, storage or hidden research job. Native buttons and the complete question/passage index offer equivalent routes. Closing the map leaves the ordinary index intact; it works without JavaScript.</p>
 <h2>Privacy, dates and unfinished work</h2><p>Reading and searching happen locally. Only optional reader marks are stored in this browser, with a visible reset. There is no analytics endpoint, live poll or tracking pixel. The research cycle is an authored demonstration, not a running agent system, and gathers no external evidence. The archive’s historical dates came from a sitemap’s last-modified field; unverified publication dates are not presented as publication dates or put into RSS pubDate fields.</p><p>The complete site is static HTML. Reading, section navigation, images and the alternative theme index work without JavaScript. Search and the optional reading lens require JavaScript; no API key or backend is required.</p></article>'''
     write("/methods/index.html", layout("How to read the data", "Transparent notes on this collection's measurements, links and local interactions.", body, "/methods/"))
 
@@ -194,6 +192,7 @@ def main():
         with Image.open(OUT / photo["src"].lstrip("/")) as im:
             photo["width"], photo["height"] = im.size
     rows = [measure(row, ROOT) for row in data["essays"]]
+    atlas = build_atlas(rows, data["themes"], json.loads((ROOT / "content/question-atlas.json").read_text()))
     for row in rows:
         row["coverAlt"] = cover_descriptions[row["slug"]]
     connect(rows)
@@ -241,7 +240,7 @@ def main():
     perspective = '<details class="perspective-disclosure"><summary><span>Leave your perspective</span><small>Optional / This browser only</small></summary>' + render_margin() + '</details>'
     home = render_home(public_rows, data["themes"], data["gallery"]) + render_research_teaser() + perspective
     write("/index.html", layout("Reading a mind at work", "An incomplete field guide to intelligence, creative work, and the things that make us human.", home, "/", cover=rows[11]["cover"], kind="home"))
-    archive_page(rows, data)
+    archive_page(rows, data, atlas)
     gallery_page(data)
     for page in data["pages"]:
         content = (ROOT / "content/pages" / f'{page["slug"]}.html').read_text()

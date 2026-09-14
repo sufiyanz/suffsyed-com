@@ -1,4 +1,4 @@
-"""Real Chromium interaction checks; requires Playwright and a running preview."""
+"""Real browser interaction checks; requires Playwright and a running preview."""
 import argparse
 import json
 import re
@@ -15,11 +15,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://127.0.0.1:8766")
     parser.add_argument("--artifacts", type=Path, required=True)
+    parser.add_argument("--browser", choices=["chromium", "webkit"], default="chromium")
     args = parser.parse_args()
     args.artifacts.mkdir(parents=True, exist_ok=True)
     errors, missing, external = [], [], []
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = getattr(p, args.browser).launch()
         context = browser.new_context(viewport={"width": 1600, "height": 1120}, device_scale_factor=1)
         page = context.new_page()
         page.on("pageerror", lambda error: errors.append(str(error)))

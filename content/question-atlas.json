@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "kind": "editorial-reading-index",
+  "entries": {
+    "how-i-invented-claude-cowork-before-anthropic": "p-07c6942337",
+    "how-future-designers-will-win-in-the-age-of-ai": "p-54dcb13ff0",
+    "a-new-class-of-software-builders-is-emerging": "p-e771e86866",
+    "a-survival-playbook-for-an-ai-first-world": "p-695066d3c9",
+    "ai-doesnt-create-slop-humans-do": "p-0363e2d2aa",
+    "ai-is-making-you-faster-and-dumber": "p-0537bc468a",
+    "ai-has-a-that-s-a-feature-not-a-product-problem": "p-b270da40df",
+    "ai-acceleration-org-chart-collapse": "p-f4667bf66c",
+    "are-you-an-ai-illiterate": "p-2e8f9e6e8e",
+    "designers-have-to-move-from-the-surface-to-the-substrate": "p-f1acda9186",
+    "designers-should-look-to-demis-hassabis-not-jony-ive": "p-f28ebfa988",
+    "qubit-teams-the-future-built-by-two-people-using-ai": "p-b3695749db",
+    "sour-fig-figma-s-future-is-uncertain-despite-ipo-hype": "p-04f75a13b3",
+    "stop-confusing-vibe-coding-and-context-engineering": "p-46747de67c",
+    "apple-buying-openai": "p-bd5f5b0766",
+    "the-design-leaders-are-lying-to-you": "p-80d1e7977b",
+    "the-vibe-coders-are-lying-to-you": "p-bb97a35264",
+    "what-most-people-are-oblivious-to": "p-9b3d86c714",
+    "why-im-leaving-design": "p-939919340e",
+    "why-people-are-buying-into-ai-doomerism": "p-b9edcfe91b-2"
+  },
+  "bridges": [
+    {
+      "id": "autonomy-and-judgment",
+      "from": "design",
+      "to": "builders-craft",
+      "label": "Autonomy & judgment",
+      "reason": "The Design passage describes acting on a judgment without waiting for a team. The Qubit Teams passage places direction, taste and strategic judgment with people. Read them together as two ways of locating agency when execution becomes easier.",
+      "sources": [
+        {"slug": "how-future-designers-will-win-in-the-age-of-ai", "passage": "p-54dcb13ff0"},
+        {"slug": "qubit-teams-the-future-built-by-two-people-using-ai", "passage": "p-b3695749db"}
+      ]
+    },
+    {
+      "id": "beyond-the-code",
+      "from": "builders-craft",
+      "to": "industry-markets",
+      "label": "Beyond the code",
+      "reason": "The Vibe Coders passage shifts attention from code to distribution, reliability and the work around a product. The Feature, not a Product passage asks what would make a new experience worth paying for. This route connects building capability with a reason for a product to exist.",
+      "sources": [
+        {"slug": "the-vibe-coders-are-lying-to-you", "passage": "p-bb97a35264"},
+        {"slug": "ai-has-a-that-s-a-feature-not-a-product-problem", "passage": "p-b270da40df"}
+      ]
+    },
+    {
+      "id": "earning-understanding",
+      "from": "design",
+      "to": "work-careers",
+      "label": "Earning understanding",
+      "reason": "The Design Leaders passage calls for technical understanding of the layer generating an experience. Faster—and Dumber describes being unable to defend an AI-prepared document. These are different situations in which a polished output does not substitute for understanding.",
+      "sources": [
+        {"slug": "the-design-leaders-are-lying-to-you", "passage": "p-80d1e7977b"},
+        {"slug": "ai-is-making-you-faster-and-dumber", "passage": "p-0537bc468a"}
+      ]
+    },
+    {
+      "id": "depth-and-direction",
+      "from": "work-careers",
+      "to": "culture-hype",
+      "label": "Depth & direction",
+      "reason": "Faster—and Dumber recounts presenting an idea without having thought it through. Humans Do attributes shallow output to a lack of direction and taste. The pairing invites a comparison between producing an answer and doing the thinking behind it; it is not empirical evidence about AI.",
+      "sources": [
+        {"slug": "ai-is-making-you-faster-and-dumber", "passage": "p-0537bc468a"},
+        {"slug": "ai-doesnt-create-slop-humans-do", "passage": "p-0363e2d2aa"}
+      ]
+    }
+  ]
+}
