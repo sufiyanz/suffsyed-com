@@ -1,4 +1,4 @@
-"""Exercise the real Type garden / Sound loom modules through the v1 mount contract.
+"""Exercise the v2 Type garden / Sound loom worlds through the preserved v1 mount contract.
 
 Pass --harness /absolute/path/to/the/session-artifact-contract-fixture.html.
 The fixture loads /assets/playground/<id>.js and exposes window.harness containing
@@ -24,7 +24,8 @@ PROBE = r"""(() => {
   const probe = window.probe = {
     frames: 0, positions: [], times: [], reads: 0, rafts: new Set(), timers: new Set(),
     peakRaf: 0, peakTimers: 0, contexts: [], notes: [], nodes: new Set(), peakNodes: 0,
-    gesture: false, resumes: [], connections: new Set(), gains: [],
+    gesture: false, resumes: [], connections: new Set(), gains: [], pulses: [],
+    sceneFrames: 0, sceneTimes: [],
   };
   document.addEventListener('click', () => {
     probe.gesture = true;
@@ -37,10 +38,15 @@ PROBE = r"""(() => {
     if (this.canvas.classList.contains('type-canvas')) {
       probe.frames++; probe.positions = []; probe.times.push(performance.now());
     }
+    if (this.canvas.closest('[data-world-signature="sound-loom"]')) {
+      probe.sceneFrames++; probe.sceneTimes.push(performance.now());
+    }
     return clear.apply(this, args);
   };
   CanvasRenderingContext2D.prototype.fillText = function(glyph, x, y, ...args) {
-    if (this.canvas.classList.contains('type-canvas')) probe.positions.push({ glyph, x, y });
+    if (this.canvas.classList.contains('type-canvas')) {
+      probe.positions.push({ glyph, x, y }); probe.glyphFont = this.font; probe.glyphColor = this.fillStyle;
+    }
     return text.call(this, glyph, x, y, ...args);
   };
   CanvasRenderingContext2D.prototype.getImageData = function(...args) {
@@ -163,6 +169,7 @@ def snapshot(page):
       notes: probe.notes, audioStates: probe.contexts.map(c => c.audio.state),
       gestures: probe.contexts.map(c => c.gesture), resumes: probe.resumes,
       connections: probe.connections.size, state: harness.root.dataset.state,
+      pulses: probe.pulses, glyphFont: probe.glyphFont, glyphColor: probe.glyphColor,
     })""")
 
 
@@ -178,6 +185,7 @@ def frozen(page, audio=False):
     assert first["frames"] == second["frames"], "Inactive or resting canvas repainted."
     assert first["positions"] == second["positions"], "Inactive or resting particles moved."
     assert second["raf"] == second["timers"] == 0, "Idle work is still scheduled."
+    assert first["pulses"] == second["pulses"], "Idle scene pulse was requested."
     if audio:
         assert not second["nodes"] and not second["connections"]
         page.wait_for_function("probe.contexts.every(c => c.audio.state === 'closed')", timeout=5000)
@@ -197,6 +205,71 @@ def layout(page, kind):
     for control in controls.all():
         box = control.bounding_box()
         assert box["width"] >= 44 and box["height"] >= 44, box
+    if kind == "sound-loom":
+        scroll = page.locator(".loom-scroll")
+        assert scroll.evaluate("el => el.scrollHeight <= el.clientHeight + 2"), scroll.evaluate(
+            "el => [el.scrollHeight, el.clientHeight]")
+
+
+def world_checks(page, kind):
+    result = page.evaluate("""kind => {
+      const root = document.querySelector(`[data-experience="${kind}"]`);
+      const style = getComputedStyle(root);
+      const rgb = value => {
+        if (value.startsWith('#')) return value.slice(1).match(/../g).map(x => parseInt(x, 16) / 255);
+        return value.match(/[\\d.]+/g).slice(0,3).map(x => Number(x) / 255);
+      };
+      const luminance = value => rgb(value).map(x => x <= .04045 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4)
+        .reduce((sum, x, i) => sum + x * [.2126, .7152, .0722][i], 0);
+      const contrast = (a,b) => {
+        const x = luminance(a), y = luminance(b);
+        return (Math.max(x,y) + .05) / (Math.min(x,y) + .05);
+      };
+      const tokens = Object.fromEntries(['bg','surface','ink','muted','accent','line','signature'].map(name =>
+        [name, style.getPropertyValue('--pg-world-' + name).trim()]));
+      const colors = {
+        ink: contrast(tokens.ink, tokens.bg), muted: contrast(tokens.muted, tokens.bg),
+        signature: contrast(tokens.signature, tokens.bg),
+        action: kind === 'sound-loom' ? contrast(tokens.surface, tokens.accent) : contrast(tokens.bg, tokens.ink),
+        buttonBorder: contrast(kind === 'sound-loom' ? tokens.muted : tokens.ink, tokens.surface),
+      };
+      const box = element => {
+        const r = element.getBoundingClientRect();
+        return {x:r.x, y:r.y, width:r.width, height:r.height,
+          scrollWidth:element.scrollWidth, scrollHeight:element.scrollHeight,
+          clientWidth:element.clientWidth, clientHeight:element.clientHeight};
+      };
+      const stage = root.querySelector('.type-stage, .loom-scroll');
+      const allowed = new Set(['color-scheme', '--pg-world-bg', '--pg-world-surface',
+        '--pg-world-ink', '--pg-world-muted', '--pg-world-accent', '--pg-world-line',
+        '--pg-world-signature', '--pg-world-signature-opacity']);
+      const violations = [];
+      const walk = rules => {
+        for (const rule of rules) {
+          if (rule.cssRules) walk(rule.cssRules);
+          else if (rule.selectorText?.includes('#cover-playground')) {
+            for (const property of rule.style) if (!allowed.has(property)) violations.push(property);
+          } else if (rule.selectorText && !rule.selectorText.startsWith(`[data-experience="${kind}"]`)) {
+            violations.push(rule.selectorText);
+          }
+        }
+      };
+      for (const sheet of document.styleSheets) {
+        if (sheet.href?.includes('/playground/' + kind + '.css')) walk(sheet.cssRules);
+      }
+      return {tokens, contrast:colors, root:box(root), stage:box(stage), violations,
+        signatureMarkers:root.querySelectorAll('[data-world-signature]').length};
+    }""", kind)
+    assert not result["violations"], result["violations"]
+    assert result["contrast"]["ink"] >= 4.5
+    assert result["contrast"]["muted"] >= 4.5
+    assert result["contrast"]["action"] >= 4.5
+    assert result["contrast"]["buttonBorder"] >= 3
+    if kind == "type-garden":
+        assert result["contrast"]["signature"] >= 4.5
+        assert result["signatureMarkers"] == 1
+        assert page.locator('canvas[data-world-signature="type-garden"]').get_attribute("aria-hidden") != "true"
+    return result
 
 
 def preferences(page, reduced=False, forced=False):
@@ -233,6 +306,8 @@ def run_garden(page, url, folder, width):
     frozen(page)
     layout(page, "type-garden")
     capture(page, folder, f"type-garden-{width}-resting")
+    assert "900" in initial["glyphFont"] and "Impact" in initial["glyphFont"], initial["glyphFont"]
+    assert initial["glyphColor"] == "#252912", initial["glyphColor"]
     home = snapshot(page)["positions"]
     field = page.locator(".type-canvas")
     box = field.bounding_box()
@@ -355,6 +430,12 @@ def run_loom(page, url, folder, width):
     page.set_viewport_size({"width": width, "height": 740})
     page.goto(f"{url}/?id=sound-loom&inactive", wait_until="load")
     state(page, "inactive")
+    page.evaluate("""() => {
+      harness.context.pulseSignature = () => probe.pulses.push({
+        state: harness.root.dataset.state, step: document.querySelector('.loom-beat').textContent,
+        time: performance.now(),
+      });
+    }""")
     assert not snapshot(page)["audioStates"], "AudioContext was created on mount."
     active(page)
     state(page, "ready")
@@ -399,6 +480,9 @@ def run_loom(page, url, folder, width):
     assert 0 < peak_rms < .2, f"No real audio samples or excessive gain: {peak_rms}"
     assert sound["timers"] == sound["peakTimers"] == 1
     assert sound["peakNodes"] <= 6
+    assert len(sound["pulses"]) >= 7
+    assert all(pulse["state"] == "playing" and pulse["step"] != "--" for pulse in sound["pulses"])
+    assert page.locator(".loom-beat").inner_text() != "--"
     assert page.locator(".loom-step[aria-current='step']").count() == 1
     expected = [{261.626, 329.628}, {329.628}, {293.665}, {391.995},
                 {261.626}, {329.628}, {440}, {391.995}]
@@ -433,9 +517,14 @@ def run_loom(page, url, folder, width):
     assert page.locator(".loom-note[data-step='0'][aria-pressed=true]").count() == 3
     assert "already has three notes" in page.locator(".loom-summary").inner_text()
     page.locator(".loom-tuning > summary").click()
+    page.wait_for_function("harness.root.dataset.view === 'tune'")
+    assert not page.locator(".loom-scroll").is_visible()
     page.get_by_label("Timbre", exact=True).select_option("triangle")
     page.get_by_label("Tempo", exact=True).fill("144")
+    capture(page, folder, f"sound-loom-{width}-tune")
     page.locator(".loom-tuning > summary").click()
+    page.wait_for_function("harness.root.dataset.view === 'keys'")
+    assert page.locator(".loom-scroll").is_visible()
     page.evaluate("""() => document.querySelectorAll('.loom-note').forEach(cell => {
       if (Number(cell.dataset.row) < 3 && cell.getAttribute('aria-pressed') === 'false') cell.click();
     })""")
@@ -463,7 +552,8 @@ def run_loom(page, url, folder, width):
     assert not page.evaluate("harness.errors")
     return {"width": width, "peak_audio_rms": round(peak_rms, 6), "scheduled_notes": len(sound["notes"]),
             "peak_nodes": stress["peakNodes"], "peak_scheduling_timers": sound["peakTimers"],
-            "audio_creation_and_resume_in_gesture": True, "stopped_scheduling": 0}
+            "audio_creation_and_resume_in_gesture": True, "stopped_scheduling": 0,
+            "actual_step_pulses": len(sound["pulses"])}
 
 
 def failures(browser, url):
@@ -559,6 +649,8 @@ def compact(browser, url, folder):
             assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
             bounds = page.locator("#fixture").bounding_box()
             assert bounds["width"] == root_width and bounds["height"] == height
+            geometry = world_checks(page, kind)
+            assert geometry["root"]["scrollHeight"] <= geometry["root"]["clientHeight"] + 2
             if kind == "sound-loom":
                 scroll = page.locator(".loom-scroll")
                 assert scroll.evaluate("el => el.scrollWidth > el.clientWidth")
@@ -578,10 +670,113 @@ def compact(browser, url, folder):
                 preferences(page, reduced=True)
                 frozen(page)
             capture(page, folder, f"{kind}-{viewport}-compact-{root_width}x{height}")
+            if kind == "sound-loom":
+                page.locator(".loom-tuning > summary").tap()
+                page.wait_for_function("harness.root.dataset.view === 'tune'")
+                capture(page, folder, f"{kind}-{viewport}-compact-tune")
+                page.locator(".loom-tuning > summary").tap()
             assert not page.evaluate("harness.errors")
             page.evaluate("harness.abort.abort()")
             frozen(page, audio=True)
-            results.append({"id": kind, "width": root_width, "height": height, "touch": True})
+            results.append({"id": kind, "width": root_width, "height": height, "touch": True, **geometry})
+        context.close()
+    return results
+
+
+def world_frames(browser, url, folder):
+    results = []
+    for viewport, root_width, height in [(320, 280, 397.5), (390, 350, 386.390625),
+                                         (1028, 962.21875, 410), (1600, 1500, 470)]:
+        context = browser.new_context(viewport={"width": viewport, "height": 1000}, device_scale_factor=2)
+        context.add_init_script(PROBE)
+        page = context.new_page()
+        for kind in ["type-garden", "sound-loom"]:
+            page.goto(f"{url}/?id={kind}&width={root_width}&height={height}", wait_until="load")
+            state(page, "resting" if kind == "type-garden" else "ready")
+            result = world_checks(page, kind)
+            assert result["root"]["scrollHeight"] <= result["root"]["clientHeight"] + 2
+            if kind == "sound-loom":
+                assert result["stage"]["scrollHeight"] <= result["stage"]["clientHeight"] + 2, result
+            capture(page, folder, f"{kind}-{viewport}-host-sized")
+            results.append({"id": kind, "viewport": viewport, **result})
+            page.evaluate("harness.abort.abort()")
+            frozen(page, audio=True)
+        context.close()
+    return results
+
+
+def host_frames(browser, url, folder):
+    """Inspect the owner's running host; route only owned module assets in this browser."""
+    results = []
+    for width, height in [(320, 740), (390, 844), (1028, 900), (1600, 1000)]:
+        context = browser.new_context(viewport={"width": width, "height": height}, device_scale_factor=2)
+        context.add_init_script(PROBE)
+        page = context.new_page()
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+
+        def owned_asset(route):
+            filename = Path(urlparse(route.request.url).path).name
+            target = ROOT / "site" / "playground" / filename
+            route.fulfill(path=str(target), content_type=mimetypes.guess_type(str(target))[0])
+
+        for kind in ["type-garden", "sound-loom"]:
+            for extension in ["js", "css"]:
+                page.route(f"**/assets/playground/{kind}.{extension}*", owned_asset)
+        page.goto(url, wait_until="load")
+        cover = page.locator(".home-cover")
+        original_height = cover.bounding_box()["height"]
+        page.locator(".signature-entry").click()
+        for kind in ["type-garden", "sound-loom"]:
+            page.get_by_label("Choose experiment", exact=True).select_option(kind)
+            page.wait_for_function("""kind => document.querySelector(`[data-experience="${kind}"]`)?.dataset.state
+              === (kind === 'type-garden' ? 'resting' : 'ready')""", arg=kind)
+            page.wait_for_timeout(400)
+            assert abs(cover.bounding_box()["height"] - original_height) < .1
+            assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+            result = world_checks(page, kind)
+            assert result["root"]["scrollHeight"] <= result["root"]["clientHeight"] + 2, result
+            if kind == "sound-loom":
+                assert result["stage"]["scrollHeight"] <= result["stage"]["clientHeight"] + 2, result
+                assert not page.evaluate("probe.contexts.length"), "Host selection started audio."
+            cover.screenshot(path=str(folder / f"{kind}-{width}-real-host.png"))
+            result["shared_scene_markers"] = page.locator(f'[data-world-signature="{kind}"]').count()
+            if kind == "sound-loom":
+                assert result["shared_scene_markers"] == 1, "Sound should have exactly one decorative scene."
+                assert page.locator('[data-world-signature="sound-loom"]').get_attribute("aria-hidden") == "true"
+                page.wait_for_timeout(1400)
+                settled = page.evaluate("probe.sceneFrames")
+                page.wait_for_timeout(250)
+                assert page.evaluate("probe.sceneFrames") == settled, "Shared arrival did not settle."
+                page.get_by_role("button", name="Play loom").click()
+                page.wait_for_function("document.querySelector('[data-experience=\"sound-loom\"]').dataset.state === 'playing'")
+                peak = 0
+                for _ in range(18):
+                    page.wait_for_timeout(100)
+                    peak = max(peak, rms(page))
+                assert peak > 0, "The actual host produced no audio samples."
+                assert page.evaluate("probe.sceneFrames") > settled, "Actual sequencer steps did not pulse the shared signature."
+                cover.screenshot(path=str(folder / f"{kind}-{width}-real-host-playing.png"))
+                page.get_by_role("button", name="Stop loom").click()
+                page.wait_for_function("probe.contexts.every(c => c.audio.state === 'closed')")
+                assert page.evaluate("probe.nodes.size === 0 && probe.timers.size === 0 && probe.connections.size === 0")
+                page.wait_for_timeout(1400)
+                after_stop = page.evaluate("probe.sceneFrames")
+                page.wait_for_timeout(300)
+                assert page.evaluate("probe.sceneFrames") == after_stop, "Stopped loom kept requesting scene work."
+                result["actual_host_audio_rms"] = peak
+                result["actual_host_playing_scene_frames"] = after_stop - settled
+            results.append({"id": kind, "width": width, "cover_height": original_height, **result})
+        page.get_by_role("button", name="Play loom").click()
+        page.wait_for_function("document.querySelector('[data-experience=\"sound-loom\"]').dataset.state === 'playing'")
+        page.get_by_role("button", name="Close experiment", exact=True).click()
+        page.wait_for_function("probe.contexts.every(c => c.audio.state === 'closed')")
+        closed_frames = page.evaluate("probe.sceneFrames")
+        page.wait_for_timeout(100)
+        assert not page.locator(".pg-instance").count()
+        assert page.evaluate("probe.rafts.size === 0 && probe.timers.size === 0 && probe.nodes.size === 0 && probe.connections.size === 0")
+        assert page.evaluate("probe.sceneFrames") == closed_frames
+        assert not errors, errors
         context.close()
     return results
 
@@ -591,7 +786,9 @@ def main():
     parser.add_argument("--harness", required=True, type=Path)
     parser.add_argument("--artifacts", required=True, type=Path)
     parser.add_argument("--shared-css", type=Path, help="Optional read-only integration-owner playground.css")
-    parser.add_argument("--widths", nargs="+", type=int, default=[320, 390, 1100])
+    parser.add_argument("--host-url", help="Optional live integration host; only owned assets are browser-routed.")
+    parser.add_argument("--frames-only", action="store_true", help="Only palette/geometry/real-frame checks; not a substitute for the full suite.")
+    parser.add_argument("--widths", nargs="+", type=int, default=[320, 390, 1028, 1600])
     args = parser.parse_args()
     args.artifacts.mkdir(parents=True, exist_ok=True)
     assert args.harness.is_file(), "Supply the session-artifact v1 mount fixture."
@@ -607,11 +804,12 @@ def main():
         "WebKit forced-color controller and CSS checks are not native OS forced-palette emulation.",
         "Standalone v1 contract fixture; final shared-host integration is verified by the integration owner.",
     ]}
+    report["validation_mode"] = "frames-only" if args.frames_only else "full"
     errors, external = [], []
     try:
         with sync_playwright() as playwright:
             browser = playwright.webkit.launch(timeout=20000)
-            for width in args.widths:
+            for width in [] if args.frames_only else args.widths:
                 print(f"Testing Type garden and Sound loom at {width}px", flush=True)
                 context = browser.new_context(viewport={"width": width, "height": 740}, device_scale_factor=2)
                 context.add_init_script(PROBE)
@@ -626,19 +824,29 @@ def main():
                     (args.artifacts / f"failure-{width}.json").write_text(json.dumps(snapshot(page), indent=2))
                     raise
                 context.close()
-            failures(browser, url)
+            if not args.frames_only:
+                failures(browser, url)
             print("Testing exact compact host roots and touch controls", flush=True)
             report["compact"] = compact(browser, url, args.artifacts)
+            report["world_frames"] = world_frames(browser, url, args.artifacts)
+            if args.host_url:
+                report["real_host"] = host_frames(browser, args.host_url, args.artifacts)
             browser.close()
         assert not errors, errors
         assert not external, external
         for name in ["type-garden", "sound-loom"]:
-            payload = b"".join((ROOT / "site" / "playground" / f"{name}.{ext}").read_bytes() for ext in ["js", "css"])
+            parts = [(ROOT / "site" / "playground" / f"{name}.{ext}").read_bytes() for ext in ["js", "css"]]
+            payload = b"".join(parts)
             compressed = len(gzip.compress(payload, mtime=0))
             assert compressed < 60 * 1024
-            report["gzip_bytes"][name] = compressed
+            separate = [len(gzip.compress(part, mtime=0)) for part in parts]
+            report["gzip_bytes"][name] = {
+                "concatenated": compressed, "js": separate[0], "css": separate[1],
+                "separately_served": sum(separate),
+            }
         (args.artifacts / "type-sound-results.json").write_text(json.dumps(report, indent=2) + "\n")
-        print(json.dumps(report, indent=2))
+        print(json.dumps({key: report[key] for key in ["validation_mode", "garden", "loom", "gzip_bytes", "limitations"]}, indent=2))
+        print(f"Detailed frames, contrast and geometry: {args.artifacts / 'type-sound-results.json'}")
     finally:
         server.shutdown()
         server.server_close()
