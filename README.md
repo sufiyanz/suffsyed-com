@@ -6,7 +6,51 @@ Python builds plain HTML, CSS, SVG and small JavaScript modules. GitHub Pages
 serves `main` / `docs`; there is no application server, tracking, model API or
 runtime dependency on Squarespace.
 
-The shared page shell is full-bleed paper, without an inset sheet, viewport
+## Quiet homepage foundation
+
+The homepage is an intentional visual reset: a continuous pale-sage field,
+native sans type, the unchanged static autograph, three real writing selections,
+two original photographs, and a generous footer. `tools/foundation_home.py`
+renders this page independently; `site/foundation.css` is its only stylesheet.
+It loads no JavaScript, webfonts, app modules, graph, research demo or data
+payloads. Native navigation, writing and photography links work without scripts.
+The autograph is not a launcher. Its source contour is unchanged.
+
+This is **not a site-wide migration**. Essays, passage IDs, the archive, gallery,
+supporting pages and public fonts retain their earlier implementation. All ten
+experiments, host/lifecycle API, scenes, reader margin and research sources are
+preserved, but parked off the homepage until the visual direction is approved.
+`build_site.journal_home_page()` retains the complete previous composition as an
+explicit render function, exercised in memory by the static preservation tests.
+The capability notes below describe that preserved implementation, not features
+loaded by the new homepage. No alternate public demo route is introduced.
+
+For this proposal, use the ordinary public-font preview, **without**
+`--private-fonts` (the evaluation stylesheet overrides heading fonts):
+
+```sh
+python3 tools/build_site.py
+python3 tools/test_site.py
+python3 tools/test_preview.py
+python3 tools/test_atlas.py --static-only
+python3 tools/serve.py --port 8773
+# In a separate terminal, with the existing Playwright environment:
+python tools/test_foundation.py --url http://127.0.0.1:8773 --browser webkit \
+  --output /absolute/path/to/review-artifacts
+```
+
+`--browser` also supports Chromium (the default) and Firefox. The focused check
+covers 320/390/820/1600px, native links, uncropped responsive images, keyboard
+focus, no-JS, reduced motion, emulated forced colors and resource isolation.
+It optionally saves full-page frames and a desktop/phone contact sheet.
+The older `test_home.py`, cover, hierarchy, signature and playground browser
+suites describe the preserved interactive composition, **not** acceptance
+criteria for this deliberately static homepage. Static checks still exercise
+its renderer, original reading plates, all essays, links and source assets.
+
+## Preserved journal design
+
+The internal-page shell is full-bleed paper, without an inset sheet, viewport
 surround, or outer shadow. Responsive inner padding and narrow essay measures
 keep the full-width layout readable. Six exact core colors are centralized in
 `site/journal.css`: forest `#1B2915`, green `#305831`, stone `#D7CDB8`, paper
@@ -31,6 +75,7 @@ photograph pixels are never recolored or filtered.
 | `site/suff-syed-signature.svg` | User-supplied, visually validated vector autograph; exact master paths, not a font or embedded raster. |
 | `tools/corpus.py` | Deterministic passage extraction, word counts and lexical-neighbor ranking. |
 | `tools/build_site.py` | All routes, responsive images, searchable corpus, RSS and sitemap. |
+| `tools/foundation_home.py`, `site/foundation.css` | Isolated, static homepage visual foundation. |
 | `tools/journal_home.py`, `tools/journal_questions.py` | Opening artwork and local question/research instruments. |
 | `tools/question_atlas.py` | Validated, server-rendered question/passage index for the existing writing archive. |
 | `docs/` | Complete generated site and the preserved `CNAME`. Do not hand-edit generated HTML. |
@@ -89,7 +134,7 @@ network access, only when updating fonts):
 .venv/bin/python tools/prepare_fonts.py
 ```
 
-Home opens with a personal identity cover: the signature, the supplied Microsoft role,
+The preserved journal composition opens with a personal identity cover: the signature, the supplied Microsoft role,
 and an inline invitation into writing, the reading plate, photography and open
 research. `journal_home.render_cover()` owns that introduction; the shared layout
 places its single global header immediately below it on home only. The cover

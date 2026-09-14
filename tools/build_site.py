@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from PIL import Image
 
 from corpus import connect, measure, reading_plate
+from foundation_home import render_foundation
 from journal_home import render_cover, render_home
 from journal_questions import render_margin, render_research, render_research_teaser
 from question_atlas import build_atlas, render_atlas
@@ -182,6 +183,13 @@ def feeds(rows, pages):
     write("/.nojekyll", "")
 
 
+def journal_home_page(public_rows, data):
+    """Preserved journal composition for a later port, not the public homepage."""
+    perspective = '<details class="perspective-disclosure"><summary><span>Leave your perspective</span><small>Optional / This browser only</small></summary>' + render_margin() + '</details>'
+    home = render_home(public_rows, data["themes"], data["gallery"]) + render_research_teaser() + perspective
+    return layout("Reading a mind at work", "An incomplete field guide to intelligence, creative work, and the things that make us human.", home, "/", cover=public_rows[11]["cover"], kind="home")
+
+
 def main():
     data = json.loads((ROOT / "content/corpus.json").read_text())
     cover_descriptions = json.loads((ROOT / "content/cover-descriptions.json").read_text())
@@ -238,9 +246,7 @@ def main():
         "signature": {"src": "/assets/suff-syed-signature.svg", "viewBox": [0, 0, 350, 148]},
         "photos": playground_photos, "passages": playground_passages,
     }))
-    perspective = '<details class="perspective-disclosure"><summary><span>Leave your perspective</span><small>Optional / This browser only</small></summary>' + render_margin() + '</details>'
-    home = render_home(public_rows, data["themes"], data["gallery"]) + render_research_teaser() + perspective
-    write("/index.html", layout("Reading a mind at work", "An incomplete field guide to intelligence, creative work, and the things that make us human.", home, "/", cover=rows[11]["cover"], kind="home"))
+    write("/index.html", render_foundation(rows, data["gallery"], image))
     archive_page(rows, data, atlas)
     gallery_page(data)
     for page in data["pages"]:

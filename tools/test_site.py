@@ -12,6 +12,8 @@ import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
 
 from corpus import content_digest, flat_text, reading_plate, tokens
+from build_site import journal_home_page
+from foundation_home import DESCRIPTION, IDENTITY, SELECTED_ESSAYS, SELECTED_PHOTOS
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs"
@@ -26,9 +28,48 @@ class JournalTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.pages = {p: load(p) for p in sorted(OUT.rglob("*.html"))}
+        rows = [json.loads(cls.pages[OUT / "futurememo" / row["slug"] / "index.html"].select_one("#essay-data").string)
+                for row in DATA["essays"]]
+        public_rows = [{**{key: value for key, value in row.items() if key != "passages"},
+                        "readingPlate": reading_plate(row)} for row in rows]
+        cls.journal_home = BeautifulSoup(journal_home_page(public_rows, DATA), "html.parser")
 
-    def test_identity_cover_and_shared_header(self):
+    def test_foundation_identity_and_narrow_scope(self):
         home = self.pages[OUT / "index.html"]
+        self.assertEqual(home.h1.get_text(strip=True), "Suff Syed")
+        self.assertEqual(len(home.select("h1")), 1)
+        self.assertEqual(home.select_one(".cover-role").get_text(), IDENTITY)
+        self.assertEqual(home.select_one(".cover-description").get_text(), DESCRIPTION)
+        self.assertEqual([a["href"] for a in home.select(".site-header nav a")],
+                         ["#writing", "#photography", "/about-me/"])
+        self.assertEqual([link["href"] for link in home.select('link[rel="stylesheet"]')],
+                         ["/assets/foundation.css"])
+        self.assertFalse(home.select("script, button, canvas, dialog, iframe, form"))
+        self.assertFalse(home.select("h1 a, h1 button"))
+        self.assertEqual(len(home.select("main > section")), 3)
+        self.assertEqual(len(home.select("svg.role-mark")), 1)
+        self.assertEqual((ROOT / "site/foundation.css").read_bytes(),
+                         (OUT / "assets/foundation.css").read_bytes())
+        rows = {row["slug"]: row for row in DATA["essays"]}
+        selections = home.select(".writing-list li")
+        self.assertEqual(len(selections), 3)
+        for item, slug in zip(selections, SELECTED_ESSAYS):
+            self.assertEqual(item.h3.a["href"], f"/futurememo/{slug}/")
+            self.assertEqual(item.h3.get_text(), rows[slug]["title"])
+            self.assertTrue(rows[slug]["description"].startswith(item.p.get_text()))
+        descriptions = json.loads((ROOT / "content/photograph-descriptions.json").read_text())
+        photos = home.select(".photo-pair figure")
+        self.assertEqual(len(photos), 2)
+        for figure, index in zip(photos, SELECTED_PHOTOS):
+            self.assertEqual(figure.a["href"], f"/lightworks/#plate-{index + 1:02d}")
+            self.assertEqual(figure.img["src"], DATA["gallery"][index]["src"])
+            self.assertEqual(figure.img["alt"], descriptions[index])
+            self.assertEqual(figure.figcaption.get_text(), descriptions[index])
+            for source in figure.img["srcset"].split(", "):
+                self.assertTrue((OUT / source.split()[0].lstrip("/")).is_file())
+
+    def test_preserved_journal_cover_and_internal_header(self):
+        home = self.journal_home
         cover = home.select_one(".home-cover")
         self.assertEqual(cover.h1.get_text(), "Suff Syed")
         self.assertEqual(cover.h1["id"], "cover-title")
@@ -52,10 +93,29 @@ class JournalTests(unittest.TestCase):
         self.assertEqual(len(home.select("h1")), 1)
         links = [a["href"] for a in home.select(".mast nav a")]
         for path, soup in self.pages.items():
+            if path == OUT / "index.html":
+                continue
             self.assertEqual(len(soup.select(".mast")), 1)
             self.assertEqual([a["href"] for a in soup.select(".mast nav a")], links)
             if path != OUT / "index.html":
                 self.assertIsNone(soup.select_one(".home-cover"))
+
+    def test_foundation_text_contrast(self):
+        css = (ROOT / "site/foundation.css").read_text()
+        palette = dict(re.findall(r"--(site-[a-z-]+):\s*(#[0-9a-f]{6});", css))
+
+        def luminance(value):
+            components = [int(value[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+            linear = [c / 12.92 if c <= .04045 else ((c + .055) / 1.055) ** 2.4 for c in components]
+            return sum(c * weight for c, weight in zip(linear, (.2126, .7152, .0722)))
+
+        for foreground, background in (("site-ink", "site-ground"),
+                                       ("site-muted", "site-ground"),
+                                       ("site-muted", "site-paper"),
+                                       ("site-ink", "site-selection")):
+            levels = sorted((luminance(palette[foreground]), luminance(palette[background])))
+            self.assertGreaterEqual((levels[1] + .05) / (levels[0] + .05), 4.5,
+                                    (foreground, background))
 
     def test_signature_is_the_validated_vector(self):
         vector = (ROOT / "site/suff-syed-signature.svg").read_bytes()
@@ -77,8 +137,10 @@ class JournalTests(unittest.TestCase):
         reversed_svg.set("color", svg.attrib["color"])
         self.assertEqual(ET.tostring(reversed_svg), ET.tostring(svg))
         image = self.pages[OUT / "index.html"].select_one(".cover-signature")
-        self.assertEqual(image["src"], "/assets/suff-syed-signature-reversed.svg")
+        self.assertEqual(image["src"], "/assets/suff-syed-signature.svg")
         self.assertEqual((image["width"], image["height"], image["alt"]), ("350", "148", ""))
+        self.assertEqual(self.journal_home.select_one(".cover-signature")["src"],
+                         "/assets/suff-syed-signature-reversed.svg")
 
     def test_self_hosted_font_provenance(self):
         fonts = ROOT / "site/fonts"
@@ -199,7 +261,7 @@ class JournalTests(unittest.TestCase):
             self.assertEqual(essay["passages"], [{"id": p["id"], "text": p["text"], "kind": p["kind"], "label": p["label"]} for p in model["passages"]])
 
     def test_reading_plates_are_original_and_exact(self):
-        home = self.pages[OUT / "index.html"]
+        home = self.journal_home
         entries = json.loads(home.select_one("#home-data").string)["essays"]
         self.assertEqual(len(entries), 20)
         for entry in entries:
