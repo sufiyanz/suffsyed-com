@@ -404,6 +404,12 @@ legend and caveats live in the native map guide and Method. All five questions r
 original paragraph addresses. Map selection does not rewrite archive filters or
 the URL. Browser back preserves the live map when the browser retains the page;
 a full reload starts at the readable overview.
+Explicit essay and bridge inspections focus the detail heading and align the
+whole detail section to the journal's native scroll-padding clearance, revealing
+the quotation or rationale rather than leaving it below the viewport. Question
+selection and Follow instead reveal the graph neighborhood. These immediate
+alignments run only for user actions, never initialization, resizing or browser
+back restoration; no global scroll-restoration setting is changed.
 
 The complete index, native passage disclosures and all bridge rationales work
 without JavaScript. No source text is hidden by successful enhancement. Failures
@@ -432,6 +438,9 @@ source-pair routes, no-JS, failed-load Retry, close-during-load, archive-filter
 independence, exact paragraph destinations and settled/offscreen/hidden work.
 Synthetic six-member data checks prove growth retains all sources while the
 rendered neighborhood stays within its eight-node budget.
+Viewport-coordinate checks require actual quotation/rationale text after
+inspection and the selected question plus an essay after Follow. Full-viewport
+captures are taken before any screenshot-helper scrolling.
 They capture readable overview, neighborhood, quotation and bridge plates at
 320/390/1028/1600px. The general `tools/test_browser.py` also accepts
 `--browser webkit` without changing the default Chromium runner.

@@ -8,7 +8,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ROUTE = "/futurememo/#by-preoccupation"
 PROBE = """(() => {
-  const probe = window.atlasProbe = {frames: 0, pending: new Set(), storage: 0};
+  const probe = window.atlasProbe = {frames: 0, pending: new Set(), storage: 0, reveals: 0};
+  const scroll = Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView = function(...args) {
+    if (this.matches('.atlas-graph, .atlas-detail')) probe.reveals++;
+    return scroll.apply(this, args);
+  };
   const request = window.requestAnimationFrame, cancel = window.cancelAnimationFrame;
   window.requestAnimationFrame = function(callback) {
     if (callback.name !== 'drawLines') return request(callback);
@@ -68,7 +73,7 @@ def static_checks():
         assert (ROOT / "site" / name).read_bytes() == (ROOT / "docs/assets" / name).read_bytes()
     for name in ("atlas.js", "atlas-map.js"):
         script = (ROOT / "site" / name).read_text()
-        assert not any(token in script for token in ("setInterval", "setTimeout", "localStorage", "sessionStorage", "fetch(", "innerHTML"))
+        assert not any(token in script for token in ("setInterval", "setTimeout", "localStorage", "sessionStorage", "fetch(", "innerHTML", "scrollRestoration"))
 
     def rejected(change):
         invalid = copy.deepcopy(config)
@@ -122,7 +127,33 @@ def browser_checks(args):
     errors = []
 
     def state(page):
-        return page.evaluate("({frames:atlasProbe.frames,pending:atlasProbe.pending.size,storage:atlasProbe.storage})")
+        return page.evaluate("({frames:atlasProbe.frames,pending:atlasProbe.pending.size,storage:atlasProbe.storage,reveals:atlasProbe.reveals})")
+
+    def in_view(page, locator, lines=3):
+        metrics = locator.evaluate("""el => {
+          const rect=el.getBoundingClientRect();
+          return {top:rect.top,bottom:rect.bottom,height:rect.height,viewport:innerHeight,
+            clearance:parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0,
+            lineHeight:parseFloat(getComputedStyle(el).lineHeight)};
+        }""")
+        assert metrics["top"] >= metrics["clearance"] - 1, metrics
+        visible = min(metrics["bottom"], metrics["viewport"]) - metrics["top"]
+        required = metrics["height"] if lines is None else min(metrics["height"], metrics["lineHeight"] * lines)
+        assert visible >= required - 1, metrics
+        return metrics
+
+    def inspected_detail(page, bridge=False):
+        assert page.evaluate("document.activeElement.id") == "atlas-detail-title"
+        section = page.locator(".atlas-detail").bounding_box()
+        clearance = page.evaluate("parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)")
+        assert abs(section["y"] - clearance) <= 1, (section, clearance)
+        in_view(page, page.locator("#atlas-detail-title"), lines=None)
+        return in_view(page, page.locator(".atlas-detail-intro" if bridge else ".atlas-detail blockquote"))
+
+    def neighborhood(page):
+        assert page.locator(".atlas-node-selected").evaluate("el=>el===document.activeElement")
+        in_view(page, page.locator(".atlas-node-selected"), lines=None)
+        in_view(page, page.locator(".atlas-node-essay").first, lines=None)
 
     def frozen(page):
         page.wait_for_timeout(120)
@@ -152,6 +183,7 @@ def browser_checks(args):
         summary.tap() if first_open_width and first_open_width < 700 else summary.click()
         page.wait_for_selector('[data-atlas-state="ready"]')
         if first_open_width:
+            assert state(page)["reveals"] == 0, "Opening the map must not programmatically scroll it."
             page.evaluate("document.fonts.ready.then(() => true)")
             first = page.locator(".atlas-node").first.bounding_box()
             viewport = page.viewport_size
@@ -182,6 +214,7 @@ def browser_checks(args):
                 page.locator(f'[data-atlas-node="{qid}"]').focus()
                 page.keyboard.press("Enter")
                 assert page.locator(".atlas-node-selected").get_attribute("data-atlas-node") == qid
+                neighborhood(page)
                 expected_count = page.locator(f'[data-atlas-question="{qid}"] [data-atlas-entry]').count()
                 assert page.locator(".atlas-node-essay").count() == expected_count
                 assert page.locator(".atlas-detail-intro").text_content().startswith(f"All {expected_count} essays")
@@ -191,13 +224,17 @@ def browser_checks(args):
                 sources = page.locator(f'[data-atlas-question="{qid}"] [data-atlas-entry]').evaluate_all("""entries =>
                   entries.map(e=>({id:e.dataset.atlasEntry,text:e.querySelector('blockquote').textContent,
                     href:e.querySelector('.atlas-context').getAttribute('href')}))""")
-                for source in (sources if width in (320, 1600) else sources[:1]):
+                for index, source in enumerate(sources if width in (320, 1600) else sources[:1]):
                     node = page.locator(f'[data-atlas-node="{source["id"]}"]')
                     node.tap() if width < 700 else node.click()
                     assert page.locator(".atlas-detail blockquote").text_content() == source["text"]
                     assert page.locator(".atlas-detail .atlas-context").get_attribute("href") == source["href"]
                     assert page.evaluate("document.activeElement.id") == "atlas-detail-title"
                     assert page.locator(f'[data-atlas-node="{source["id"]}"]').get_attribute("aria-pressed") == "true"
+                    metrics = inspected_detail(page)
+                    if qid == "design" and index == 0:
+                        page.screenshot(path=str(args.artifacts / f"atlas-{width}-first-essay-viewport.png"))
+                        (args.artifacts / f"atlas-{width}-first-essay-viewport.json").write_text(json.dumps(metrics, indent=2))
                 if qid == "design":
                     page.locator(".atlas-detail").screenshot(path=str(args.artifacts / f"atlas-{width}-source.png"))
             for bridge in config["bridges"]:
@@ -206,14 +243,23 @@ def browser_checks(args):
                 page.locator(f'[data-atlas-node="{bridge["to"]}"]').click()
                 assert page.locator("#atlas-detail-title").text_content() == bridge["label"]
                 assert page.locator(".atlas-detail-intro").text_content() == bridge["reason"]
+                inspected_detail(page, bridge=True)
                 for quote, source in zip(page.locator(".atlas-source-pair blockquote").all(), bridge["sources"]):
                     original = page.locator(f'[data-atlas-entry="{source["slug"]}"] blockquote')
                     assert quote.text_content() == original.text_content()
                     assert quote.get_attribute("cite").endswith("#" + source["passage"])
                 if bridge["id"] == "depth-and-direction":
+                    page.screenshot(path=str(args.artifacts / f"atlas-{width}-bridge-viewport.png"))
                     page.locator(".atlas-detail").screenshot(path=str(args.artifacts / f"atlas-{width}-bridge.png"))
                 page.locator("[data-atlas-follow]").click()
                 assert page.locator(".atlas-node-selected").get_attribute("data-atlas-node") == bridge["to"]
+                neighborhood(page)
+                if bridge["id"] == "depth-and-direction":
+                    page.screenshot(path=str(args.artifacts / f"atlas-{width}-follow-viewport.png"))
+            reveals = state(page)["reveals"]
+            page.evaluate("window.dispatchEvent(new Event('resize')); window.dispatchEvent(new PageTransitionEvent('pageshow'))")
+            page.wait_for_timeout(120)
+            assert state(page)["reveals"] == reveals, "Passive lifecycle events must not reveal or refocus a view."
             page.locator(".atlas-graph").scroll_into_view_if_needed()
             page.wait_for_timeout(120)
             frozen(page)
@@ -242,12 +288,15 @@ def browser_checks(args):
             page.locator('[data-atlas-node="builders-craft"]').click()
             slug = "qubit-teams-the-future-built-by-two-people-using-ai"
             page.locator(f'[data-atlas-node="{slug}"]').click()
+            inspected_detail(page)
+            before_navigation = state(page)["reveals"]
             destination = page.locator(".atlas-detail .atlas-context").get_attribute("href")
             page.locator(".atlas-detail .atlas-context").click()
             page.wait_for_url(args.url + destination)
             assert page.locator("#" + destination.split("#")[1] + " .passage-text").count() == 1
             page.go_back(wait_until="networkidle")
             assert page.locator("#by-preoccupation").is_visible()
+            assert state(page)["reveals"] in (0, before_navigation), "Back restoration must not explicitly realign a view."
             if not page.locator("[data-atlas-map]").evaluate("el=>el.open"):
                 ready(page)
             else:

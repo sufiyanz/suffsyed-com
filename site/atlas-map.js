@@ -167,8 +167,13 @@ export function mountAtlas(root, mount) {
   function focusDetail() {
     const title = detail.querySelector("h3");
     title.focus({ preventScroll: true });
-    // A deliberate selection reveals its result; no scrolling on hover or resize.
-    title.scrollIntoView({ block: "nearest", behavior: "instant" });
+    // Align the reading surface, not just its heading; native scroll padding keeps clearance.
+    detail.scrollIntoView({ block: "start", behavior: "instant" });
+  }
+
+  function focusGraph(node) {
+    node.focus({ preventScroll: true });
+    graph.scrollIntoView({ block: "start", behavior: "instant" });
   }
 
   function quote(entry) {
@@ -223,11 +228,7 @@ export function mountAtlas(root, mount) {
     element("p", "micro", "Position, distance and size do not measure importance, similarity or certainty."));
     announce("Overview. Five editorial questions and four curated bridges.");
     schedule();
-    if (focus) {
-      const first = nodeById.get(order[0]);
-      first.focus({ preventScroll: true });
-      first.scrollIntoView({ block: "nearest", behavior: "instant" });
-    }
+    if (focus) focusGraph(nodeById.get(order[0]));
   }
 
   function showQuestion(question, focus = false) {
@@ -259,10 +260,7 @@ export function mountAtlas(root, mount) {
     questionDetail(question);
     announce(`${question.name}. ${question.entries.length} essays and ${nearby(question.id).length} curated bridges.${coverage.hidden ? "" : " " + coverage.textContent}`);
     schedule();
-    if (focus) {
-      center.focus({ preventScroll: true });
-      center.scrollIntoView({ block: "nearest", behavior: "instant" });
-    }
+    if (focus) focusGraph(center);
   }
 
   function selectEssay(question, entry, focus = false) {
