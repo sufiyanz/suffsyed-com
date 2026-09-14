@@ -28,13 +28,13 @@ __SHARED_CSS__
 <link rel="stylesheet" href="/assets/playground/scratch-terminal.css">
 <link rel="stylesheet" href="/assets/playground/assumption-lab.css">
 <style>
-body { margin:0; background:var(--cp-heading); padding:12px 0; }
+body { margin:0; background:#D7CDB8; padding:12px 0; }
 main { width:min(900px, 100%); margin:auto; }
-.pg-shell.harness { position:relative; display:block; padding:0; overflow:visible; background:var(--cp-heading); }
-.harness-label { color:var(--cp-reverse); font:12px var(--font-technical); padding:12px; }
+.pg-shell.harness { position:relative; display:block; padding:0; overflow:visible; background:var(--pg-world-bg); }
+.harness-label { color:var(--pg-world-muted); font:12px var(--font-technical); padding:12px; }
 #root { height:400px; }
-#status, #error { color:var(--cp-reverse); padding:6px 12px; font:12px var(--font-technical); }
-</style></head><body><main class="pg-shell harness"><p class="harness-label">SUFF SYED / EPHEMERAL STUDIES</p>
+#status, #error { color:var(--pg-world-ink); padding:6px 12px; font:12px var(--font-technical); }
+</style></head><body><main id="cover-playground" class="pg-shell harness"><p class="harness-label">SUFF SYED / EPHEMERAL STUDIES</p>
 <div id="root"></div><p id="status" role="status"></p><p id="error"></p></main>
 <script type="module">
 const modules = {
@@ -49,6 +49,7 @@ window.loadExperience = async (id, active = true) => {
   root.style.width = `${width}px`; root.style.height = `${height}px`;
   root.style.margin = "auto"; root.dataset.testHeight = height;
   root.dataset.experience = id;
+  document.querySelector("#cover-playground").dataset.world = id;
   window.abort = new AbortController();
   const signal = window.abort.signal;
   document.querySelector("#error").textContent = "";
@@ -119,7 +120,8 @@ def fit(page):
         expectedHeight:Number(root.dataset.testHeight),
         rootFits:root.scrollWidth <= root.clientWidth,
         shellFits:shell.scrollWidth <= shell.clientWidth,
-        targets:targets.filter(x => !x.closest("details") || x.tagName === "SUMMARY")
+        overflow:[...shell.children].map(x=>({class:x.className,width:x.getBoundingClientRect().width,scroll:x.scrollWidth})),
+        targets:targets.filter(x => x.getClientRects().length && (!x.closest("details") || x.tagName === "SUMMARY"))
           .map(x => ({tag:x.tagName,height:x.getBoundingClientRect().height}))
       };
     }""")
@@ -130,7 +132,7 @@ def fit(page):
 
 def pixels(page):
     return page.evaluate("""() => {
-      const canvas = document.querySelector("canvas"), ctx = canvas.getContext("2d");
+      const canvas = document.querySelector(".code-canvas"), ctx = canvas.getContext("2d");
       const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
       const colors = new Set();
       for (let i=0;i<data.length;i+=16) colors.add(`${data[i]},${data[i+1]},${data[i+2]}`);
@@ -140,9 +142,34 @@ def pixels(page):
 
 def run(page, code=None):
     if code is not None:
+        choose_view(page, "Code")
         page.locator("textarea").fill(code)
     page.get_by_role("button", name="Run", exact=True).click()
     page.wait_for_function("codeProbe.live.size === 0 && !document.querySelector('[data-action=run]').disabled")
+
+
+def choose_view(page, name):
+    button = page.get_by_role("button", name=name, exact=True)
+    if button.is_visible():
+        button.click()
+
+
+def world_checks(page, expected_bg):
+    return page.evaluate("""expected => {
+      const root = document.querySelector("#root"), style = getComputedStyle(root);
+      const values = name => style.getPropertyValue(`--pg-world-${name}`).trim();
+      if(values("bg").toUpperCase() !== expected.toUpperCase()) throw new Error("Wrong world palette");
+      const rgb = hex => hex.replace("#","").match(/../g).map(x => parseInt(x,16)/255)
+        .map(x => x <= .04045 ? x/12.92 : ((x+.055)/1.055)**2.4);
+      const light = color => rgb(color).reduce((sum,x,i)=>sum+x*[.2126,.7152,.0722][i],0);
+      const contrast = (a,b) => (Math.max(light(a),light(b))+.05)/(Math.min(light(a),light(b))+.05);
+      const ratios = Object.fromEntries(["ink","muted","accent"].map(name => [name,contrast(values(name),values("bg"))]));
+      if(Object.values(ratios).some(value=>value<4.5)) throw new Error("World text contrast below 4.5:1");
+      if(getComputedStyle(root.firstElementChild).backgroundColor !== "rgba(0, 0, 0, 0)") throw new Error("Opaque module shell hides signature");
+      if(style.getPropertyValue("--forest").trim() !== "#1B2915") throw new Error("Semantic drawing palette changed");
+      if(getComputedStyle(root.querySelector("h3")).fontFamily.includes("Newsreader")) throw new Error("World heading fell back to journal typography");
+      return ratios;
+    }""", expected_bg)
 
 
 def language_checks(page):
@@ -277,6 +304,11 @@ def browser_checks(base, folder):
             fit(page)
             assert pixels(page)["colors"] > 20, "Initial meaningful drawing missing"
             page.evaluate("controller.setActive(true)")
+            report[f"scratchContrast-{width}"] = world_checks(page, "#101713")
+            art_bounds = page.locator("canvas").bounding_box()
+            assert art_bounds["width"] >= 160 and art_bounds["height"] >= 160, art_bounds
+            assert art_bounds["y"] + art_bounds["height"] <= page.locator("#root").bounding_box()["y"] + page.locator("#root").bounding_box()["height"], art_bounds
+            choose_view(page, "Code")
             page.screenshot(path=str(folder / f"scratch-editor-{width}.png"))
             if width == 900:
                 report["language"] = language_checks(page)
@@ -289,7 +321,6 @@ def browser_checks(base, folder):
             assert orbit["colors"] > 20 and orbit["pixels"] <= 1000000
             assert_stopped(page)
             page.screenshot(path=str(folder / f"scratch-{width}.png"))
-            page.locator(".code-shell").evaluate("(node) => node.scrollTop = node.scrollHeight")
             page.screenshot(path=str(folder / f"scratch-art-{width}.png"))
             page.get_by_role("combobox", name="Drawing example").select_option("1")
             run(page)
@@ -349,15 +380,19 @@ def browser_checks(base, folder):
             page.screenshot(path=str(folder / f"scratch-forced-controller-{width}.png"))
             page.evaluate('loadExperience("assumption-lab")')
             fit(page)
+            report[f"modelContrast-{width}"] = world_checks(page, "#F4F7FD")
             assert page.locator("[data-metric=humanHours]").inner_text() == "47.5"
             page.screenshot(path=str(folder / f"model-{width}.png"))
-            page.locator(".code-model-shell").evaluate("(node) => node.scrollTop = node.scrollHeight")
+            page.locator(".code-model-results").evaluate("(node) => node.scrollTop = node.scrollHeight")
             page.screenshot(path=str(folder / f"model-results-{width}.png"))
+            choose_view(page, "Adjust")
+            page.screenshot(path=str(folder / f"model-adjust-{width}.png"))
             before = page.locator(".code-model-machine").get_attribute("width")
             page.locator("[data-assumption=cost]").evaluate("(node) => {node.value='1'; node.dispatchEvent(new Event('input',{bubbles:true}));}")
             assert page.locator(".code-model-machine").get_attribute("width") != before
             assert page.locator("[data-metric=defects]").inner_text() == "7.2"
-            assert "48.1 cost units / 7.2 toy defects" in page.locator(".code-model-pocket").inner_text()
+            assert page.locator(".code-model-pocket-cost").inner_text() == "48.1"
+            assert "cost units / 7.2 toy defects" in page.locator(".code-model-pocket").inner_text()
             page.locator("[data-assumption=supervision]").evaluate("(node) => {node.value='100'; node.dispatchEvent(new Event('input',{bubbles:true}));}")
             assert page.locator("[data-metric=humanHours]").inner_text() == "55.0"
             assert page.locator("[data-metric=defects]").inner_text() == "2.4"
@@ -373,6 +408,7 @@ def browser_checks(base, folder):
             page.evaluate("controller.resize({width:320,height:200,dpr:2})")
             assert page.locator("[data-assumption=cost]").input_value() == "21"
             page.evaluate("controller.setPreferences({reducedMotion:true,forcedColors:true})")
+            page.screenshot(path=str(folder / f"model-forced-controller-{width}.png"))
             fit(page)
             page.evaluate("controller.setActive(false)")
             assert page.locator("[data-assumption=cost]").is_disabled()
@@ -390,15 +426,125 @@ def browser_checks(base, folder):
     return report
 
 
+def host_checks(url, folder):
+    """Overlay only this team's source responses; never change the live host files."""
+    owned = {
+        name: ROOT / "site/playground" / name for name in [
+            "scratch-terminal.js", "scratch-terminal.css", "assumption-lab.js", "assumption-lab.css",
+            "code-dom.js", "code-language.js", "code-worker.js", "code-model.js",
+        ]
+    }
+    results = []
+    with sync_playwright() as playwright:
+        browser = playwright.webkit.launch(timeout=20000)
+        for width, height in [(320, 740), (390, 844), (1028, 900), (1600, 1000)]:
+            context = browser.new_context(viewport={"width": width, "height": height}, device_scale_factor=2,
+                                          has_touch=width < 900)
+            context.add_init_script(PROBE)
+
+            def overlay(route):
+                source = owned.get(urlsplit(route.request.url).path.rsplit("/", 1)[-1])
+                if source:
+                    route.fulfill(path=str(source), content_type="text/css" if source.suffix == ".css" else "text/javascript")
+                else:
+                    route.continue_()
+
+            context.route("**/assets/playground/*", overlay)
+            page = context.new_page()
+            errors, external = [], []
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.on("request", lambda request: external.append(request.url) if not request.url.startswith(url) else None)
+            page.goto(url, wait_until="networkidle")
+            cover = page.locator(".home-cover")
+            cover_height = cover.bounding_box()["height"]
+            page.get_by_role("button", name="Open cover experiments").click()
+            for identifier in ["scratch-terminal", "assumption-lab"]:
+                page.get_by_role("combobox", name="Choose experiment").select_option(identifier)
+                page.wait_for_function("document.querySelector('.pg-shell').dataset.state === 'ready'")
+                root = page.locator(f'[data-experience="{identifier}"]')
+                root.wait_for(state="visible")
+                page.evaluate("document.fonts.ready")
+                heading_font = root.locator("h3").evaluate("node => getComputedStyle(node).fontFamily")
+                assert "Newsreader" not in heading_font and "Kyoto" not in heading_font, heading_font
+                page.wait_for_timeout(1200)
+                if identifier == "scratch-terminal":
+                    canvas = root.locator("canvas")
+                    assert canvas.bounding_box()["height"] >= 160
+                    run(page)
+                    assert "50 shapes" in root.locator(".code-log").inner_text()
+                    assert pixels(page)["colors"] > 20
+                    art = pixels(page)["bitmap"]
+                    run(page, "circle nope")
+                    assert root.locator(".code-error").is_visible()
+                    assert page.locator(".pg-shell").get_attribute("data-state") == "ready"
+                    assert pixels(page)["bitmap"] == art
+                    choose_view(page, "Drawing")
+                    page.screenshot(path=str(folder / f"host-{width}-scratch-last-good.png"), clip=cover.bounding_box())
+                    root.get_by_role("button", name="Reset", exact=True).click()
+                    run(page)
+                    page.wait_for_timeout(1200)
+                    page.screenshot(path=str(folder / f"host-{width}-scratch-drawing.png"), clip=cover.bounding_box())
+                    choose_view(page, "Code")
+                    page.screenshot(path=str(folder / f"host-{width}-scratch-code.png"), clip=cover.bounding_box())
+                    choose_view(page, "Drawing")
+                    assert_stopped(page)
+                else:
+                    page.screenshot(path=str(folder / f"host-{width}-model-readout.png"), clip=cover.bounding_box())
+                    choose_view(page, "Adjust")
+                    root.get_by_role("combobox", name="Assumption example").select_option("3")
+                    assert "above" in root.locator(".code-model-headline").inner_text()
+                    slider = root.get_by_role("slider", name="Human supervision")
+                    slider.focus()
+                    page.keyboard.press("Home")
+                    assert slider.input_value() == "0"
+                    root.get_by_role("button", name="Reset", exact=True).click()
+                    root.get_by_role("slider", name="Cost of intelligence").focus()
+                    page.keyboard.press("ArrowRight")
+                    assert root.locator(".code-model-pocket-cost").inner_text() == "60.1"
+                    page.wait_for_timeout(1200)
+                    page.screenshot(path=str(folder / f"host-{width}-model-adjust.png"), clip=cover.bounding_box())
+                    choose_view(page, "Readout")
+                geometry = root.evaluate("""root => {
+                  const box = root.getBoundingClientRect();
+                  const canvas = root.querySelector("canvas")?.getBoundingClientRect();
+                  return {width:box.width,height:box.height,
+                    artifact:canvas ? {width:canvas.width,height:canvas.height} : null,
+                    fits:root.scrollWidth <= root.clientWidth};
+                }""")
+                assert geometry["fits"], geometry
+                assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+                assert cover.bounding_box()["height"] == cover_height
+                results.append({"viewportWidth": width, "id": identifier, "headingFont": heading_font, **geometry})
+            page.emulate_media(reduced_motion="reduce")
+            page.get_by_role("combobox", name="Choose experiment").select_option("scratch-terminal")
+            page.wait_for_function("document.querySelector('[data-experience=scratch-terminal]')?.dataset.codeReduced === 'true'")
+            run(page)
+            assert_stopped(page)
+            page.evaluate("""() => {
+              document.querySelector('[data-experience=scratch-terminal] [data-action=run]').click();
+              document.querySelector('[aria-label="Close experiment"]').click();
+            }""")
+            assert_stopped(page)
+            assert not page.locator(".pg-instance").count()
+            assert not errors, errors
+            assert not external, external
+            context.close()
+        browser.close()
+    return results
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--artifacts", required=True, type=Path)
     parser.add_argument("--contract", type=Path)
     parser.add_argument("--shared-css", type=Path, help="Read-only host playground.css, if integration is ready.")
+    parser.add_argument("--host-url", help="Also check the real loopback host with owned source-response overlays.")
     parser.add_argument("--port", type=int, default=0, help="0 chooses an unused loopback port; never use 8766.")
     args = parser.parse_args()
     if args.port == 8766:
         parser.error("Port 8766 belongs to the integration preview.")
+    if args.host_url and urlsplit(args.host_url).hostname != "127.0.0.1":
+        parser.error("Host checks require the loopback integration preview.")
     artifacts = args.artifacts.resolve()
     if artifacts == ROOT or ROOT in artifacts.parents:
         parser.error("Keep the generated harness and screenshots outside the worktree.")
@@ -449,6 +595,8 @@ def main():
     try:
         assert urlopen(base).status == 200
         report = browser_checks(base, artifacts)
+        if args.host_url:
+            report["host"] = host_checks(args.host_url.rstrip("/"), artifacts)
         report["payloadGzipBytes"] = {
             file.name: len(gzip.compress(file.read_bytes(), mtime=0))
             for file in sorted((ROOT / "site/playground").glob("*"))

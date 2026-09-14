@@ -11,18 +11,21 @@ const svgElement = (tag, attributes) => {
 export async function mount(root, context) {
   let active = false, destroyed = false;
   let assumptions = { ...SCENARIOS[0] };
+  let view = "readout";
   const listeners = new AbortController();
   const shell = element("section", "code-model-shell");
   const heading = element("header", "code-model-heading");
-  heading.append(element("h3", "", "What changes when intelligence becomes cheap?"),
-    element("p", "pg-help", "An authored toy model, not a forecast. No AI calls."));
+  heading.append(element("h3", "", "When intelligence becomes cheap."),
+    element("p", "pg-help", "100 tasks / authored toy model / not a forecast"));
+  const views = element("div", "code-model-views");
+  views.setAttribute("role", "group");
+  views.setAttribute("aria-label", "Instrument view");
+  const readoutView = control("Readout", "readout-view"), adjustView = control("Adjust", "adjust-view");
+  views.append(readoutView, adjustView);
   const pocket = element("div", "code-model-pocket");
   const pocketText = element("p");
-  const pocketBar = element("span", "code-model-pocket-bar");
-  const pocketFill = element("span");
-  pocketBar.setAttribute("aria-hidden", "true");
-  pocketBar.append(pocketFill);
-  pocket.append(pocketText, pocketBar);
+  const pocketCost = element("strong", "code-model-pocket-cost");
+  pocket.append(pocketCost, pocketText);
   const body = element("div", "code-model-body");
   const inputs = element("div", "code-model-inputs");
   const controls = element("div", "pg-controls code-model-controls");
@@ -57,27 +60,34 @@ export async function mount(root, context) {
     return { ...field, input, output };
   });
   const results = element("div", "pg-stage code-model-results");
-  results.append(element("p", "code-model-kicker", "ONE BATCH / 100 TASKS"));
+  results.append(element("p", "code-model-kicker", "TOTAL COST / HUMAN-HOUR EQUIVALENTS"));
   const headline = element("p", "code-model-headline");
   results.append(headline);
   const chart = element("figure", "code-model-chart");
-  chart.append(element("figcaption", "", "Cost ledger / human-hour equivalents"));
-  const graphic = svgElement("svg", { viewBox: "0 0 300 66", preserveAspectRatio: "none", "aria-hidden": "true", focusable: "false" });
-  const track = svgElement("rect", { x: 0, y: 8, width: 300, height: 18, class: "code-model-track" });
-  const manualBar = svgElement("rect", { x: 0, y: 8, width: 0, height: 18, class: "code-model-manual" });
-  const reviewBar = svgElement("rect", { x: 0, y: 8, width: 0, height: 18, class: "code-model-review" });
-  const machineBar = svgElement("rect", { x: 0, y: 8, width: 0, height: 18, class: "code-model-machine" });
-  const baseline = svgElement("line", { x1: 240, x2: 240, y1: 1, y2: 35, class: "code-model-baseline" });
-  const baselineBar = svgElement("rect", { x: 0, y: 44, width: 240, height: 8, class: "code-model-reference" });
-  graphic.append(track, manualBar, reviewBar, machineBar, baseline, baselineBar);
-  chart.append(graphic);
+  chart.append(element("figcaption", "", "COST LEDGER"));
+  const graphic = svgElement("svg", { viewBox: "0 0 300 52", preserveAspectRatio: "none", "aria-hidden": "true", focusable: "false" });
+  const track = svgElement("rect", { x: 0, y: 8, width: 300, height: 26, class: "code-model-track" });
+  const manualBar = svgElement("rect", { x: 0, y: 8, width: 0, height: 26, class: "code-model-manual" });
+  const reviewBar = svgElement("rect", { x: 0, y: 8, width: 0, height: 26, class: "code-model-review" });
+  const machineBar = svgElement("rect", { x: 0, y: 8, width: 0, height: 26, class: "code-model-machine" });
+  graphic.append(track);
+  for (let tick = 0; tick <= 125; tick += 5) {
+    graphic.append(svgElement("line", { x1: tick * 2.4, x2: tick * 2.4, y1: 39,
+      y2: tick % 25 === 0 ? 50 : 44, class: "code-model-tick" }));
+  }
+  const baseline = svgElement("line", { x1: 240, x2: 240, y1: 0, y2: 37, class: "code-model-baseline" });
+  graphic.append(manualBar, reviewBar, machineBar, baseline);
+  const axis = element("div", "code-model-axis");
+  axis.setAttribute("aria-hidden", "true");
+  for (const mark of ["0", "25", "50", "75", "100", "125"]) axis.append(element("span", "", mark));
+  chart.append(graphic, axis);
   const legend = element("div", "code-model-legend");
   const entries = ["Manual", "Review", "Machine"].map((text, index) => {
     const item = element("span", `code-model-key code-model-key-${index}`);
     const value = element("span"); item.append(element("i"), value); legend.append(item);
     return { text, value };
   });
-  chart.append(legend, element("p", "code-model-reference-label", "Reference: all-human batch = 100. Scale: 0-125."));
+  chart.append(legend, element("p", "code-model-reference-label", "Dashed mark: all-human reference = 100."));
   results.append(chart);
   const metrics = element("dl", "code-model-metrics");
   const metricFields = [
@@ -95,7 +105,7 @@ export async function mount(root, context) {
   results.append(metrics);
   const interpretation = element("p", "code-model-interpretation");
   results.append(interpretation);
-  body.append(inputs, results);
+  body.append(results, inputs);
   const errorBox = element("p", "code-model-error"); errorBox.hidden = true;
   const guide = element("details", "code-model-guide");
   guide.append(element("summary", "", "Open the model / formulas & caveats"));
@@ -111,7 +121,16 @@ Unreviewed = A * (1 - S)
 Defect allowance = A * ((1 - S) * 0.20 + S * 0.04)`));
   guide.append(element("p", "", "The 20% unreviewed and 4% reviewed defect rates are invented constants, not evidence. Manual work is assumed defect-free to keep this particular comparison simple. Fractions are expected counts in this toy arithmetic, not partial real tasks. The cost ledger excludes defect repair, setup, training, demand, wages and displacement. No scientific validation or forecast is implied."));
   guide.append(element("p", "", "What the model makes visible: cheaper machine work lowers its bill, not its errors; more automation frees manual time but increases exposure to the assumed defects; more review reduces that exposure but uses human time. All settings disappear when you leave."));
-  shell.append(heading, pocket, body, errorBox, guide);
+  results.append(guide);
+  inputs.prepend(pocket);
+  shell.append(heading, views, errorBox, body);
+
+  function selectView(next) {
+    view = next;
+    root.dataset.codeModelView = view;
+    readoutView.setAttribute("aria-pressed", String(view === "readout"));
+    adjustView.setAttribute("aria-pressed", String(view === "adjust"));
+  }
 
   function report(error) {
     const message = `The model could not update: ${error.message}`;
@@ -120,15 +139,18 @@ Defect allowance = A * ((1 - S) * 0.20 + S * 0.04)`));
   }
   function render() {
     const result = calculateModel(assumptions);
-    pocketText.textContent = `${format(result.totalCost)} cost units / ${format(result.defects)} toy defects`;
-    pocketFill.style.width = `${result.totalCost / 125 * 100}%`;
+    pocketCost.textContent = format(result.totalCost);
+    pocketText.textContent = `cost units / ${format(result.defects)} toy defects`;
     for (const field of fields) {
       field.input.value = String(assumptions[field.key]);
       field.output.textContent = field.key === "automation" ? `${assumptions[field.key]} / 100` : `${assumptions[field.key]}%`;
       field.input.setAttribute("aria-valuetext", `${assumptions[field.key]} ${field.unit}`);
     }
-    headline.replaceChildren(element("strong", "", format(result.totalCost)),
-      element("span", "", `cost units / ${format(Math.abs(result.savings))}% ${result.savings >= 0 ? "below" : "above"} the all-human reference`));
+    const note = element("span", "code-model-headline-note",
+      `${format(Math.abs(result.savings))}% ${result.savings >= 0 ? "below" : "above"}\nthe all-human reference`);
+    const risk = element("span", "code-model-headline-risk", `${format(result.defects)} toy defects`);
+    note.append(risk);
+    headline.replaceChildren(element("strong", "", format(result.totalCost)), note);
     const scale = 300 / 125;
     manualBar.setAttribute("width", String(result.manual * scale));
     reviewBar.setAttribute("x", String(result.manual * scale));
@@ -150,7 +172,7 @@ Defect allowance = A * ((1 - S) * 0.20 + S * 0.04)`));
       calculateModel(next);
       assumptions = next;
       render();
-      if (announce) context.setStatus(announce);
+      if (announce) { context.setStatus(announce); context.pulseSignature?.(); }
     } catch (error) { report(error); }
   }
   function destroy() {
@@ -167,12 +189,14 @@ Defect allowance = A * ((1 - S) * 0.20 + S * 0.04)`));
       active = Boolean(value);
       for (const field of fields) field.input.disabled = !active;
       scenario.disabled = !active; reset.disabled = !active;
+      readoutView.disabled = !active; adjustView.disabled = !active;
     },
     resize(value) {
       if (destroyed) return;
       if (![value.width, value.height, value.dpr].every(Number.isFinite) || value.width < 0 || value.height < 0 || value.dpr <= 0) {
         report(new RangeError("Preview dimensions must be finite and non-negative.")); return;
       }
+      if (value.width < 580 && inputs.contains(document.activeElement)) selectView("adjust");
       root.dataset.codeCompact = String(value.width < 580);
     },
     setPreferences(value) { if (!destroyed) applyPreferences(root, value); },
@@ -182,7 +206,10 @@ Defect allowance = A * ((1 - S) * 0.20 + S * 0.04)`));
   if (context.signal.aborted) { destroy(); return controller; }
   root.replaceChildren(shell);
   root.dataset.codeCompact = String(root.clientWidth < 580);
+  selectView("readout");
   applyPreferences(root, context.preferences);
+  readoutView.addEventListener("click", () => { if (active && !destroyed) selectView("readout"); }, { signal: listeners.signal });
+  adjustView.addEventListener("click", () => { if (active && !destroyed) selectView("adjust"); }, { signal: listeners.signal });
   for (const field of fields) {
     field.input.addEventListener("input", () => {
       if (!active || destroyed) return;
@@ -190,7 +217,10 @@ Defect allowance = A * ((1 - S) * 0.20 + S * 0.04)`));
       update({ ...assumptions, [field.key]: Number(field.input.value) });
     }, { signal: listeners.signal });
     field.input.addEventListener("change", () => {
-      if (active && !destroyed) context.setStatus(`${field.label}: ${field.input.getAttribute("aria-valuetext")}. Model updated.`);
+      if (active && !destroyed) {
+        context.setStatus(`${field.label}: ${field.input.getAttribute("aria-valuetext")}. Model updated.`);
+        context.pulseSignature?.();
+      }
     }, { signal: listeners.signal });
   }
   scenario.addEventListener("change", () => {
