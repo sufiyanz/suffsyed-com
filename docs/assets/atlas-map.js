@@ -1,4 +1,5 @@
 const NS = "http://www.w3.org/2000/svg";
+const MAPPED_ESSAYS = 5;
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -44,7 +45,7 @@ export function mountAtlas(root, mount) {
     reason: bridge.querySelector(".atlas-reason").textContent,
     sources: [...bridge.querySelectorAll("[data-source-slug]")].map(source => source.dataset.sourceSlug),
   }));
-  if (questions.length !== 5 || bridges.length !== 4 || questions.some(q => !q.entries.length || q.entries.length > 5)) {
+  if (questions.length !== 5 || bridges.length !== 4 || questions.some(q => !q.entries.length)) {
     throw new Error("The question index does not match the bounded atlas model.");
   }
   const questionById = new Map(questions.map(q => [q.id, q]));
@@ -73,6 +74,12 @@ export function mountAtlas(root, mount) {
   const legend = element("p", "atlas-legend");
   legend.append(element("span", "atlas-legend-member", "Essay in an editorial theme"),
     element("span", "atlas-legend-bridge", "Curated bridge / two sources"));
+  const guide = element("details", "atlas-map-guide");
+  guide.append(element("summary", "", "How to read this map"), legend,
+    element("p", "", "The questions are editorial index labels, not quotations. Essay groupings come from the archive; bridges are curated comparisons with two source passages, not agreement or evidence. Position, size and distance are not measurements. Quoted claims remain the original essays’ arguments, not newly verified findings."),
+    link("Read the full method ↗", "/methods/#question-atlas"));
+  const coverage = element("p", "atlas-coverage");
+  coverage.hidden = true;
   const graph = element("div", "atlas-graph");
   graph.setAttribute("role", "group");
   graph.setAttribute("aria-label", "Question map. Native buttons also work with Tab and Enter or Space.");
@@ -87,7 +94,7 @@ export function mountAtlas(root, mount) {
   const status = element("p", "sr-only");
   status.setAttribute("role", "status");
   status.setAttribute("aria-atomic", "true");
-  shell.append(toolbar, legend, graph, detail, status);
+  shell.append(toolbar, coverage, graph, guide, detail, status);
 
   let selected = null;
   let active = false;
@@ -180,7 +187,9 @@ export function mountAtlas(root, mount) {
       `All ${question.entries.length} essays in the archive’s existing ${question.name} grouping. Choose an essay to read a complete source passage, or inspect a bridge below. Map selection does not filter the archive or the text index.`));
     const essayList = element("div", "atlas-detail-essays");
     for (const entry of question.entries) {
-      essayList.append(button(entry.title, () => selectEssay(question, entry, true), "atlas-detail-essay"));
+      const choice = button(entry.title, () => selectEssay(question, entry, true), "atlas-detail-essay");
+      choice.dataset.atlasDetailEntry = entry.id;
+      essayList.append(choice);
     }
     detail.append(essayList);
     const connections = element("div", "atlas-nearby");
@@ -195,6 +204,7 @@ export function mountAtlas(root, mount) {
 
   function showOverview(focus = false) {
     selected = null;
+    coverage.hidden = true;
     overview.disabled = true;
     position.textContent = "01—05 / The overview";
     textIndex.href = "#theme-1";
@@ -222,6 +232,8 @@ export function mountAtlas(root, mount) {
 
   function showQuestion(question, focus = false) {
     selected = question;
+    coverage.hidden = question.entries.length <= MAPPED_ESSAYS;
+    coverage.textContent = `${MAPPED_ESSAYS} of ${question.entries.length} essays mapped; all ${question.entries.length} in the index and detail list below.`;
     overview.disabled = false;
     position.textContent = question.name + " / A neighborhood";
     textIndex.href = `#${question.anchor}`;
@@ -230,7 +242,7 @@ export function mountAtlas(root, mount) {
       () => questionDetail(question, true));
     nodes.append(center);
     const essays = element("div", "atlas-essay-nodes");
-    for (const entry of question.entries) {
+    for (const entry of question.entries.slice(0, MAPPED_ESSAYS)) {
       essays.append(graphNode(entry.id, "essay", `Essay ${entry.number} / read a passage`, entry.title,
         () => selectEssay(question, entry, true)));
       edges.push({ from: question.id, to: entry.id, kind: "member" });
@@ -245,7 +257,7 @@ export function mountAtlas(root, mount) {
     }
     nodes.append(neighbors);
     questionDetail(question);
-    announce(`${question.name}. ${question.entries.length} essays and ${nearby(question.id).length} curated bridges.`);
+    announce(`${question.name}. ${question.entries.length} essays and ${nearby(question.id).length} curated bridges.${coverage.hidden ? "" : " " + coverage.textContent}`);
     schedule();
     if (focus) {
       center.focus({ preventScroll: true });
@@ -257,7 +269,9 @@ export function mountAtlas(root, mount) {
     for (const node of nodeById.values()) node.removeAttribute("aria-pressed");
     nodeById.get(entry.id)?.setAttribute("aria-pressed", "true");
     heading(`Essay ${entry.number} / ${question.name}`, entry.title);
-    detail.append(element("p", "atlas-detail-intro", "A curated entry point, not a summary. The complete original passage follows."),
+    const note = "A curated entry point, not a summary. The complete original passage follows."
+      + (nodeById.has(entry.id) ? "" : " This essay is in the full index, not one of the five mapped nodes.");
+    detail.append(element("p", "atlas-detail-intro", note),
       quote(entry), button("Back to this question", () => questionDetail(question, true), "plain"));
     announce(`${entry.title}. Original source passage selected.`);
     if (focus) focusDetail();

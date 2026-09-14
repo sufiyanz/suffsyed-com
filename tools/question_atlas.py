@@ -11,8 +11,8 @@ def build_atlas(rows, themes, config):
     entries = config.get("entries")
     if not isinstance(entries, dict) or set(entries) != set(essays):
         raise ValueError("Question atlas: exactly one passage reference per essay is required")
-    if len(themes) != 5 or len(rows) != 20:
-        raise ValueError("Question atlas: review the five-question/twenty-essay layout before expanding")
+    if len(themes) != 5:
+        raise ValueError("Question atlas: review the five-question layout before adding themes")
     by_name = {theme["name"]: theme for theme in themes}
     by_id = {theme["id"]: theme for theme in themes}
     if len(by_name) != len(themes) or len(by_id) != len(themes):
@@ -41,8 +41,8 @@ def build_atlas(rows, themes, config):
     questions = []
     for number, theme in enumerate(themes, 1):
         members = [source(row["slug"], entries[row["slug"]]) for row in rows if row["theme"] == theme["name"]]
-        if not 1 <= len(members) <= 5:
-            raise ValueError(f'Question atlas: {theme["id"]} must contain one to five essays')
+        if not members:
+            raise ValueError(f'Question atlas: {theme["id"]} must contain an essay')
         questions.append({"id": theme["id"], "name": theme["name"], "question": theme["question"],
                           "anchor": f"theme-{number}", "entries": members})
     if any(row["theme"] not in by_name for row in rows):
@@ -134,19 +134,13 @@ def render_atlas(atlas):
     return f"""
     <section class="question-atlas" id="by-preoccupation" data-question-atlas aria-labelledby="atlas-title">
       <header class="section-heading">
-        <span class="label">An alternative index / Five preoccupations</span>
+        <span class="label">Five preoccupations</span>
         <h2 id="atlas-title">An atlas of questions.</h2>
-        <p>Not twenty separate thoughts. A few questions, approached from different directions.</p>
       </header>
-      <div class="atlas-introduction">
-        <p>Enter through a question. Find a passage. Follow a connection worth thinking about.</p>
-        <p>The five questions are editorial index labels, not quotations. Essay groupings come from the existing archive;
-          the four bridges are curated reading suggestions, not measured similarity, agreement or evidence.
-          Quoted passages remain the essays’ arguments, not newly verified findings.
-          <a href="/methods/#question-atlas">Read the method ↗</a></p>
-      </div>
+      <p class="atlas-introduction">Editorial questions and curated routes, not measured similarity.
+        <a href="/methods/#question-atlas">Method ↗</a></p>
       <details class="atlas-map-disclosure" data-atlas-map>
-        <summary><span>Explore the question map</span><span class="atlas-map-invitation">Five ways in <span aria-hidden="true">↗</span></span></summary>
+        <summary><span>Explore the map</span><span class="atlas-map-invitation">Five ways in <span aria-hidden="true">↗</span></span></summary>
         <p class="atlas-map-notice" data-atlas-notice role="status">The interactive map needs JavaScript. All questions, passages and connections are readable in the index below.</p>
         <button class="plain" type="button" data-atlas-retry hidden>Retry the map</button>
         <div data-atlas-mount></div>

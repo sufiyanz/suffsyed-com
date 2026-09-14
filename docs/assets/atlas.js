@@ -26,7 +26,7 @@ if (root) {
       const module = await import(attempts === 1 ? "./atlas-map.js" : `./atlas-map.js?attempt=${attempts}`);
       controller = module.mountAtlas(root, mount);
       root.dataset.atlasState = "ready";
-      notice.textContent = "Choose a question, then an essay or a nearby question. The complete text index stays below.";
+      notice.textContent = "Question map ready. Choose a question.";
       sync();
     } catch (error) {
       failed = true;

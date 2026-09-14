@@ -375,7 +375,8 @@ Each of the twenty essays has one deliberately selected complete prose passage.
 from `corpus.measure()`, never a second HTML-to-text reconstruction. Missing IDs,
 non-prose/oversized passages, omitted essays, mismatched bridge endpoints and
 unexplained or disconnected bridges fail the build. Changing an original essay
-does not silently invent a replacement passage.
+does not silently invent a replacement passage. Valid new essay/passage references
+can extend a theme without changing the map's rendering budget.
 
 The four bridges are named, curated comparisons: autonomy and judgment, work
 beyond code, earning understanding, and depth and direction. Each explanation
@@ -392,8 +393,14 @@ request. The deterministic SVG/HTML plate shows five questions or a neighborhood
 of at most eight native buttons: one question, up to five essays and up to two
 adjacent questions. Solid lines indicate theme membership; dashed lines indicate
 curated source-pair bridges. Position, size and distance are not measurements.
+If a theme grows beyond five essays, the graph maps its first five in archive
+order and explicitly reports "5 of N essays mapped." Every essay remains in the
+native index and the question's complete detail list. Selecting an unmapped essay
+opens its exact source passage without adding a ninth node.
 Phones get full-size text and a vertical connected route, not a shrunken desktop
-diagram. All five questions returns to the overview; source links keep their
+diagram. First opening at 320/390px keeps the first question visible without a
+second scroll: one compact editorial note precedes the controls, while the fuller
+legend and caveats live in the native map guide and Method. All five questions returns to the overview; source links keep their
 original paragraph addresses. Map selection does not rewrite archive filters or
 the URL. Browser back preserves the live map when the browser retains the page;
 a full reload starts at the readable overview.
@@ -423,6 +430,8 @@ test invalid source fixtures and payload limits (5 KiB initial CSS/loader and
 6 KiB lazy map, gzip), then exercise real pointer/keyboard controls, all four
 source-pair routes, no-JS, failed-load Retry, close-during-load, archive-filter
 independence, exact paragraph destinations and settled/offscreen/hidden work.
+Synthetic six-member data checks prove growth retains all sources while the
+rendered neighborhood stays within its eight-node budget.
 They capture readable overview, neighborhood, quotation and bridge plates at
 320/390/1028/1600px. The general `tools/test_browser.py` also accepts
 `--browser webkit` without changing the default Chromium runner.

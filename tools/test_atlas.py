@@ -96,7 +96,23 @@ def static_checks():
     escaped = BeautifulSoup(render_atlas(hostile), "html.parser")
     assert not escaped.select("img, script")
     assert escaped.select_one(".atlas-reason").get_text() == hostile["bridges"][0]["reason"]
+    original = next(row for row in rows if row["theme"] == "Design")
+    sixth = copy.deepcopy(original)
+    sixth.update(slug="atlas-sixth-essay-fixture", no=21, title="Test fixture / sixth essay",
+                 url="/futurememo/atlas-sixth-essay-fixture/")
+    grown_config = copy.deepcopy(config)
+    grown_config["entries"][sixth["slug"]] = config["entries"][original["slug"]]
+    grown = build_atlas([*rows, sixth], data["themes"], grown_config)
+    design = next(q for q in grown["questions"] if q["id"] == "design")
+    assert len(design["entries"]) == 6
+    rendered = BeautifulSoup(render_atlas(grown), "html.parser")
+    assert len(rendered.select("[data-atlas-entry]")) == 21
+    assert len(rendered.select('[data-atlas-question="design"] .atlas-context')) == 6
+    extra = rendered.select_one('[data-atlas-entry="atlas-sixth-essay-fixture"]')
+    assert extra.blockquote.get_text() == design["entries"][-1]["text"]
+    assert extra.select_one(".atlas-context")["href"] == sixth["url"] + "#" + grown_config["entries"][sixth["slug"]]
     print(f"PASS: 20 exact source passages; five editorial questions; four source-pair bridges; invalid refs fail; {initial} B initial/{lazy} B lazy gzip.")
+    print("PASS: valid 21-essay corpus with a six-member theme builds and retains every native source.")
 
 
 def browser_checks(args):
@@ -131,16 +147,23 @@ def browser_checks(args):
         assert page.locator(".atlas-node").evaluate_all("""nodes => nodes.every(n =>
           getComputedStyle(n.querySelector('.atlas-node-title')).fontSize.replace('px','') >= 19)""")
 
-    def ready(page):
-        page.locator("[data-atlas-map] > summary").click()
+    def ready(page, first_open_width=None):
+        summary = page.locator("[data-atlas-map] > summary")
+        summary.tap() if first_open_width and first_open_width < 700 else summary.click()
         page.wait_for_selector('[data-atlas-state="ready"]')
+        if first_open_width:
+            page.evaluate("document.fonts.ready.then(() => true)")
+            first = page.locator(".atlas-node").first.bounding_box()
+            viewport = page.viewport_size
+            assert 0 <= first["y"] and first["y"] + first["height"] <= viewport["height"], (viewport, first)
+            page.screenshot(path=str(args.artifacts / f"atlas-{first_open_width}-first-open.png"))
         page.locator(".atlas-graph").scroll_into_view_if_needed()
         page.wait_for_function("document.querySelectorAll('.atlas-lines path').length === 4")
 
     with sync_playwright() as p:
         browser = getattr(p, args.browser).launch()
         for width in args.widths:
-            context = browser.new_context(viewport={"width": width, "height": 1000 if width > 700 else 844},
+            context = browser.new_context(viewport={"width": width, "height": 700 if width == 320 else (844 if width < 700 else 1000)},
                                           has_touch=width < 700, reduced_motion="reduce")
             context.add_init_script(PROBE)
             page = context.new_page()
@@ -150,7 +173,7 @@ def browser_checks(args):
             page.goto(args.url + ROUTE, wait_until="networkidle")
             assert not any("atlas-map.js" in url or "search-index.json" in url for url in requests)
             assert page.locator("#theme-1").count() == 1
-            ready(page)
+            ready(page, first_open_width=width)
             layout(page)
             page.locator(".atlas-graph").screenshot(path=str(args.artifacts / f"atlas-{width}-overview.png"))
             frozen(page)
@@ -257,6 +280,51 @@ def browser_checks(args):
         assert page.locator("[data-atlas-question]").count() == 5
         assert page.locator(".archive-entry:visible").count() == 20
         context.close()
+
+        for width in (320, 1600):
+            context = browser.new_context(viewport={"width": width, "height": 900}, reduced_motion="reduce")
+            context.add_init_script(PROBE)
+            page = context.new_page()
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.goto(args.url + ROUTE, wait_until="networkidle")
+            source = page.evaluate("""() => {
+              const list = document.querySelector('[data-atlas-question="design"] > ol');
+              const entry = list.firstElementChild.cloneNode(true);
+              entry.dataset.atlasEntry = 'atlas-sixth-essay-fixture';
+              entry.dataset.number = '21';
+              entry.querySelector('.atlas-source').id = 'atlas-source-sixth-fixture';
+              entry.querySelector('.atlas-essay-title').textContent = 'Test fixture / sixth essay';
+              list.append(entry);
+              return {text:entry.querySelector('blockquote').textContent,
+                href:entry.querySelector('.atlas-context').getAttribute('href')};
+            }""")
+            ready(page)
+            assert "6 essays" in page.locator('[data-atlas-node="design"]').text_content()
+            page.locator('[data-atlas-node="design"]').click()
+            assert page.locator(".atlas-coverage").is_visible()
+            assert page.locator(".atlas-coverage").inner_text() == "5 of 6 essays mapped; all 6 in the index and detail list below."
+            assert page.locator(".atlas-node").count() == 8
+            assert page.locator(".atlas-node-essay").count() == 5
+            assert page.locator('[data-atlas-question="design"] .atlas-context').count() == 6
+            assert page.locator(".atlas-detail-essay").count() == 6
+            page.locator('[data-atlas-detail-entry="atlas-sixth-essay-fixture"]').click()
+            assert page.locator(".atlas-node").count() == 8
+            assert page.locator('[data-atlas-node="atlas-sixth-essay-fixture"]').count() == 0
+            assert page.locator(".atlas-detail blockquote").text_content() == source["text"]
+            assert page.locator(".atlas-detail .atlas-context").get_attribute("href") == source["href"]
+            assert "not one of the five mapped nodes" in page.locator(".atlas-detail-intro").inner_text()
+            assert page.locator('.atlas-node[aria-pressed="true"]').count() == 0
+            page.locator(".atlas-detail").screenshot(path=str(args.artifacts / f"atlas-{width}-sixth-source.png"))
+            page.get_by_role("button", name="Back to this question", exact=True).click()
+            assert page.locator(".atlas-detail-essay").count() == 6
+            page.locator(".atlas-coverage").scroll_into_view_if_needed()
+            page.screenshot(path=str(args.artifacts / f"atlas-{width}-six-member.png"))
+            page.locator(".atlas-graph").scroll_into_view_if_needed()
+            page.wait_for_function("document.querySelectorAll('.atlas-lines path').length === 7")
+            layout(page)
+            frozen(page)
+            context.close()
+        print("PASS: six-member themes retain six source choices while mapping only five essays/eight total nodes.")
 
         context = browser.new_context()
         page = context.new_page()

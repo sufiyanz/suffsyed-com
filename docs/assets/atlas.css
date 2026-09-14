@@ -1,19 +1,20 @@
 /* The atlas inherits the journal's public fonts and semantic colors. */
 .question-atlas { margin-top: 48px; }
+.question-atlas .section-heading { padding: 28px 0 8px; }
 .question-atlas .section-heading h2 { font-size: clamp(42px, 5vw, 78px); }
-.question-atlas .atlas-introduction { display: grid; grid-template-columns: 1fr 1.25fr; gap: 12%; margin-bottom: 32px; }
-.question-atlas .atlas-introduction > p:first-child { font-size: 28px; line-height: 1.35; max-width: 440px; }
-.question-atlas .atlas-introduction > p:last-child { font-size: 17px; line-height: 1.6; color: var(--cp-text-muted); max-width: 660px; }
+.question-atlas .atlas-introduction { margin-bottom: 12px; font-size: 17px; line-height: 1.6; color: var(--cp-text-muted); }
+.question-atlas .atlas-introduction a { margin-left: 8px; }
 .question-atlas a, .question-atlas summary, .question-atlas button { min-height: 44px; }
 .question-atlas a { display: inline-flex; align-items: center; padding-block: 10px; }
 .question-atlas summary { cursor: pointer; }
 .question-atlas [hidden] { display: none !important; }
 .question-atlas :is(button, a, summary):focus-visible { outline: 2px solid var(--cp-accent); outline-offset: 4px; }
 .question-atlas .atlas-map-disclosure { border-block: 1px solid var(--cp-border-strong); margin-bottom: 24px; }
-.question-atlas .atlas-map-disclosure > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 0; list-style: none; font-size: 28px; line-height: 1.25; }
+.question-atlas .atlas-map-disclosure > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; list-style: none; font-size: 28px; line-height: 1.25; }
 .question-atlas .atlas-map-disclosure > summary::-webkit-details-marker { display: none; }
 .question-atlas .atlas-map-invitation { display: flex; gap: 16px; font: 400 14px var(--font-technical); color: var(--cp-text-muted); flex-shrink: 0; }
 .question-atlas .atlas-map-notice { font-size: 16px; color: var(--cp-text-muted); padding-bottom: 18px; }
+.question-atlas[data-atlas-state="ready"] .atlas-map-notice { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
 .question-atlas .atlas-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; padding: 16px 0; border-block: 1px solid var(--cp-border-strong); }
 .question-atlas .atlas-toolbar .label { text-align: center; }
 .question-atlas .atlas-toolbar button { border-radius: 0; }
@@ -22,6 +23,10 @@
 .question-atlas .atlas-legend span { display: flex; gap: 10px; align-items: center; }
 .question-atlas .atlas-legend span::before { content: ""; width: 26px; border-top: 1px solid var(--cp-accent); }
 .question-atlas .atlas-legend .atlas-legend-bridge::before { border-top-style: dashed; }
+.question-atlas .atlas-map-guide { border-top: 1px solid var(--cp-border); padding-bottom: 12px; }
+.question-atlas .atlas-map-guide summary { padding: 10px 0; font-size: 17px; }
+.question-atlas .atlas-map-guide > p:not(.atlas-legend) { max-width: 780px; font-size: 17px; line-height: 1.6; margin-top: 16px; }
+.question-atlas .atlas-coverage { font-size: 17px; line-height: 1.5; margin-top: 16px; color: var(--cp-text-muted); }
 .question-atlas .atlas-graph { position: relative; isolation: isolate; padding: 38px 0; }
 .question-atlas .atlas-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; fill: none; stroke: var(--cp-border-strong); stroke-width: 1.25; }
 .question-atlas .atlas-edge-bridge { stroke-dasharray: 5 6; }
@@ -88,8 +93,6 @@
   .question-atlas .atlas-node-neighbor .atlas-node-title { font-size: 23px; }
 }
 @media (max-width: 700px) {
-  .question-atlas .atlas-introduction { grid-template-columns: 1fr; gap: 20px; }
-  .question-atlas .atlas-introduction > p:first-child { font-size: 25px; }
   .question-atlas .atlas-map-disclosure > summary { font-size: 24px; align-items: start; }
   .question-atlas .atlas-map-invitation { font-size: 0; }
   .question-atlas .atlas-map-invitation > span { font-size: 24px; }
