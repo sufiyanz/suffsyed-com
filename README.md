@@ -168,8 +168,35 @@ status/error callbacks. Controllers start inactive; the host distributes availab
 dimensions, preferences and visibility. Switch/Close abort pending fetches and
 mounts, deactivate and destroy the old controller, and dispose any controller that
 arrives after cancellation. Loading failures are visible with Retry and Close.
+Module-reported action errors remain visible without discarding the editor or
+last successful result; thrown mount/lifecycle failures tear down the instance.
 The signature is suspended separately while the host is open, preserving its
 own user-pause choice. Only loaded code and styles are retained between instances.
+The status footer has a reserved height so announcements cannot resize an active
+drawing surface or change a composition. All tools scroll inside the cover when
+space is tight; no full-screen modal or document scroll lock is used.
+
+| Experiment | What happens locally |
+| --- | --- |
+| Scratch terminal | A bounded drawing language runs in a short-lived Worker. Three examples, editable code, Run/Stop/Reset and line/column errors; never JavaScript or a shell. |
+| Ink studio | Fountain/round nibs, pen pressure and mouse velocity, eraser, undo, clear and PNG export. Arrows and Space provide keyboard drawing. |
+| Pocket darkroom | Exposure, contrast, seeded grain and forest duotone alter a visitor-only photograph copy. Compare/reset to the untouched source or download a PNG. |
+| Type garden | Attract, repel or flow the autograph's glyphs, then re-form them. Pause and reduced-motion Step preserve a deliberate pace. |
+| Blackout poetry | Keep or remove words from a complete original paragraph; remix order and separators stay intact. Original attribution and visitor-remix labels remain visible. |
+| Agent terrarium | Seeded, explicitly rule-based agents gather food around editable walls. Run/Pause, Step, Reset and rule controls expose the mechanism, not an AI service. |
+| Assumption lab | Three sliders and presets change an authored cost/supervision model. Its invented defect constants, formulas and omitted factors are disclosed; it is not a forecast. |
+| Sound loom | A five-pitch, eight-step sequencer with tempo/timbre controls. Only Play creates audio; Stop, inactivity or Close silences and closes it. |
+| Generative postcard | Recompose a real photograph with an exact source sentence and attribution. New variation, layout controls and PNG download never modify the originals. |
+| Signal / noise | A seeded 60-second fragment-collection game reveals the exact autograph. Keyboard/touch steering and a reduced-motion turn-based mode are available. |
+
+Ink sheets cap strokes at 96, points per stroke at 900 and total points at 12,000.
+The scratch interpreter caps input, syntax, loops and operations, with a 120 ms
+execution budget and 1.5-second Worker watchdog; every run releases its Worker.
+Canvases cap DPR at 2 and backing pixels at one million. Simulations cap cadence
+at 30 fps; sound uses one bounded lookahead timer and at most three notes per
+step. Nothing auto-downloads, uploads, records microphone audio or persists work.
+The darkroom's optional local brush is not included; its four tonal controls and
+original/edited comparison are complete.
 
 Below the cover, home keeps its deliberate sequence: one featured thought with an original cover
 and primary reading action; an optional connection instrument; a photographic
@@ -329,6 +356,8 @@ links work without JavaScript; search and local instruments require it.
 .venv/bin/python tools/test_signature.py \
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_playground_host.py \
+  --require-all --artifacts /absolute/path/to/session-artifacts
+.venv/bin/python tools/test_playground_integration.py \
   --artifacts /absolute/path/to/session-artifacts
 .venv/bin/python tools/test_shell.py \
   --artifacts /absolute/path/to/session-artifacts
@@ -384,6 +413,13 @@ registry, focus/IME/Escape, signature-pause preservation, nonrepeating selection
 late-mount disposal, retry and no-JS. Fixtures are never shipped or registered as
 finished experiences. `--static-only` and `--browser-only` allow separate Python
 environments; module-specific tests exercise the actual creative tools.
+The integration runner performs real primary actions in every module through the
+actual host at phone and desktop sizes: pixels, original text, downloads, model
+values, simulation state and native audio construction/closure. `--ids` and
+`--widths` bound an individual rerun. The five `test_playground_<team>.py` suites
+cover deeper module algorithms, budgets, failure/abort paths and resource release
+using artifact-only loopback harnesses. Controlled PointerEvents validate stylus
+pressure; clipboard success/denial tests avoid changing the system clipboard.
 Capture utilities scroll to load every lazy image before saving full pages,
 readable viewport studies and individual home chapter crops; `--devices desktop
 phone` limits capture to those two sizes.

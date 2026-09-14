@@ -2,6 +2,7 @@
 import argparse
 import gzip
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,7 +22,9 @@ export async function mount(root, context) {
   const input = document.createElement('input'); input.setAttribute('aria-label','Test input');
   const action = document.createElement('button'); action.textContent='Test action';
   action.addEventListener('click', () => context.setStatus('A real fixture action.'));
-  root.append(input,action);
+  const failure = document.createElement('button'); failure.textContent='Recoverable error';
+  failure.addEventListener('click', () => context.reportError('Keep this work and correct the input.', new Error('Test input')));
+  root.append(input,action,failure);
   return {
     setActive(value) { item.calls.push(['active',value]); },
     resize(value) { item.calls.push(['resize',value]); },
@@ -32,7 +35,7 @@ export async function mount(root, context) {
 """
 
 
-def static_checks():
+def static_checks(require_all=False):
     from bs4 import BeautifulSoup
     from corpus import flat_text
     data = json.loads((ROOT / "docs/assets/playground-data.json").read_text())
@@ -51,6 +54,23 @@ def static_checks():
     budget = sum(len(gzip.compress((ROOT / path).read_bytes())) for path in ["site/playground.js", "site/playground.css"])
     assert budget <= 12 * 1024, budget
     print(f"PASS: exact original materials/anchors/dimensions; initial host gzip {budget} bytes.")
+    if require_all:
+        folder = ROOT / "site/playground"
+        for identifier in IDS:
+            pending = [folder / f"{identifier}.js", folder / f"{identifier}.css"]
+            files = set()
+            while pending:
+                path = pending.pop()
+                if path in files:
+                    continue
+                assert path.is_file(), path
+                files.add(path)
+                assert path.read_bytes() == (ROOT / "docs/assets/playground" / path.name).read_bytes()
+                for dependency in re.findall(r"""["']\./([\w.-]+\.(?:js|css))["']""", path.read_text()):
+                    pending.append(folder / dependency)
+            total = sum(len(gzip.compress(path.read_bytes())) for path in files)
+            assert total <= 60 * 1024, (identifier, total)
+            print(f"PASS: {identifier} and local dependencies {total} bytes gzip.")
 
 
 def browser_checks(args):
@@ -97,6 +117,12 @@ def browser_checks(args):
             page.get_by_role("button", name="Test action").click()
             assert page.locator(".pg-status").inner_text() == "A real fixture action."
             assert page.locator(".pg-footer").evaluate("el => el.scrollWidth <= el.clientWidth")
+            stage_size = page.locator(".pg-viewport").bounding_box()
+            page.get_by_role("button", name="Recoverable error").click()
+            assert page.locator(".pg-shell").get_attribute("data-state") == "ready"
+            assert page.locator(".pg-status").inner_text() == "Keep this work and correct the input."
+            assert page.locator(".pg-instance").count() == 1
+            assert page.locator(".pg-viewport").bounding_box() == stage_size
             page.screenshot(path=str(args.artifacts / f"{width}-host-fixture.png"))
             page.evaluate("scrollTo(0, document.querySelector('.home-cover').offsetHeight + 5)")
             page.wait_for_function("pgFixtures[0].calls.filter(([k])=>k==='active').at(-1)[1] === false")
@@ -190,8 +216,9 @@ if __name__ == "__main__":
     parser.add_argument("--artifacts", required=True, type=Path)
     parser.add_argument("--static-only", action="store_true")
     parser.add_argument("--browser-only", action="store_true")
+    parser.add_argument("--require-all", action="store_true")
     args = parser.parse_args()
     if not args.browser_only:
-        static_checks()
+        static_checks(args.require_all)
     if not args.static_only:
         browser_checks(args)

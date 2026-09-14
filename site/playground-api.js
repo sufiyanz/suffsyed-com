@@ -3,6 +3,8 @@
  * mount(root, context) builds a meaningful static view and returns an initially inactive controller.
  * Only mutate root. Signal abort and destroy must stop resources, even during pending initialization.
  * All state is ephemeral. Use textContent for user text, same-origin assets, and explicit downloads.
+ * reportError during mounting fails initialization; once ready it reports an action error without
+ * discarding work. Modules stop any failed work themselves; thrown lifecycle errors remain fatal.
  *
  * @typedef {{reducedMotion: boolean, forcedColors: boolean}} Preferences
  * @typedef {{width: number, height: number, dpr: number}} Dimensions

@@ -30,7 +30,7 @@ def no_overflow(page):
 
 
 def cover_state(page, height):
-    assert page.locator("#cover-title").inner_text() == "Suff Syed"
+    assert page.locator("#cover-title").text_content() == "Suff Syed"
     assert page.get_by_role("heading", name="Suff Syed", exact=True).count() == 1
     assert page.locator(".cover-signature").count() == 1
     assert page.locator("#cover-title > .cover-signature").count() == 1
@@ -107,6 +107,8 @@ def main():
     parser.add_argument("--browser-channel", default=None)
     parser.add_argument("--browser", choices=["chromium", "webkit"], default="chromium")
     args = parser.parse_args()
+    # WebKit on macOS uses Option-Tab to include native links in keyboard navigation.
+    next_key = "Alt+Tab" if args.browser == "webkit" else "Tab"
     args.artifacts.mkdir(parents=True, exist_ok=True)
     errors, external, missing, states = [], [], [], []
     with sync_playwright() as p:
@@ -154,7 +156,7 @@ def main():
                 if javascript:
                     assert not page.evaluate("document.querySelector('.mast').contains(document.activeElement)")
                     page.locator(".cover-continue").focus()
-                    page.keyboard.press("Tab")
+                    page.keyboard.press(next_key)
                     assert page.evaluate("document.activeElement.matches('[data-home-title]')")
                     focused_is_visible(page)
                     page.evaluate("scrollTo({top:0, behavior:'instant'})")
@@ -189,11 +191,11 @@ def main():
                 assert not page.locator(".home-cover").count()
                 page.go_back(wait_until="networkidle")
                 settle(page)
-                if javascript:
+                if javascript and args.browser != "webkit":
                     wait_for(page, "y => Math.abs(scrollY - y) < 2", arg=restored_y)
                     body_state(page, "connections")
                 else:
-                    # Without page scripts, history may restore the URL's native fragment.
+                    # WebKit also restores the native fragment, with or without the cover host.
                     restored = page.evaluate("y => Math.abs(scrollY - y) < 2", restored_y)
                     body_state(page, "connections" if restored else "featured-story")
                 page.locator('.foot a[href="#top"]').click()
@@ -225,12 +227,12 @@ def main():
             page.locator('.foot a[href="#top"]').click()
             wait_for(page, "scrollY === 0")
             cover_state(page, height)
-        page.keyboard.press("Tab")
+        page.keyboard.press(next_key)
         # Focused navigation remains ordinary document navigation, never a hidden clone.
         page.locator(".skip").focus()
         page.keyboard.press("Enter")
         body_state(page, "main")
-        page.keyboard.press("Tab")
+        page.keyboard.press(next_key)
         focused_is_visible(page)
         context.close()
         for scale in [2, 4]:

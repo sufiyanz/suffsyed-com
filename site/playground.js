@@ -252,7 +252,15 @@ function setupPlayground(cover) {
       const context = {
         signal, seed, random: randomFrom(seed), preferences: preferences(), palette, data,
         setStatus(message) { if (stillCurrent(record)) status.textContent = String(message); },
-        reportError(message, error) { fail(record, String(message), error); },
+        reportError(message, error) {
+          if (!stillCurrent(record)) return;
+          if (!record.controller) {
+            fail(record, String(message), error);
+            return;
+          }
+          console.warn("Cover experiment action failed.", message, error);
+          status.textContent = String(message);
+        },
       };
       const mounting = Promise.resolve(module.mount(root, context)).then(controller => {
         if (!stillCurrent(record)) {

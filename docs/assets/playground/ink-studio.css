@@ -1,0 +1,36 @@
+[data-experience='ink-studio'] {
+  display: flex; flex-direction: column; gap: 6px; width: 100%; height: 100%;
+  min-width: 0; min-height: 0; overflow: auto; padding: 8px;
+  background: var(--ink-paper); color: var(--ink-forest); font-family: var(--font-reading);
+}
+[data-experience='ink-studio'] .ink-invitation { margin: 0; font: italic 400 20px/1.2 var(--font-reading); }
+[data-experience='ink-studio'] .ink-controls { display: flex; flex-wrap: wrap; gap: 8px 16px; flex: none; }
+[data-experience='ink-studio'] .ink-fields { display: flex; flex: 1 1 290px; gap: 8px; min-width: 0; }
+[data-experience='ink-studio'] .ink-field { display: flex; flex: 1; flex-direction: column; gap: 3px; min-width: 0; margin: 0; font: 11px/1.3 var(--font-technical); }
+[data-experience='ink-studio'] .ink-field select { appearance: menulist-button; width: 100%; min-width: 0; height: 44px; min-height: 44px; border: 1px solid var(--ink-green); background: var(--ink-paper); color: var(--ink-forest); padding: 4px; font: 11px/1.3 var(--font-technical); }
+[data-experience='ink-studio'] .ink-actions { display: flex; gap: 6px; align-items: end; flex: 1 1 265px; }
+[data-experience='ink-studio'] .pg-button { flex: 1; min-width: 44px; min-height: 44px; padding: 7px; border: 1px solid var(--ink-green); background: var(--ink-paper); color: var(--ink-forest); font: 11px/1.3 var(--font-technical); white-space: nowrap; }
+[data-experience='ink-studio'] .ink-actions .pg-button:last-child { flex: 1.3; }
+[data-experience='ink-studio'] .pg-button[aria-pressed='true'] { background: var(--ink-forest); color: var(--ink-white); text-decoration: underline; text-underline-offset: 4px; }
+[data-experience='ink-studio'] :is(button, select, canvas):focus-visible { outline: 2px solid var(--ink-forest); outline-offset: 2px; }
+[data-experience='ink-studio'] .ink-stage { position: relative; flex: 1 0 76px; min-height: 76px; min-width: 0; overflow: hidden; border: 1px solid var(--ink-green); background-color: var(--ink-paper); background-image: radial-gradient(var(--ink-stone) .6px, transparent .6px); background-size: 12px 12px; }
+[data-experience='ink-studio'] .ink-paper { display: block; position: absolute; inset: 0; width: 100%; height: 100%; max-width: 100%; touch-action: none; cursor: crosshair; color: var(--ink-ink); }
+[data-experience='ink-studio'] .ink-paper:focus-visible { outline-offset: -4px; }
+[data-experience='ink-studio'] .ink-cursor { display: none; position: absolute; width: 13px; height: 13px; transform: translate(-50%, -50%); pointer-events: none; border: 1px solid var(--ink-forest); border-radius: 50%; }
+[data-experience='ink-studio'] .ink-paper:focus-visible + .ink-cursor:not([hidden]) { display: block; }
+[data-experience='ink-studio'] .ink-cursor[data-down='true'] { outline: 2px solid var(--ink-green); outline-offset: 2px; }
+[data-experience='ink-studio'] .ink-help { flex: none; margin: 0; font: 13px/1.35 var(--font-reading); color: var(--ink-forest); }
+[data-experience='ink-studio'] .ink-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+[data-experience='ink-studio'] .ink-budget { margin: 0; font: 10px/1.4 var(--font-technical); color: var(--ink-green); }
+[data-experience='ink-studio'] .ink-notice { margin: 0; padding: 6px; border: 1px solid var(--ink-forest); font: 12px/1.4 var(--font-technical); }
+[data-experience='ink-studio'][data-ink-forced='true'] { background: Canvas; color: CanvasText; }
+[data-experience='ink-studio'][data-ink-forced='true'] :is(.pg-button, select, .ink-stage) { background: Canvas; border-color: CanvasText; color: CanvasText; }
+[data-experience='ink-studio'][data-ink-forced='true'] :is(.ink-help, .ink-budget, .ink-paper) { color: CanvasText; }
+[data-experience='ink-studio'][data-ink-forced='true'] .pg-button[aria-pressed='true'] { background: Highlight; color: HighlightText; }
+[data-experience='ink-studio'][data-ink-forced='true'] .ink-cursor { border-color: CanvasText; outline-color: Highlight; }
+@media (forced-colors: active) {
+  [data-experience='ink-studio'] { background: Canvas; color: CanvasText; }
+  [data-experience='ink-studio'] .ink-stage { background: Canvas; border-color: CanvasText; }
+  [data-experience='ink-studio'] .ink-paper { color: CanvasText; }
+  [data-experience='ink-studio'] .pg-button[aria-pressed='true'] { outline: 2px solid Highlight; outline-offset: -4px; }
+}
