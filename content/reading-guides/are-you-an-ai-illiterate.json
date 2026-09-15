@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "slug": "are-you-an-ai-illiterate",
+  "sourceSha256": "7ed8b0d6ab81acf9b8010e69ef6c18d35f96578e07abc626679f6794565301a0",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "equal-ideas-unequal-leverage",
+      "label": "Equal ideas, unequal leverage",
+      "anchor": "h-ac54c57234",
+      "bullets": [
+        {
+          "text": "The three-designers story holds idea quality constant to compare the leverage of screens, strategy, and a live demo.",
+          "sourceIds": ["p-960587f273", "p-76c7814e3c"]
+        },
+        {
+          "text": "Its executive perspective rewards decision support and shareable execution over tenure or basic AI usage.",
+          "sourceIds": ["p-6864f4b607", "p-bf3f2a14a6", "p-52ddb51f1c"]
+        }
+      ]
+    },
+    {
+      "id": "adoption-without-maturity",
+      "label": "Adoption is not organizational maturity",
+      "anchor": "h-da34fdc1f0",
+      "bullets": [
+        {
+          "text": "The cited surveys distinguish widespread AI use from worker competence and organizational maturity.",
+          "sourceIds": ["p-8034726d47-2", "p-af833c0d09-2"]
+        },
+        {
+          "text": "Ambitious spending plans coexist with employee apprehension and limited enterprise-wide financial impact.",
+          "sourceIds": ["p-af833c0d09-2", "p-73742adf87-2", "p-86b772c02d-2"]
+        }
+      ]
+    },
+    {
+      "id": "literacy-ladder",
+      "label": "From invocation to invention",
+      "anchor": "h-9c9e35d4da",
+      "bullets": [
+        {
+          "text": "The ladder distinguishes default-tool use, custom workflow integration, and invention of new AI capabilities.",
+          "sourceIds": ["p-87936190f0"]
+        },
+        {
+          "text": "Its economic claim is that greater command of AI produces leverage that can harden into wealth.",
+          "sourceIds": ["p-363202b97e"]
+        }
+      ]
+    },
+    {
+      "id": "adaptive-skills",
+      "label": "Adaptive skills, not just superstar talent",
+      "anchor": "h-d0ab33b7e1",
+      "bullets": [
+        {
+          "text": "Wage and productivity figures support a widening premium for applying AI fluently within ordinary roles.",
+          "sourceIds": ["p-e61f240e10", "p-2e8f9e6e8e", "p-e7243db34d"]
+        },
+        {
+          "text": "Researcher pay sits at the apex; the broader prescription is continual upskilling rather than a research career.",
+          "sourceIds": ["p-0dc3ae965e", "p-11c2667250", "p-56115761e1"]
+        }
+      ]
+    },
+    {
+      "id": "agency-adaptation-meaning",
+      "label": "Agency, adaptation, and problem choice",
+      "anchor": "h-56689314a2",
+      "bullets": [
+        {
+          "text": "The essay contrasts being managed by algorithms with authoring the workflows that allocate value.",
+          "sourceIds": ["p-195f3a3a72", "p-b53c2a3c19", "p-aef752d972"]
+        },
+        {
+          "text": "Its three routes upward combine control over defaults, ongoing learning, and choosing worthwhile problems.",
+          "sourceIds": ["p-aef752d972", "p-c57657f0f3", "p-c49b0e54a6"]
+        }
+      ]
+    },
+    {
+      "id": "apprenticeship-mindset",
+      "label": "A provisional-workflow mindset",
+      "anchor": "h-fdd1518e10",
+      "bullets": [
+        {
+          "text": "The ending recommends an apprenticeship mindset: keep revising workflows and prompts rather than treating fluency as permanent.",
+          "sourceIds": ["p-2e16966cea", "p-1bbb8bc8f6"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "the-executive-lens",
+      "sectionId": "equal-ideas-unequal-leverage",
+      "kind": "observation",
+      "text": "The exercise controls for idea quality by assumption, then judges deliverables by executive usefulness. Read the retention verdict as a claim about organizational leverage, not proof that static design work is intrinsically worse.",
+      "sourceIds": ["p-76c7814e3c", "p-70d993a834", "p-e38c88835c"]
+    },
+    {
+      "id": "locating-the-bottleneck",
+      "sectionId": "adoption-without-maturity",
+      "kind": "question",
+      "text": "The passage pairs ambitious spending plans with limited maturity and employee apprehension. Is the bottleneck individual skill, organizational support, or the ability to translate experimentation into shared workflows?",
+      "sourceIds": ["p-af833c0d09-2", "p-cbaa6aa90b", "p-86b772c02d-2"]
+    },
+    {
+      "id": "a-moving-skill-premium",
+      "sectionId": "adaptive-skills",
+      "kind": "observation",
+      "text": "The wage premium and faster skill turnover pull in opposite directions: fluency can earn more, but its content keeps changing. The moat described here depends on repeated adaptation, not a credential acquired once.",
+      "sourceIds": ["p-e61f240e10", "p-11c2667250", "p-56115761e1"]
+    },
+    {
+      "id": "who-defines-the-work",
+      "sectionId": "agency-adaptation-meaning",
+      "kind": "observation",
+      "text": "The invoice example makes a stronger claim than time saved: the builder helps define what counts as reconciled. This is why the essay links AI literacy to decision rights, not simply higher output.",
+      "sourceIds": ["p-aef752d972"]
+    }
+  ]
+}

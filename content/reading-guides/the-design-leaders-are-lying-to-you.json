@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "slug": "the-design-leaders-are-lying-to-you",
+  "sourceSha256": "f661d6ab1b1cbbf1137a91b9e5b13fbccccc8b16406af0d45a4afd1d59e6c827",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "reassurance-without-change",
+      "label": "Reassurance without institutional change",
+      "anchor": "p-aea8ed8271",
+      "bullets": [
+        {
+          "text": "Taste never belonged exclusively to designers; AI erodes their monopoly on turning ideas into artifacts.",
+          "sourceIds": ["p-5b4000f85a", "p-237c7f5f1b"]
+        },
+        {
+          "text": "The critique targets unchanged workflows, calling for technical fluency and independently shipped products.",
+          "sourceIds": ["p-40765c34a1", "p-80d1e7977b", "p-9e6aa5a6d0"]
+        }
+      ]
+    },
+    {
+      "id": "yesterdays-defenses",
+      "label": "When successful frameworks become defenses",
+      "anchor": "h-359a3b2bf9",
+      "bullets": [
+        {
+          "text": "Frameworks once legitimized design, but the essay locates consequential decisions in model behavior rather than interfaces.",
+          "sourceIds": ["p-ef22339287", "p-edb016c470"]
+        },
+        {
+          "text": "The Maginot analogy warns of quiet circumvention, while early-career designers bear the costs of institutional inertia.",
+          "sourceIds": ["p-732528ea8b", "p-26f318d4e7"]
+        }
+      ]
+    },
+    {
+      "id": "shallow-adoption",
+      "label": "Faster tools, unchanged practice",
+      "anchor": "h-619496703c",
+      "bullets": [
+        {
+          "text": "Peripheral AI use can automate a diminishing workflow while preserving the structures that make it strategically weak.",
+          "sourceIds": ["p-44c595fa86", "p-52b0b170ff", "p-d7a353d53c"]
+        },
+        {
+          "text": "Adjacent roles can validate products before commissioning polish, undermining design's claim to an indispensable early role.",
+          "sourceIds": ["p-d7a353d53c", "p-630aa5eed7"]
+        }
+      ]
+    },
+    {
+      "id": "principles-and-implementation",
+      "label": "From performed authority to implementation",
+      "anchor": "h-885070ffac",
+      "bullets": [
+        {
+          "text": "The Versailles analogy frames polished leadership rituals as institutional continuity, not necessarily intentional deception.",
+          "sourceIds": ["p-0c9f48cd48", "p-66678cfc34"]
+        },
+        {
+          "text": "Bias and agent autonomy are design decisions requiring technical specifications rather than abstract principles.",
+          "sourceIds": ["p-f97714895a", "p-70319eb24c", "p-9cb508c5b9"]
+        }
+      ]
+    },
+    {
+      "id": "building-before-handoffs",
+      "label": "Building before design handoffs",
+      "anchor": "h-0a91e7ca78",
+      "bullets": [
+        {
+          "text": "Reported layoffs and building-first workflows illustrate design moving from early product direction toward later refinement.",
+          "sourceIds": ["p-b973f2e06b", "p-27cb6bc78e", "p-89344f08b4"]
+        },
+        {
+          "text": "The author anticipates independent launches after security reviews, depending on organizational maturity and existing design libraries.",
+          "sourceIds": ["p-40b15c17d1"]
+        }
+      ]
+    },
+    {
+      "id": "market-signals",
+      "label": "Reading investment as a leverage signal",
+      "anchor": "h-ed63aa9901",
+      "bullets": [
+        {
+          "text": "Compensation and hiring comparisons are presented as signals that companies prize influence over model behavior.",
+          "sourceIds": ["p-44f49b8bb5", "p-8eaca885fe", "p-eef635f697"]
+        },
+        {
+          "text": "The author reads OpenAI's Ive partnership as market positioning, not proof of design's organizational centrality.",
+          "sourceIds": ["p-23b6bdb564", "p-11165e8dc5"]
+        }
+      ]
+    },
+    {
+      "id": "independent-shipping",
+      "label": "The economics of independent shipping",
+      "anchor": "h-20d2241a1e",
+      "bullets": [
+        {
+          "text": "The predicted hiring test becomes independent product validation and launch, rather than contribution to a specialist handoff.",
+          "sourceIds": ["p-449abcbb5c", "p-05461627da"]
+        },
+        {
+          "text": "Craft survives in the proposed model as specialist refinement purchased after an idea demonstrates demand.",
+          "sourceIds": ["p-148fe3a24d"]
+        }
+      ]
+    },
+    {
+      "id": "agency-and-support",
+      "label": "Individual agency and leadership support",
+      "anchor": "h-5deb5f6d57",
+      "bullets": [
+        {
+          "text": "Human-centered thinking must reconnect with consequential decisions; the critique is of its institutional separation from them.",
+          "sourceIds": ["p-b315866c80", "p-17c4cd986b"]
+        },
+        {
+          "text": "The ending urges individual agency and leadership support, previewing practical capability-building in the next installment.",
+          "sourceIds": ["p-0ed8f6d1fd", "p-4dc3b846f7", "p-5f21d3af38"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "taste-without-monopoly",
+      "sectionId": "reassurance-without-change",
+      "kind": "observation",
+      "text": "The target is not taste itself but the assumption that taste guarantees organizational power. Losing control of artifact production makes workflow redesign, not professional identity, the proposed defense.",
+      "sourceIds": ["p-5b4000f85a", "p-245b9b8402", "p-6b84297c96"]
+    },
+    {
+      "id": "what-counts-as-adoption",
+      "sectionId": "shallow-adoption",
+      "kind": "observation",
+      "text": "A faster prototype counts as shallow adoption when it leaves authority and workflows unchanged. The distinction is organizational, not whether a designer has started using an AI tool.",
+      "sourceIds": ["p-44c595fa86", "p-fee44d6950", "p-52b0b170ff"]
+    },
+    {
+      "id": "making-principles-actionable",
+      "sectionId": "principles-and-implementation",
+      "kind": "question",
+      "text": "What would a trust or autonomy principle have to specify before researchers could implement it? The examples suggest data choices, refusal rules, and permission boundaries rather than another principles deck.",
+      "sourceIds": ["p-f97714895a", "p-283e5f8c7e", "p-70319eb24c"]
+    },
+    {
+      "id": "what-pay-can-establish",
+      "sectionId": "market-signals",
+      "kind": "question",
+      "text": "The compensation comparison is treated as evidence of expected leverage, not personal worth. Does it establish design's declining value, or more narrowly where these companies currently choose to invest?",
+      "sourceIds": ["p-8eaca885fe", "p-52af266287"]
+    },
+    {
+      "id": "individual-agency-in-institutions",
+      "sectionId": "agency-and-support",
+      "kind": "question",
+      "text": "The conclusion assigns agency to individuals after diagnosing an institutional problem. What would leaders have to relinquish or provide for those individuals to change the system rather than simply leave it?",
+      "sourceIds": ["p-b315866c80", "p-0ed8f6d1fd", "p-4dc3b846f7"]
+    }
+  ]
+}

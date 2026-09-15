@@ -204,8 +204,10 @@ def main():
             page.evaluate("window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}))")
             freeze(page)
             page.evaluate("window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}))")
-            # Check every active orbit origin, including index and reading arrivals.
-            for route, selector in (("/", ".idea-field"), ("/futurememo/", ".arrival-field"), (ARTICLE, ".arrival-field")):
+            # Reading pages deliberately omit decorative motion; retained origins stay bound.
+            page.goto(args.url + ARTICLE, wait_until="networkidle")
+            assert page.locator("[data-motion-scene], [data-motion-toggle]").count() == 0
+            for route, selector in (("/", ".idea-field"), ("/futurememo/", ".arrival-field")):
                 page.goto(args.url + route, wait_until="networkidle")
                 page.locator(selector).evaluate("el=>el.scrollIntoView({block:'center'})")
                 page.wait_for_function("selector=>document.querySelector(selector).dataset.motionState==='running'", arg=selector, polling=50)

@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "slug": "designers-have-to-move-from-the-surface-to-the-substrate",
+  "sourceSha256": "f10577fd4a31c384faf2b54e3c9b31e025c2ddbe43f90363f88610111d3cb61b",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "beyond-the-wrapper",
+      "label": "Beyond the chatbot wrapper",
+      "anchor": "p-d39b1d94fc",
+      "bullets": [
+        {
+          "text": "The essay relocates design's materials from visible surfaces to model behavior, policies, and memory.",
+          "sourceIds": ["p-0bc9324a55", "p-f9ec0e6d00", "p-001d8e1f33"]
+        },
+        {
+          "text": "Familiar chat interfaces preserve old metaphors while leaving the decisions that shape experience largely untouched.",
+          "sourceIds": ["p-1444e4cc78", "p-7d25b57839", "p-03a85add0e"]
+        }
+      ]
+    },
+    {
+      "id": "intent-and-authorship",
+      "label": "Negotiating intent and reviewing generation",
+      "anchor": "h-85e1267ba2",
+      "bullets": [
+        {
+          "text": "The essay forecasts a sharp loss of designer control as model behavior determines more of the experience.",
+          "sourceIds": ["p-2288c7869c", "p-89b25395ff"]
+        },
+        {
+          "text": "Intent negotiation and review of generated work replace fixed navigation and predictable authorship.",
+          "sourceIds": ["p-d6da614e87", "p-2ce39d04dd", "p-f1acda9186"]
+        }
+      ]
+    },
+    {
+      "id": "risk-and-access",
+      "label": "Invisible failure and unequal creativity",
+      "anchor": "h-140aebf90e",
+      "bullets": [
+        {
+          "text": "Quiet failures make alignment, not just delight, central to experience design.",
+          "sourceIds": ["p-99185f9855", "p-da8af26925", "p-135dc52250"]
+        },
+        {
+          "text": "Model fluency becomes creative leverage, potentially excluding ordinary users from the strongest capabilities.",
+          "sourceIds": ["p-84a2b572ee", "p-1d78e04cbd", "p-4cce01a9af"]
+        }
+      ]
+    },
+    {
+      "id": "software-builds-itself",
+      "label": "When software builds itself",
+      "anchor": "h-2298f9426c",
+      "bullets": [
+        {
+          "text": "Self-generating software raises a question about the survival of today's roles, not merely their tools.",
+          "sourceIds": ["p-a23c888bb5", "p-812434effd", "p-3868c060e9"]
+        },
+        {
+          "text": "Discussing AI and adding portfolio features are contrasted with participating in consequential model decisions.",
+          "sourceIds": ["p-ed00702bc6", "p-24f2f53975", "p-c17977f334"]
+        }
+      ]
+    },
+    {
+      "id": "data-and-memory",
+      "label": "Data and memory are design choices",
+      "anchor": "h-f504070859",
+      "bullets": [
+        {
+          "text": "Training-data selection shapes whose perspectives a model represents, making curation a human-experience decision.",
+          "sourceIds": ["p-ba0d053bb3", "p-7614b99c7b", "p-f7601ae26c"]
+        },
+        {
+          "text": "Memory architecture trades conversational continuity against privacy and consent, rather than merely optimizing technical performance.",
+          "sourceIds": ["p-26803ff1ab", "p-160a4a43f1", "p-4aeedaa43b"]
+        }
+      ]
+    },
+    {
+      "id": "prompts-and-retrieval",
+      "label": "Prompts and retrieval shape behavior",
+      "anchor": "h-f2ff635094",
+      "bullets": [
+        {
+          "text": "Hidden instructions set personality, refusals, and whether a model challenges or complies with the user.",
+          "sourceIds": ["p-b06112e2e7", "p-1de7b9aa95", "p-0f0bb548f1"]
+        },
+        {
+          "text": "Retrieval choices shape trust: which sources are searched, ranked, synthesized, and exposed.",
+          "sourceIds": ["p-6b7fac1b24", "p-f5718b261f", "p-9a375400e1"]
+        }
+      ]
+    },
+    {
+      "id": "right-to-act",
+      "label": "Designing the right to act",
+      "anchor": "h-26a3cb44af",
+      "bullets": [
+        {
+          "text": "Autonomous actions require designed boundaries for permission, ambiguity, and conflicting tools.",
+          "sourceIds": ["p-babf16e1a8-2", "p-9dd9cde2e7-2", "p-09753fbdc2-2"]
+        },
+        {
+          "text": "The essay frames these architectural choices as interaction design's questions of agency, trust, and control.",
+          "sourceIds": ["p-f9f236f14a"]
+        }
+      ]
+    },
+    {
+      "id": "purpose-and-participation",
+      "label": "Purpose depends on participation",
+      "anchor": "h-b374787d24",
+      "bullets": [
+        {
+          "text": "The conclusion ties design's purpose to shaping intelligence, rather than defending taste or decorating generated outputs.",
+          "sourceIds": ["p-0211b950ff", "p-87923be211", "p-2609501822"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "control-or-influence",
+      "sectionId": "intent-and-authorship",
+      "kind": "question",
+      "text": "The argument moves from less control over individual outputs to new responsibility for review and override. Does losing deterministic authorship necessarily mean losing influence, or does it relocate where designers exercise it?",
+      "sourceIds": ["p-89b25395ff", "p-f1acda9186"]
+    },
+    {
+      "id": "who-gets-the-capability",
+      "sectionId": "risk-and-access",
+      "kind": "observation",
+      "text": "The creativity inversion adds an access problem to the alignment problem: a system may be powerful yet reward only technically fluent users. The design challenge is not simply producing better outputs, but deciding who can obtain them.",
+      "sourceIds": ["p-edcf0a8472", "p-84a2b572ee", "p-4cce01a9af"]
+    },
+    {
+      "id": "consent-to-continuity",
+      "sectionId": "data-and-memory",
+      "kind": "question",
+      "text": "The memory example treats continuity and consent as competing design goals. What should a person be able to inspect, retain, or revoke if remembering more is meant to build trust rather than merely improve convenience?",
+      "sourceIds": ["p-26803ff1ab", "p-4aeedaa43b"]
+    },
+    {
+      "id": "agency-inside-architecture",
+      "sectionId": "right-to-act",
+      "kind": "observation",
+      "text": "Here the proposed role is not to add a confirmation screen after architecture is settled. Permission, ambiguity, and conflict handling are themselves materials of the design, placing user agency inside the action policy.",
+      "sourceIds": ["p-babf16e1a8-2", "p-09753fbdc2-2", "p-f9f236f14a"]
+    },
+    {
+      "id": "fluency-and-authority",
+      "sectionId": "purpose-and-participation",
+      "kind": "question",
+      "text": "The ending links exclusion partly to a language designers have not learned. Is technical fluency enough to secure a seat at these decisions, or would the profession also need different authority and access?",
+      "sourceIds": ["p-650ab26744", "p-2609501822"]
+    }
+  ]
+}

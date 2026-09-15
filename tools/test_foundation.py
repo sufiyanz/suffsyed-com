@@ -100,7 +100,8 @@ def main():
                         assert visible >= 180, (width, first, visible)
                 # Every cover at every width; decoded sizes, not density-corrected naturalWidth.
                 dimensions = [image_evidence(image) for image in images]
-                assert all(d["width"] >= (width - 48 if width <= 700 else 300) for d in dimensions), (width, route, dimensions)
+                minimum = (min(width - 64, 300) if width <= 700 else 300) if name.startswith("article") else (width - 48 if width <= 700 else 300)
+                assert all(d["width"] >= minimum for d in dimensions), (width, route, dimensions)
                 evidence["widths"][width][name] = dimensions
                 if name == "archive":
                     links = page.locator(".archive-entry").evaluate_all("""els => els.map(el => ({

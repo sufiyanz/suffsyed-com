@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "slug": "a-survival-playbook-for-an-ai-first-world",
+  "sourceSha256": "5579582492fed72a87b5294907dad71ef93ffb6354af1215168081d70030fef2",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "urgency-with-clarity",
+      "label": "Three routes beyond panic",
+      "anchor": "p-f9060bff89",
+      "bullets": [
+        {
+          "text": "The playbook urges deliberate action from displaced workers, current employees, and people entering the workforce.",
+          "sourceIds": ["p-695066d3c9", "p-4cbcc4b517"]
+        }
+      ]
+    },
+    {
+      "id": "domain-depth-to-product",
+      "label": "Displaced workers: build from domain depth",
+      "anchor": "p-4c78bec9c5",
+      "bullets": [
+        {
+          "text": "The author proposes AI-native tools as an alternative to stalled job searches and retrofitted legacy workflows.",
+          "sourceIds": ["p-b1a8a2479f", "p-a502e972c0", "p-ad4ff0ae4b"]
+        },
+        {
+          "text": "Lower building costs matter most when paired with deep knowledge of a process worth reinventing.",
+          "sourceIds": ["p-1ef82a362a", "p-8bad7ab626", "p-2bea6f38fd"]
+        }
+      ]
+    },
+    {
+      "id": "modernize-physical-businesses",
+      "label": "Find value in overlooked businesses",
+      "anchor": "p-c41c55aa7b",
+      "bullets": [
+        {
+          "text": "The second route applies software and AI to inefficient services instead of competing solely in knowledge work.",
+          "sourceIds": ["p-b68d2516f3", "p-2989cd3b8a", "p-a4aefcfa99"]
+        },
+        {
+          "text": "Business examples favor operational improvements, recurring revenue, and cash flow over prestige or cosmetic rebranding.",
+          "sourceIds": ["p-21da209d5b", "p-8b59aede2c-2", "p-ed83d57d8e"]
+        }
+      ]
+    },
+    {
+      "id": "lead-the-transformation",
+      "label": "Employees: lead the operational change",
+      "anchor": "p-dae3451fb5",
+      "bullets": [
+        {
+          "text": "For employees, the essay argues that visible output protects relevance more effectively than titles or loyalty.",
+          "sourceIds": ["p-d6a982e135", "p-74487dddeb", "p-0906f5f465"]
+        },
+        {
+          "text": "Identify work to automate or compress, and connect the proposed transformation to the company's most important problem.",
+          "sourceIds": ["p-9cd8e23e34", "p-b4d27f8a07", "p-993ba85bda"]
+        }
+      ]
+    },
+    {
+      "id": "impact-over-management",
+      "label": "Trade management layers for measurable impact",
+      "anchor": "p-df9670fe2a",
+      "bullets": [
+        {
+          "text": "The proposed leadership metric is personally delivered impact, not the number of people managed.",
+          "sourceIds": ["p-aac1d4bad3", "p-b907bab679", "p-3cfd33bcc8"]
+        },
+        {
+          "text": "Apply a solo operator's mindset inside the company, tying work directly to quarterly business results.",
+          "sourceIds": ["p-043eeaaa52", "p-57cf6da4af", "p-25685de351"]
+        }
+      ]
+    },
+    {
+      "id": "scale-yourself",
+      "label": "Run the full execution loop",
+      "anchor": "p-e27e388c4e",
+      "bullets": [
+        {
+          "text": "AI is presented as a way to scale one person's execution across an entire project.",
+          "sourceIds": ["p-0c58959261", "p-31acb406ac"]
+        },
+        {
+          "text": "Prototype and publish, then let the metrics demonstrate your value rather than optimizing for promotion.",
+          "sourceIds": ["p-46b1b4eb77", "p-e51d68a7f9", "p-bd6bbbb387"]
+        }
+      ]
+    },
+    {
+      "id": "protect-time-and-flexibility",
+      "label": "New entrants: protect time and flexibility",
+      "anchor": "p-22530a7707",
+      "bullets": [
+        {
+          "text": "Students face weakened entry-level routes and competition from experienced workers, according to the essay.",
+          "sourceIds": ["p-d479e8c285", "p-e59b5c3545", "p-2306a0190b"]
+        },
+        {
+          "text": "The advice treats time and low expenses as resources for experimentation, risk-taking, and rapid pivots.",
+          "sourceIds": ["p-04c52c57de", "p-311879b28e", "p-680a5d3468"]
+        }
+      ]
+    },
+    {
+      "id": "act-on-a-distinctive-insight",
+      "label": "Turn an insight into visible work",
+      "anchor": "p-989644c15f",
+      "bullets": [
+        {
+          "text": "The author favors testing a distinctive insight through AI-native products, niche services, or independent media.",
+          "sourceIds": ["p-aea5915aa3", "p-dc3c721024", "p-72faf28934"]
+        },
+        {
+          "text": "The conclusion reframes all three audiences' challenge as active relevance-building rather than passive competition for roles.",
+          "sourceIds": ["p-7ac30e4f45"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "experience-is-the-filter",
+      "sectionId": "domain-depth-to-product",
+      "kind": "observation",
+      "text": "The low barrier to building does not erase the essay's main filter: knowing a process unusually well. AI supplies execution; the proposed advantage is still knowledge that generic tools lack.",
+      "sourceIds": ["p-8bad7ab626", "p-161d6de39f", "p-7fba6a038b"]
+    },
+    {
+      "id": "resources-behind-the-purchase",
+      "sectionId": "modernize-physical-businesses",
+      "kind": "question",
+      "text": "Buying an existing business assumes resources beyond a good prompt. What capital and operating knowledge would someone out of work need before the laundromat strategy became a realistic alternative?",
+      "sourceIds": ["p-df1fb46184", "p-21da209d5b"]
+    },
+    {
+      "id": "owning-the-optimization",
+      "sectionId": "lead-the-transformation",
+      "kind": "observation",
+      "text": "The advice asks employees to lead the optimization that could shrink their own function. Its wager is that visible ownership of the transformation is safer than defending the existing role.",
+      "sourceIds": ["p-9cd8e23e34", "p-b4d27f8a07", "p-13187fe935"]
+    },
+    {
+      "id": "whose-runway",
+      "sectionId": "protect-time-and-flexibility",
+      "kind": "question",
+      "text": "The time-as-capital argument assumes few financial or family obligations. How would the recommended risk-taking and two-to-three-year runway change for a graduate who cannot make that assumption?",
+      "sourceIds": ["p-a8860ae45f", "p-311879b28e", "p-0316fab60e-2"]
+    },
+    {
+      "id": "anything-with-a-difference",
+      "sectionId": "act-on-a-distinctive-insight",
+      "kind": "observation",
+      "text": "'Start something. Anything.' is immediately narrowed by the requirement for an insight others lack. The call is to test a distinctive opportunity, not merely to produce another AI-enabled artifact.",
+      "sourceIds": ["p-989644c15f", "p-72faf28934"]
+    }
+  ]
+}

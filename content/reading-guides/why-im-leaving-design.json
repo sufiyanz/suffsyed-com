@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "slug": "why-im-leaving-design",
+  "sourceSha256": "80966a200e097db37a6444069104b7e888ac17c1a9620cdb445d3e39eebf7527",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "beyond-the-title",
+      "label": "Why leave the design title?",
+      "anchor": "h-e7b5f407a4",
+      "bullets": [
+        {
+          "text": "Early GPT-4 encounters connect AI's potential with the author's longstanding interest in human–technology interactions.",
+          "sourceIds": ["p-5141644510", "p-b640d99778"]
+        },
+        {
+          "text": "Five arguments connect the career change to shifts in products, leadership, distribution, and technical value.",
+          "sourceIds": ["p-939919340e", "p-d24f20aeb2"]
+        }
+      ]
+    },
+    {
+      "id": "agent-generated-experiences",
+      "label": "From fixed interfaces to agents",
+      "anchor": "h-2553471c2c",
+      "bullets": [
+        {
+          "text": "The essay anticipates agents replacing fragmented apps with personalized, dynamically generated experiences.",
+          "sourceIds": ["p-e272e5d46a", "p-9b2c497dc7"]
+        },
+        {
+          "text": "Websites remain useful today, but the proposed frontier demands agent architecture and orchestration skills.",
+          "sourceIds": ["p-17aab0be45", "p-2605eb90d3"]
+        }
+      ]
+    },
+    {
+      "id": "innovation-upstream",
+      "label": "Innovation moves beyond interface polish",
+      "anchor": "h-911883f9b4",
+      "bullets": [
+        {
+          "text": "The author distinguishes improving an experience from deciding what gets built and why.",
+          "sourceIds": ["p-946ef97ef4", "p-3a86ac3810"]
+        },
+        {
+          "text": "AI makes models, reasoning, and infrastructure central, exposing the limits of design without systems grounding.",
+          "sourceIds": ["p-c0619f3ea3", "p-bda4f680a8"]
+        }
+      ]
+    },
+    {
+      "id": "judgment-over-headcount",
+      "label": "Leadership through judgment and shipping",
+      "anchor": "h-8068ee8bb1",
+      "bullets": [
+        {
+          "text": "Traditional design leadership increasingly substitutes stakeholder coordination for direct creation.",
+          "sourceIds": ["p-3fd2078ade", "p-65593543bf"]
+        },
+        {
+          "text": "Lower coordination costs favor small teams and generalists whose judgment translates into shipped outcomes.",
+          "sourceIds": ["p-612d3e7ba1", "p-f0d083e3df", "p-e9c24e4298"]
+        }
+      ]
+    },
+    {
+      "id": "design-as-baseline",
+      "label": "Polish is easier to distribute",
+      "anchor": "h-94b8662245",
+      "bullets": [
+        {
+          "text": "Shared taste and reusable components make a polished starting point accessible without large design teams.",
+          "sourceIds": ["p-4ac96a41e7", "p-1f824dfd61"]
+        },
+        {
+          "text": "The claim is fewer designers, not none: design hygiene no longer guarantees differentiation or distribution.",
+          "sourceIds": ["p-9b42579e78", "p-0ecbb211de", "p-d052eee7ee"]
+        }
+      ]
+    },
+    {
+      "id": "scarcity-and-pay",
+      "label": "Technical scarcity attracts the rewards",
+      "anchor": "h-2a79fea104",
+      "bullets": [
+        {
+          "text": "The author reads compensation as a signal that scarce value has shifted toward model and infrastructure expertise.",
+          "sourceIds": ["p-70de37716f", "p-f6fb938012"]
+        },
+        {
+          "text": "Agent graphs, evaluation, and inference optimization offer technical leverage that current design training rarely supplies.",
+          "sourceIds": ["p-9097a94fe6", "p-a9147a3802", "p-6742379479"]
+        }
+      ]
+    },
+    {
+      "id": "return-to-first-principles",
+      "label": "A technical return to first principles",
+      "anchor": "h-1bebaa756d",
+      "bullets": [
+        {
+          "text": "The move to Member of Technical Staff is a commitment to learning, not a claim of mastery.",
+          "sourceIds": ["p-9b054a4d5e", "p-cd9ca63e37"]
+        },
+        {
+          "text": "The conclusion calls for builders who combine agentic systems with experience, clarity, and usable complexity.",
+          "sourceIds": ["p-995beb6777", "p-cf16eabb4f", "p-1b2aa6f795"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "where-design-moves",
+      "sectionId": "agent-generated-experiences",
+      "kind": "question",
+      "text": "If agents generate each user's interface, which design decisions migrate upstream into the agent's architecture and decision-making? The argument challenges fixed surfaces, but still leaves experiences to be shaped.",
+      "sourceIds": ["p-9b2c497dc7", "p-17aab0be45", "p-2605eb90d3"]
+    },
+    {
+      "id": "authority-versus-polish",
+      "sectionId": "innovation-upstream",
+      "kind": "observation",
+      "text": "The integrated-team example sharpens the critique: the disputed boundary is between influencing presentation and deciding what gets built. Better polish alone would not fix design's downstream position in that account.",
+      "sourceIds": ["p-946ef97ef4", "p-3a86ac3810"]
+    },
+    {
+      "id": "direction-not-benchmark",
+      "sectionId": "judgment-over-headcount",
+      "kind": "observation",
+      "text": "The author explicitly exaggerates the two-prompts-and-a-weekend example. The argument is about moving leverage from team size to judgment, not a demonstrated universal production timeline.",
+      "sourceIds": ["p-f0d083e3df"]
+    },
+    {
+      "id": "temporary-scarcity",
+      "sectionId": "scarcity-and-pay",
+      "kind": "question",
+      "text": "If compensation follows scarcity, how durable is today's orchestration premium as those skills become more widespread? The phrase 'for now' makes the argument a claim about the current frontier, not a permanent hierarchy.",
+      "sourceIds": ["p-70de37716f", "p-a9147a3802"]
+    },
+    {
+      "id": "continuity-under-new-title",
+      "sectionId": "return-to-first-principles",
+      "kind": "observation",
+      "text": "The job-title change does not reject experience or elegance; it relocates them into trust boundaries, agent flows, and system behavior. Technical depth is the proposed way to retain those commitments.",
+      "sourceIds": ["p-0fa40afaf6", "p-995beb6777", "p-cf16eabb4f"]
+    }
+  ]
+}

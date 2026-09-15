@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "slug": "ai-has-a-that-s-a-feature-not-a-product-problem",
+  "sourceSha256": "3e440385fb53384236f8e87337962455cf10048b94e9185eed6c0591b76e04e7",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "wonder-and-friction",
+      "label": "Wonder gives way to everyday friction",
+      "anchor": "p-af9eb96874",
+      "bullets": [
+        {
+          "text": "The author's fading enthusiasm contrasts with relatives and friends who find everyday AI assistants too tedious to adopt.",
+          "sourceIds": ["p-af9eb96874", "p-97caf56156"]
+        },
+        {
+          "text": "Conversational search can trade open-ended discovery and user control for additional cognitive work.",
+          "sourceIds": ["p-ce5b1a7daf", "p-e1388dee63"]
+        }
+      ]
+    },
+    {
+      "id": "standards-for-usefulness",
+      "label": "Dependability and personal delegation",
+      "anchor": "p-85297c43a2",
+      "bullets": [
+        {
+          "text": "Doctors' distrust of case-related answers exposes the gap between broad capability and dependable task-specific utility.",
+          "sourceIds": ["p-85297c43a2"]
+        },
+        {
+          "text": "The author's vacation benchmark demands learned preferences and end-to-end help rather than a display of generic recommendations.",
+          "sourceIds": ["p-fec11f3e50"]
+        }
+      ]
+    },
+    {
+      "id": "five-barriers",
+      "label": "Five connected barriers to adoption",
+      "anchor": "p-72844e9669",
+      "bullets": [
+        {
+          "text": "Conversational mismatch and prompting effort make users responsible for finding a path to useful results.",
+          "sourceIds": ["p-a4023a88a5-2", "p-030e1db046-2"]
+        },
+        {
+          "text": "Unclear use cases, weak trust, and missing personalization leave general assistants without a compelling paid purpose.",
+          "sourceIds": ["p-d120fb10ae-2", "p-459711c682-2", "p-b26377a14d-2"]
+        }
+      ]
+    },
+    {
+      "id": "subscription-question",
+      "label": "What would justify paying?",
+      "anchor": "p-c2f5d42e3e",
+      "bullets": [
+        {
+          "text": "Traffic and adoption figures are explicitly third-party; the author also acknowledges the limits of a three-person sample.",
+          "sourceIds": ["p-c2f5d42e3e"]
+        },
+        {
+          "text": "Cheaper models and expanding free access sharpen the question of what would justify a consumer subscription.",
+          "sourceIds": ["p-c2f5d42e3e"]
+        }
+      ]
+    },
+    {
+      "id": "solution-not-model",
+      "label": "From model capability to a distinct product",
+      "anchor": "p-457a0dd579",
+      "bullets": [
+        {
+          "text": "The proposed alternative is contextual flows of dedicated agents, not AI add-ons or another general assistant.",
+          "sourceIds": ["p-369fc06f8e"]
+        },
+        {
+          "text": "The iPhone analogy asks for a new product paradigm that turns model capability into something worth paying for.",
+          "sourceIds": ["p-b270da40df"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "expertise-does-not-guarantee-adoption",
+      "sectionId": "wonder-and-friction",
+      "kind": "observation",
+      "text": "The opening deliberately uses technically and professionally accomplished skeptics. Their reluctance challenges the assumption that understanding AI's potential is enough to make its conversational interface desirable.",
+      "sourceIds": ["p-97caf56156", "p-ce5b1a7daf"]
+    },
+    {
+      "id": "two-standards-of-value",
+      "sectionId": "standards-for-usefulness",
+      "kind": "question",
+      "text": "The doctors ask for dependable answers, while the author asks for personal delegation. Could one general assistant satisfy both standards, or do these examples already point toward different kinds of products?",
+      "sourceIds": ["p-85297c43a2", "p-fec11f3e50"]
+    },
+    {
+      "id": "provisional-evidence",
+      "sectionId": "subscription-question",
+      "kind": "observation",
+      "text": "The adoption argument is explicitly provisional: a small personal sample is paired with third-party metrics the author cannot confirm. The subscription-value question is firmer here than any settled claim about consumer demand.",
+      "sourceIds": ["p-c2f5d42e3e"]
+    },
+    {
+      "id": "what-makes-an-agent-flow-a-product",
+      "sectionId": "solution-not-model",
+      "kind": "question",
+      "text": "What must an orchestrated flow do beyond combining capable agents to become a product someone would pay for? The distinction between model innovation and solution innovation sets the goal, but not yet a concrete experience.",
+      "sourceIds": ["p-369fc06f8e", "p-b270da40df"]
+    }
+  ]
+}

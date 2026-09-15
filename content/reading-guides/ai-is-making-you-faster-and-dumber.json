@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "slug": "ai-is-making-you-faster-and-dumber",
+  "sourceSha256": "c2046d68716cff6488fa8c3b923471cbaa636683e2139030b2dada326e47289c",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "speed-with-a-cost",
+      "label": "Faster work, less agency",
+      "anchor": "p-0fa095c936",
+      "bullets": [
+        {
+          "text": "The author notices that AI's welcome speed gains can quietly erode his control over thinking.",
+          "sourceIds": ["p-0fa095c936", "p-54307dbba5"]
+        }
+      ]
+    },
+    {
+      "id": "skipping-the-reasoning",
+      "label": "Pre-reads can bypass shared reasoning",
+      "anchor": "p-4767f93618",
+      "bullets": [
+        {
+          "text": "Carefully layered narratives once followed collaborative debate; automated pre-reads can settle opinions before that debate happens.",
+          "sourceIds": ["p-e495ca4f5d", "p-16b838594d", "p-9e592c846e"]
+        },
+        {
+          "text": "The author admits replacing original research and reflection with fast, secondhand synthesis.",
+          "sourceIds": ["p-cb9fd73f55", "p-0c7623a06d"]
+        }
+      ]
+    },
+    {
+      "id": "unearned-insight",
+      "label": "A sharp question exposes the gap",
+      "anchor": "p-efd228f29b",
+      "bullets": [
+        {
+          "text": "A question from his boss reveals that a polished AI-prepared document exceeded his own understanding.",
+          "sourceIds": ["p-0537bc468a", "p-02b3b60044"]
+        }
+      ]
+    },
+    {
+      "id": "amplification-or-substitution",
+      "label": "Assistance depends on when thinking happens",
+      "anchor": "p-50a984593d",
+      "bullets": [
+        {
+          "text": "The cited writing study links early AI reliance with weaker engagement, formulaic work, and poorer recall.",
+          "sourceIds": ["p-6df3cc1eb6", "p-3b4c7c4091", "p-28e65eb409"]
+        },
+        {
+          "text": "Its reported contrast favors using AI after independent thinking: amplification rather than substitution.",
+          "sourceIds": ["p-2dabdd3be5", "p-493af8dcc0"]
+        }
+      ]
+    },
+    {
+      "id": "output-without-depth",
+      "label": "Output pressure dilutes the work",
+      "anchor": "p-a05a66e274",
+      "bullets": [
+        {
+          "text": "Fragmented workdays and constant responsiveness reward output while crowding out fulfillment and concentrated thought.",
+          "sourceIds": ["p-bc0f0f8de7", "p-9fa7f2028a", "p-c1ccbd051f"]
+        },
+        {
+          "text": "Ready-made outlines can bypass the argument, tension, and uncertainty through which the author once earned insight.",
+          "sourceIds": ["p-e4c80fc723", "p-20e846650d", "p-103f74c6c8"]
+        }
+      ]
+    },
+    {
+      "id": "reclaim-the-first-word",
+      "label": "Think first, then invite critique",
+      "anchor": "p-84bd10f901",
+      "bullets": [
+        {
+          "text": "Frame ideas independently, reconstruct them unaided, and rehearse the narrative aloud to test real understanding.",
+          "sourceIds": ["p-3c17191a88-2", "p-fad489b537-2", "p-e275119609-2"]
+        },
+        {
+          "text": "Use AI to challenge your thinking after drafting; the issue is timing and purpose, not abstinence.",
+          "sourceIds": ["p-ed9d5d362c-2", "p-4c5757ab84", "p-f7fae621be"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "brevity-is-not-the-enemy",
+      "sectionId": "skipping-the-reasoning",
+      "kind": "observation",
+      "text": "The problem is not brevity itself: the author already valued layered narratives for different reading times. What changes with automated pre-reads is whether compression follows shared reasoning or substitutes for it.",
+      "sourceIds": ["p-16b838594d", "p-92193d133c", "p-9e592c846e"]
+    },
+    {
+      "id": "defend-it-without-the-doc",
+      "sectionId": "unearned-insight",
+      "kind": "question",
+      "text": "Could you defend the reasoning without the document in front of you? The boss's question exposes a gap that faster drafting and polished delivery can leave invisible.",
+      "sourceIds": ["p-5e1eab66cf", "p-0537bc468a"]
+    },
+    {
+      "id": "sequence-changes-the-role",
+      "sectionId": "amplification-or-substitution",
+      "kind": "observation",
+      "text": "The reported study contrast makes sequence central: thinking first and using AI later differs from relying on it before forming an idea. The essay's concern is substitution, not a blanket claim that assistance is harmful.",
+      "sourceIds": ["p-28e65eb409", "p-2dabdd3be5", "p-493af8dcc0"]
+    },
+    {
+      "id": "protect-the-thinking-time",
+      "sectionId": "output-without-depth",
+      "kind": "question",
+      "text": "If fragmented workdays reward immediate responses, what protects the time needed for the messy reasoning the author values? Any effort to recover that depth must operate inside those same organizational pressures.",
+      "sourceIds": ["p-9fa7f2028a", "p-c1ccbd051f", "p-e4c80fc723"]
+    },
+    {
+      "id": "ownership-tests",
+      "sectionId": "reclaim-the-first-word",
+      "kind": "observation",
+      "text": "Rewriting from scratch and speaking aloud are tests of ownership, not just editing techniques. They make the author demonstrate understanding before accepting the model's framing or relying on slides.",
+      "sourceIds": ["p-fad489b537-2", "p-e275119609-2"]
+    }
+  ]
+}

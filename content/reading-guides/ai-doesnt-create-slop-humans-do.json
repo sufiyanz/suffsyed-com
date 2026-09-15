@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "slug": "ai-doesnt-create-slop-humans-do",
+  "sourceSha256": "2cc2bf14f31aa327e5d3545dca48718491ae5a62e33c335f93cc4f26b518bfc2",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "creative-instrument",
+      "label": "AI as a creative instrument",
+      "anchor": "p-6d819c337e",
+      "bullets": [
+        {
+          "text": "Ryo Lu's ryOS frames AI as a playful creative instrument, not merely a productivity tool.",
+          "sourceIds": ["p-6d819c337e", "p-7e13937962"]
+        },
+        {
+          "text": "The opening shifts attention from generated junk to the human choices behind it.",
+          "sourceIds": ["p-d99e53b75d", "p-867ff8349b"]
+        }
+      ]
+    },
+    {
+      "id": "familiar-pattern",
+      "label": "A familiar pattern of abundance",
+      "anchor": "h-c284bc7e77",
+      "bullets": [
+        {
+          "text": "New media repeatedly bring cheap output, public anxiety, and a slower development of taste.",
+          "sourceIds": ["p-c3c2f5bb2c", "p-0521e1b941"]
+        },
+        {
+          "text": "The essay sees AI's difference chiefly in scale and speed, not inevitable disposability.",
+          "sourceIds": ["p-6594fcd613", "p-78d16cea32"]
+        }
+      ]
+    },
+    {
+      "id": "input-and-taste",
+      "label": "Intent, inputs, and taste",
+      "anchor": "h-9b8d144eea",
+      "bullets": [
+        {
+          "text": "Depth requires direction and judgment; a vague prompt cannot supply either on its own.",
+          "sourceIds": ["p-59062abda9", "p-0363e2d2aa"]
+        },
+        {
+          "text": "Taste means understanding the tool, setting constraints, and deliberately shaping the interaction.",
+          "sourceIds": ["p-d847ccce67", "p-646857f950"]
+        }
+      ]
+    },
+    {
+      "id": "calibration",
+      "label": "Calibration is the craft",
+      "anchor": "h-56999d7d21",
+      "bullets": [
+        {
+          "text": "Calibration repeatedly adjusts questions, prompts, and constraints rather than accepting the first result.",
+          "sourceIds": ["p-fa8dbe4bb8", "p-5eee5d6af4"]
+        },
+        {
+          "text": "The model provides structure; human persistence and judgment give the work substance.",
+          "sourceIds": ["p-b9df2ed86e", "p-f7293a80ee"]
+        }
+      ]
+    },
+    {
+      "id": "incentives",
+      "label": "Look beyond the model",
+      "anchor": "h-66203ff15c",
+      "bullets": [
+        {
+          "text": "Blaming the model can obscure the standards people and platforms reward.",
+          "sourceIds": ["p-cf6e4972ad", "p-aaecf1acb1"]
+        },
+        {
+          "text": "The essay links slop's spread to incentives favoring engagement and speed over originality.",
+          "sourceIds": ["p-aaecf1acb1", "p-f144e4d176"]
+        }
+      ]
+    },
+    {
+      "id": "filters",
+      "label": "Craft develops after the flood",
+      "anchor": "h-a96163972c",
+      "bullets": [
+        {
+          "text": "Printing, desktop publishing, and video illustrate the argument that useful filters develop over time.",
+          "sourceIds": ["p-6cc8d0747b", "p-2dbfb22677", "p-9bdd6d1333"]
+        },
+        {
+          "text": "Faster production makes deliberate refinement more important, not less.",
+          "sourceIds": ["p-61a1fe0b10", "p-9b7f9c6e7f"]
+        }
+      ]
+    },
+    {
+      "id": "stewardship",
+      "label": "Choose stewardship over retreat",
+      "anchor": "h-78f341ca05",
+      "bullets": [
+        {
+          "text": "Stewardship means slowing down enough to shape the tool around what people value.",
+          "sourceIds": ["p-64ff4f90bd", "p-f826c334f5"]
+        },
+        {
+          "text": "The conclusion puts responsibility for standards and curation back in human hands.",
+          "sourceIds": ["p-9b21841ddc", "p-50634a8fc2"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "standard-of-success",
+      "sectionId": "creative-instrument",
+      "kind": "observation",
+      "text": "The opening's standard of success is soul and originality, not throughput. Keep that distinction in view when the argument turns from a playful experiment to mass-produced slop.",
+      "sourceIds": ["p-7e13937962", "p-d99e53b75d"]
+    },
+    {
+      "id": "before-the-prompt",
+      "sectionId": "input-and-taste",
+      "kind": "question",
+      "text": "If depth depends on intent and taste, what would a better input process look like before the first prompt is written? The discussion of constraints offers one starting point.",
+      "sourceIds": ["p-0363e2d2aa", "p-d847ccce67"]
+    },
+    {
+      "id": "interaction-as-craft",
+      "sectionId": "calibration",
+      "kind": "observation",
+      "text": "Calibration is presented as repeated judgment, not a single clever prompt. The craft lies in editing the interaction as well as evaluating what comes out of it.",
+      "sourceIds": ["p-5eee5d6af4", "p-b9df2ed86e"]
+    },
+    {
+      "id": "who-is-rewarded",
+      "sectionId": "incentives",
+      "kind": "question",
+      "text": "Who is rewarded for speed over originality: the user, the publisher, or the platform? This passage broadens the responsibility question beyond the person typing a prompt.",
+      "sourceIds": ["p-aaecf1acb1", "p-f144e4d176"]
+    },
+    {
+      "id": "responsibility-not-reassurance",
+      "sectionId": "stewardship",
+      "kind": "observation",
+      "text": "The closing offers responsibility rather than reassurance: better tools still require human standards. Curation and refinement, rather than withdrawal, are the proposed response.",
+      "sourceIds": ["p-9b21841ddc", "p-50634a8fc2"]
+    }
+  ]
+}

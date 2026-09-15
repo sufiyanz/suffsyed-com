@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "slug": "why-people-are-buying-into-ai-doomerism",
+  "sourceSha256": "456fd28569f14afb4c0ea9d9e919e3367995bc4d64ff3a436a89f25c1e35e0e3",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "already-inside-the-shift",
+      "label": "Fear begins with a present shift",
+      "anchor": "p-9c4bccc564",
+      "bullets": [
+        {
+          "text": "The opening frames AI displacement as a current reality, pairing universal exposure with the possibility of adaptation.",
+          "sourceIds": ["p-a44565cfb8", "p-c1d35a263e", "p-099729e86e"]
+        },
+        {
+          "text": "A three-part agenda promises to examine fear, overlooked forces, and a practical response.",
+          "sourceIds": ["p-265712acdf-2", "p-7e38531360-2", "p-0308675fde-2"]
+        }
+      ]
+    },
+    {
+      "id": "cognitive-work-exposed",
+      "label": "Why cognitive expertise feels exposed",
+      "anchor": "p-814d2cfd06",
+      "bullets": [
+        {
+          "text": "The essay argues that structured cognitive tasks are no longer a protected domain of human expertise.",
+          "sourceIds": ["p-47acd6431e"]
+        },
+        {
+          "text": "Medical scores, legal time savings, and coding forecasts build its case for widening disruption.",
+          "sourceIds": ["p-79686cd0ba-2", "p-78e7fcd91b-2", "p-a6cb4f15f4-2"]
+        }
+      ]
+    },
+    {
+      "id": "beyond-the-chatbot",
+      "label": "A conversational front end hides execution",
+      "anchor": "p-81d5496195",
+      "bullets": [
+        {
+          "text": "Chatbots are presented as the visible surface of systems increasingly capable of consequential work and action.",
+          "sourceIds": ["p-81d5496195", "p-028cabed03-2"]
+        },
+        {
+          "text": "Warnings about limited understanding and brittleness accompany the account of expanding deployment.",
+          "sourceIds": ["p-c958412480-2", "p-382a692812-2"]
+        }
+      ]
+    },
+    {
+      "id": "functions-and-incentives",
+      "label": "Functions, headcount, and shareholder incentives",
+      "anchor": "p-5c152d6e7e",
+      "bullets": [
+        {
+          "text": "The threat is framed around functions across seniority levels, not only junior roles or isolated departments.",
+          "sourceIds": ["p-5c152d6e7e", "p-1097791f58-2", "p-2df6e2f160-2"]
+        },
+        {
+          "text": "The author contrasts augmentation rhetoric with staff cuts, arguing that productivity increasingly decouples from headcount.",
+          "sourceIds": ["p-0c833e13ae", "p-bdd052ea7f-2", "p-ac86ee6f29"]
+        }
+      ]
+    },
+    {
+      "id": "medicine-as-economic-example",
+      "label": "Medicine tests the economic argument",
+      "anchor": "p-b2b090c6bc",
+      "bullets": [
+        {
+          "text": "Physician burnout and expanded roles for other providers frame a proposed redistribution of clinical work.",
+          "sourceIds": ["p-dc2ee11db3-2", "p-fb8528f3c8-2", "p-08eb94fc54-2"]
+        },
+        {
+          "text": "The author connects AI exam performance and cheaper delegated care to pressure on physicians' economic value.",
+          "sourceIds": ["p-d20305af13-2", "p-cc72e53e4f"]
+        }
+      ]
+    },
+    {
+      "id": "reinvention-not-personal-failure",
+      "label": "Separate personal worth from economic demand",
+      "anchor": "p-8d6d8f540e",
+      "bullets": [
+        {
+          "text": "The ending characterizes displacement as systemic rather than personal failure and urges reinvention instead of resistance.",
+          "sourceIds": ["p-24a478262d-2", "p-b9edcfe91b-2"]
+        },
+        {
+          "text": "It then hands off to Part 2 by asking who benefits from the changes behind visible layoffs.",
+          "sourceIds": ["p-2d0a49bed7", "p-67551c7742", "p-43d420c43e"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "tasks-versus-whole-roles",
+      "sectionId": "cognitive-work-exposed",
+      "kind": "question",
+      "text": "These examples mix accuracy scores, productivity gains, and a future forecast. Which kind of evidence would establish replacement of a whole role, rather than improvement on one task?",
+      "sourceIds": ["p-79686cd0ba-2", "p-cc49723e5e-2", "p-a6cb4f15f4-2"]
+    },
+    {
+      "id": "capability-and-brittleness",
+      "sectionId": "beyond-the-chatbot",
+      "kind": "observation",
+      "text": "The same passage pairs growing deployment with warnings about brittleness and limited understanding. Fear here is not only about superior performance; it is also about institutions adopting systems before those limits are resolved.",
+      "sourceIds": ["p-c958412480-2", "p-382a692812-2", "p-028cabed03-2"]
+    },
+    {
+      "id": "efficiency-is-a-choice",
+      "sectionId": "functions-and-incentives",
+      "kind": "observation",
+      "text": "The move from task automation to staff reduction depends on a business choice: converting efficiency into lower headcount. The author's explanation centers shareholder incentives, rather than treating layoffs as a direct measure of model ability.",
+      "sourceIds": ["p-91755423f3-2", "p-bdd052ea7f-2", "p-5f5a0ded3d-2"]
+    },
+    {
+      "id": "from-exams-to-economic-value",
+      "sectionId": "medicine-as-economic-example",
+      "kind": "question",
+      "text": "What would be needed to connect exam performance and redistribution of clinical tasks to the conclusion about doctors' economic value? The salary claim depends on that bridge, not on the test score alone.",
+      "sourceIds": ["p-d20305af13-2", "p-fb8528f3c8-2", "p-cc72e53e4f"]
+    },
+    {
+      "id": "an-open-handoff",
+      "sectionId": "reinvention-not-personal-failure",
+      "kind": "observation",
+      "text": "The final turn shifts attention from displaced workers to beneficiaries of the change. This is a handoff to Part 2, not a completed account of who gains or how to adapt.",
+      "sourceIds": ["p-b9edcfe91b-2", "p-67551c7742", "p-43d420c43e"]
+    }
+  ]
+}

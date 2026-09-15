@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "slug": "how-i-invented-claude-cowork-before-anthropic",
+  "sourceSha256": "cfdf647ab99e508e53ff2afbea445b4c9122476c57f1fcdc1711ea2949799c62",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "convergence-not-speed",
+      "label": "Convergence matters more than speed",
+      "anchor": "p-c4f3701f73",
+      "bullets": [
+        {
+          "text": "Flow and Cowork are presented as convergent answers to the terminal barrier, not a shipping-speed contest.",
+          "sourceIds": ["p-c4f3701f73", "p-0032ec2747", "p-2ec06decb2"]
+        },
+        {
+          "text": "The overlap signals narrowing individual–institutional capability, while the author doubts wrappers offer durable value.",
+          "sourceIds": ["p-fe9a293213", "p-d5784e3e11"]
+        }
+      ]
+    },
+    {
+      "id": "shared-terminal-contract",
+      "label": "One terminal, two presentations",
+      "anchor": "h-59f82e6b88",
+      "bullets": [
+        {
+          "text": "Flow manages one terminal session per agent, with a Rust backend and JavaScript frontend.",
+          "sourceIds": ["p-3ca567a8ec", "p-e23db6f1f0"]
+        },
+        {
+          "text": "Raw terminals and friendly cards share the same input and output without changing Claude Code's behavior.",
+          "sourceIds": ["p-256de1a8ac", "p-21d2b15ace"]
+        }
+      ]
+    },
+    {
+      "id": "translation-without-concealment",
+      "label": "Familiar controls without hiding reality",
+      "anchor": "h-01d0cc0641",
+      "bullets": [
+        {
+          "text": "Project grounding, a visible terminal, and conversational cards make Flow a stepping stone rather than a replacement.",
+          "sourceIds": ["p-532cb00b12", "p-799041631a", "p-fec2c2a110"]
+        },
+        {
+          "text": "Tabs make parallel agents navigable; skills, model selection, and task controls extend the familiar interaction model.",
+          "sourceIds": ["p-e51a4c3b4c", "p-ffee6667f4", "p-182942c0b9"]
+        }
+      ]
+    },
+    {
+      "id": "models-over-tools",
+      "label": "Models challenge specialized tools",
+      "anchor": "h-1554e122cf",
+      "bullets": [
+        {
+          "text": "Flow becomes a case study for a broader question: what survives when agents perform specialized software's work?",
+          "sourceIds": ["p-b57a6b712d", "p-b9fa71c5cc", "p-f06c075211"]
+        },
+        {
+          "text": "The author increasingly orchestrates outcomes directly, while acknowledging expertise and tools that still pull him back.",
+          "sourceIds": ["p-4bd6f9119e", "p-7125b2e9df", "p-b7fa7a1d5f"]
+        }
+      ]
+    },
+    {
+      "id": "outcomes-over-artifacts",
+      "label": "Work shifts from artifacts to outcomes",
+      "anchor": "h-83dcbd53ce",
+      "bullets": [
+        {
+          "text": "Office documents became central because people needed artifacts to coordinate complex work.",
+          "sourceIds": ["p-ac8dd4a934", "p-f49304c063"]
+        },
+        {
+          "text": "Independent end-to-end execution challenges careers organized around producing those coordination artifacts.",
+          "sourceIds": ["p-43e84a4b61", "p-9572b4212c", "p-ecc822d656"]
+        }
+      ]
+    },
+    {
+      "id": "vision-as-bottleneck",
+      "label": "Abundant execution makes vision scarce",
+      "anchor": "h-2c49cdcbef",
+      "bullets": [
+        {
+          "text": "As execution becomes more accessible, the author locates the new bottleneck in choosing worthwhile problems.",
+          "sourceIds": ["p-4ecb4ad6c8", "p-b07689bf77", "p-affc5b4a26"]
+        },
+        {
+          "text": "Legacy structures protect incremental work, while the proposed advantage is deliberately cultivated vision and taste.",
+          "sourceIds": ["p-134a24b669", "p-d330cdd913", "p-185b47bae9"]
+        }
+      ]
+    },
+    {
+      "id": "questions-for-builders",
+      "label": "The questions convergence leaves open",
+      "anchor": "h-2d2a3fa3c1",
+      "bullets": [
+        {
+          "text": "The closing asks how work, organizations, and infrastructure change when individuals gain institutional building power.",
+          "sourceIds": ["p-3e8ccd67af-2", "p-2dc1214060-2", "p-36b300fb09-2"]
+        },
+        {
+          "text": "The newsletter's agenda is to investigate distinctive value in the emerging paradigm, rather than declare settled answers.",
+          "sourceIds": ["p-ed4cd77566", "p-15df395145"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "fluency-versus-architecture",
+      "sectionId": "shared-terminal-contract",
+      "kind": "observation",
+      "text": "Not knowing Rust does not mean having no architectural model: the essay specifies session lifecycles and a shared I/O contract. Its example separates implementation fluency from the ability to define system behavior.",
+      "sourceIds": ["p-e23db6f1f0", "p-527caf95b9", "p-256de1a8ac"]
+    },
+    {
+      "id": "different-delivery-constraints",
+      "sectionId": "translation-without-concealment",
+      "kind": "question",
+      "text": "How should Flow's standalone freedom and lack of a maintenance plan qualify the comparison with Cowork inside an existing app? Converging on an interaction idea is not the same as sharing delivery constraints.",
+      "sourceIds": ["p-799041631a", "p-b432c48d9a"]
+    },
+    {
+      "id": "limits-of-tool-displacement",
+      "sectionId": "models-over-tools",
+      "kind": "observation",
+      "text": "The forecast that specialized tools dissolve comes with two limits: current results depend on the author's expertise, and Lightroom and Teams still serve specific needs. Present capability and universal adoption are not treated as identical.",
+      "sourceIds": ["p-7125b2e9df", "p-b7fa7a1d5f"]
+    },
+    {
+      "id": "coordination-that-remains",
+      "sectionId": "outcomes-over-artifacts",
+      "kind": "question",
+      "text": "Which artifacts would still be needed when an independently built outcome must fit other people's work? The argument's strongest case assumes one person can reach the finish line without extensive alignment.",
+      "sourceIds": ["p-43e84a4b61", "p-ecc822d656"]
+    },
+    {
+      "id": "access-still-matters",
+      "sectionId": "vision-as-bottleneck",
+      "kind": "observation",
+      "text": "The claim of abundant execution still has an explicit constraint: the compute one can afford. Vision becomes the proposed differentiator, but the essay has not made access to execution literally costless.",
+      "sourceIds": ["p-b07689bf77", "p-affc5b4a26", "p-c4cb9855d0"]
+    }
+  ]
+}

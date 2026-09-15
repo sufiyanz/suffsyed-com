@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "slug": "designers-should-look-to-demis-hassabis-not-jony-ive",
+  "sourceSha256": "dd49541516437dbc12b0c75e30b1632b0ab894a250dd700fce0d8b265de3b015",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "ives-achievement",
+      "label": "Ive made technology an invitation",
+      "anchor": "h-ae15878200",
+      "bullets": [
+        {
+          "text": "Ive's hardware and interface work made technology welcoming and raised expectations of everyday craft.",
+          "sourceIds": ["p-c7c15ed5ff", "p-88e9356ebc", "p-7712e894a0"]
+        },
+        {
+          "text": "That achievement sets up the essay's claim that design's next center of gravity lies beneath surfaces.",
+          "sourceIds": ["p-47b086e01d", "p-3618086c7a", "p-3743311180"]
+        }
+      ]
+    },
+    {
+      "id": "behavior-as-material",
+      "label": "Model behavior becomes design material",
+      "anchor": "h-5107e0bede",
+      "bullets": [
+        {
+          "text": "The essay shifts design's focus from visual arrangement to model behavior, context, and policy.",
+          "sourceIds": ["p-45c153e0be", "p-1061d43915"]
+        },
+        {
+          "text": "Surface quality still matters, but influence over AI-mediated experience now requires technical fluency.",
+          "sourceIds": ["p-b2cc3abdf1", "p-7b92de7d5b", "p-f28ebfa988"]
+        }
+      ]
+    },
+    {
+      "id": "play-to-intelligence",
+      "label": "From designing games to studying intelligence",
+      "anchor": "h-a1c878affc",
+      "bullets": [
+        {
+          "text": "Game design introduces Hassabis as a builder of responsive behavior and emergent systems, not merely artifacts.",
+          "sourceIds": ["p-e10adfccc8", "p-00dcceadce"]
+        },
+        {
+          "text": "His move into neuroscience and DeepMind frames interdisciplinary study as preparation for building intelligence.",
+          "sourceIds": ["p-5a29d6a69c", "p-b17e2b9a42", "p-de1b02ba0e"]
+        }
+      ]
+    },
+    {
+      "id": "move-thirty-seven",
+      "label": "Move 37 as a new keynote moment",
+      "anchor": "h-df8eda1ef2",
+      "bullets": [
+        {
+          "text": "AlphaGo's Move 37 becomes the essay's emblem of machine creativity rather than brute calculation.",
+          "sourceIds": ["p-252ab45920", "p-b3025c08f9", "p-354514e5b4"]
+        }
+      ]
+    },
+    {
+      "id": "impact-and-leadership",
+      "label": "Scientific impact redefines design leadership",
+      "anchor": "h-e81bc5e45d",
+      "bullets": [
+        {
+          "text": "AlphaFold carries the argument from games to scientific impact, presented as learned intelligence rather than hardcoded behavior.",
+          "sourceIds": ["p-869eb6fcab", "p-898434eda0"]
+        },
+        {
+          "text": "The closing defines design leadership by shaping intelligence and previews a closer look at its technical substrate.",
+          "sourceIds": ["p-6b122079a1", "p-b783ecaf0d", "p-913f43c4a5"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "praise-before-displacement",
+      "sectionId": "ives-achievement",
+      "kind": "observation",
+      "text": "The opening praises Ive before displacing him. This makes the argument about a change in design's materials and locus of influence, not a claim that beauty or his achievements were mistakes.",
+      "sourceIds": ["p-038016e734", "p-7712e894a0", "p-3618086c7a"]
+    },
+    {
+      "id": "surfaces-are-not-nothing",
+      "sectionId": "behavior-as-material",
+      "kind": "observation",
+      "text": "The essay predicts disappearing surfaces yet explicitly retains a role for buttons and animation. Read the shift as a change in where consequential decisions sit, rather than a claim that presentation no longer matters.",
+      "sourceIds": ["p-aa6d22a45d", "p-b2cc3abdf1", "p-1061d43915"]
+    },
+    {
+      "id": "evaluating-unspecified-behavior",
+      "sectionId": "move-thirty-seven",
+      "kind": "question",
+      "text": "The keynote analogy changes what counts as a design revelation: an unexpected move replaces a visible object. How would designers evaluate a system whose valuable behavior is not specified in advance?",
+      "sourceIds": ["p-f0281c644f", "p-b3025c08f9", "p-354514e5b4"]
+    },
+    {
+      "id": "a-broader-design-category",
+      "sectionId": "impact-and-leadership",
+      "kind": "question",
+      "text": "Calling Hassabis a design leader broadens the category from a professional title to shaping possibility. What responsibilities toward people's experience should accompany that broader definition?",
+      "sourceIds": ["p-6b122079a1", "p-b783ecaf0d", "p-7fa8cf1767"]
+    }
+  ]
+}

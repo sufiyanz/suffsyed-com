@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "slug": "sour-fig-figma-s-future-is-uncertain-despite-ipo-hype",
+  "sourceSha256": "950cf0a62985a15de2fd3784f7e87f582496396921a8cdba78c534d7e05f9a74",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "growth-and-margin-risk",
+      "label": "Growth meets AI's margin test",
+      "anchor": "p-8946d47ca7",
+      "bullets": [
+        {
+          "text": "Strong retention and cross-team adoption underpin the bull case, but AI threatens its margin assumptions.",
+          "sourceIds": ["p-c8d7711e88", "p-563825f619", "p-665a6892c9"]
+        },
+        {
+          "text": "The IPO story follows a failed acquisition and an uneven transition from AI promises to delivery.",
+          "sourceIds": ["p-8946d47ca7", "p-59337999c7"]
+        }
+      ]
+    },
+    {
+      "id": "execution-gap",
+      "label": "An uneven path from demo to delivery",
+      "anchor": "p-34e9b27d83",
+      "bullets": [
+        {
+          "text": "The essay traces lost momentum through delayed investment, derivative outputs, and slow follow-through.",
+          "sourceIds": ["p-e013c0eb51", "p-d2fb0f590c", "p-ef1ca135f9"]
+        },
+        {
+          "text": "Talent departures and immature infrastructure make AI execution, rather than brand strength, the immediate test.",
+          "sourceIds": ["p-eb6ccf322c", "p-5d280cac66"]
+        }
+      ]
+    },
+    {
+      "id": "lovable-bypasses-design",
+      "label": "Lovable bypasses the design phase",
+      "anchor": "p-b5da40d9b2",
+      "bullets": [
+        {
+          "text": "Lovable's threat is workflow substitution: prompts yield deployable products without a separate design phase.",
+          "sourceIds": ["p-9c0fa994ed", "p-df25f47774"]
+        },
+        {
+          "text": "The essay uses rapid growth and accessibility to argue that prompt-native creation has commercial traction.",
+          "sourceIds": ["p-382fd12a18", "p-2070419582"]
+        }
+      ]
+    },
+    {
+      "id": "developer-platforms",
+      "label": "Developer platforms erase the handoff",
+      "anchor": "p-927ced37aa",
+      "bullets": [
+        {
+          "text": "AI coding platforms threaten Figma by removing the handoffs that made its collaboration canvas valuable.",
+          "sourceIds": ["p-1b312a39df", "p-9f0e7aa1c0-2", "p-3cba7d7774"]
+        },
+        {
+          "text": "The proposed response is orchestration of software production, not merely faster translation from design to code.",
+          "sourceIds": ["p-e55578c360", "p-3cba7d7774", "p-1a67ab0225"]
+        }
+      ]
+    },
+    {
+      "id": "canva-expansion-barrier",
+      "label": "Canva already serves the wider market",
+      "anchor": "p-6206e2cafd",
+      "bullets": [
+        {
+          "text": "Canva's scale and non-designer audience challenge Figma's expansion beyond professional interface design.",
+          "sourceIds": ["p-a566d532fb", "p-afb461f14f", "p-9ddd91dea9"]
+        },
+        {
+          "text": "AI-driven microapps and productivity formats put Canva directly across Figma's proposed growth path.",
+          "sourceIds": ["p-95e170bc86", "p-ef81d8eb60", "p-9ddd91dea9"]
+        }
+      ]
+    },
+    {
+      "id": "infrastructure-economics",
+      "label": "The infrastructure bill behind AI",
+      "anchor": "p-bc078043ab",
+      "bullets": [
+        {
+          "text": "AI hosting increases and a long-term cloud commitment expose the infrastructure burden behind new features.",
+          "sourceIds": ["p-381e12c475-2", "p-1406b22210", "p-d7d7d12f8f-2"]
+        },
+        {
+          "text": "Protecting high margins requires controlling inference costs or charging for AI's added value.",
+          "sourceIds": ["p-ac60a1f52b", "p-49f66acba1"]
+        }
+      ]
+    },
+    {
+      "id": "canvas-to-conductor",
+      "label": "From canvas to conductor",
+      "anchor": "p-ee80a6426f",
+      "bullets": [
+        {
+          "text": "The prescription combines a prompt-native product shift with new AI revenue and disciplined infrastructure spending.",
+          "sourceIds": ["p-71363d0c39-2", "p-9b055b6c39-2", "p-78832daca4-2"]
+        },
+        {
+          "text": "The final risk is exclusion from software production, not merely losing to a better design canvas.",
+          "sourceIds": ["p-04f75a13b3", "p-76bd35d70c"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "strength-is-not-insulation",
+      "sectionId": "growth-and-margin-risk",
+      "kind": "observation",
+      "text": "The critique does not deny Figma's strong business. It questions whether retention, collaboration, and high margins remain mutually reinforcing once AI becomes both a competitive requirement and a substantial operating cost.",
+      "sourceIds": ["p-c8d7711e88", "p-563825f619", "p-665a6892c9"]
+    },
+    {
+      "id": "adoption-to-substitution",
+      "sectionId": "lovable-bypasses-design",
+      "kind": "question",
+      "text": "The leap from rapid adoption to replacing design tools assumes prompt-built products satisfy the work Figma currently coordinates. Which kinds of projects would test that assumption most directly?",
+      "sourceIds": ["p-382fd12a18", "p-df25f47774", "p-41860e8d92"]
+    },
+    {
+      "id": "the-expansion-collision",
+      "sectionId": "canva-expansion-barrier",
+      "kind": "observation",
+      "text": "Canva threatens more than a feature roadmap. In this account, moving beyond professional designers is not an escape into an open market: it brings Figma into territory with an established audience, distribution, and AI rollout.",
+      "sourceIds": ["p-ef81d8eb60", "p-9ddd91dea9"]
+    },
+    {
+      "id": "which-cost-is-incremental",
+      "sectionId": "infrastructure-economics",
+      "kind": "question",
+      "text": "The cloud commitment is presented alongside AI-specific hosting increases, but they describe different costs. How much of the margin risk depends on AI usage growth versus infrastructure Figma would fund anyway?",
+      "sourceIds": ["p-381e12c475-2", "p-d7d7d12f8f-2", "p-620285ab57"]
+    },
+    {
+      "id": "orchestration-as-business-change",
+      "sectionId": "canvas-to-conductor",
+      "kind": "observation",
+      "text": "The proposed rescue changes both what Figma sells and what it must be good at. Orchestration is the shared answer to workflow displacement and infrastructure cost, not merely a new feature label.",
+      "sourceIds": ["p-71363d0c39-2", "p-78832daca4-2", "p-04f75a13b3"]
+    }
+  ]
+}

@@ -34,6 +34,7 @@ function initializeReader(essay) {
   }
 
   function restorePosition(position) {
+    if (document.querySelector(".reader-composition")) return;
     if (position) requestAnimationFrame(() => {
       window.scrollBy({ top: position.node.getBoundingClientRect().top - position.offset, behavior: "instant" });
     });
@@ -233,6 +234,10 @@ function initializeReader(essay) {
     search(false);
   }
   if (location.hash === "#reading-lens") openLens(null, false);
+  if (document.getElementById("ai-reading-guide")) {
+    initializeCompanion(essay);
+    return;
+  }
   const sectionNodes = essay.sections.map(section => document.getElementById(section.id)).filter(Boolean);
   const contentsLinks = [...document.querySelectorAll(".contents a")];
   let orientationQueued = false;
@@ -258,4 +263,188 @@ function initializeReader(essay) {
   window.addEventListener("resize", scheduleOrientation);
   new ResizeObserver(scheduleOrientation).observe(document.getElementById("essay-body"));
   scheduleOrientation();
+}
+
+function initializeCompanion(essay) {
+  const body = document.getElementById("essay-body");
+  const guide = document.getElementById("ai-reading-guide");
+  const notes = document.getElementById("ai-reading-notes");
+  const tools = document.getElementById("reader-tools");
+  const composition = document.querySelector(".reader-composition");
+  const panel = tools.querySelector(".reader-tools-content");
+  const rails = [guide.closest(".reader-guide"), notes.closest(".reader-notes")];
+  const compactProgress = tools.querySelector("[data-compact-progress]");
+  const wide = matchMedia("(min-width: 1280px)");
+  const sections = [...guide.querySelectorAll("[data-guide-section]")].map(item => ({
+    item, link: item.querySelector("[data-guide-anchor]"), points: item.querySelector(".guide-points"),
+    anchor: document.getElementById(item.querySelector("[data-guide-anchor]").dataset.guideAnchor),
+  }));
+  const noteNodes = [...notes.querySelectorAll("[data-note-section]")];
+  const position = document.querySelector(".reading-position");
+  const progress = position.querySelector("progress");
+  const percent = position.querySelector("[data-reading-percent]");
+  const allNotes = notes.querySelector("[data-all-notes]");
+  const originalLinks = [...document.querySelectorAll(".contents a")];
+  const originalSections = essay.sections.map(section => document.getElementById(section.id)).filter(Boolean);
+  const manualPoints = new Map();
+  let current = null;
+  let showAll = false;
+  let frame = null;
+  let away = false;
+  let restorationFrame = null;
+  let interaction = 0;
+
+  function responsive() {
+    const focused = document.activeElement;
+    const movedFocus = rails.some(rail => rail.contains(focused));
+    for (const rail of rails) {
+      if (wide.matches && rail.parentElement !== composition) composition.insertBefore(rail, body);
+      else if (!wide.matches && rail.parentElement !== panel) panel.append(rail);
+    }
+    tools.open = false;
+    guide.open = notes.open = wide.matches;
+    if (movedFocus) (wide.matches ? focused : tools.querySelector(":scope > summary")).focus({ preventScroll: true });
+    current = null;
+    schedule();
+  }
+  function update() {
+    frame = null;
+    if (away || document.hidden) return;
+    const clearance = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
+    const rect = body.getBoundingClientRect();
+    const travel = rect.height - (innerHeight - clearance);
+    const value = Math.round(travel > 0 ? Math.max(0, Math.min(1, (clearance - rect.top) / travel)) * 100
+      : rect.top <= clearance ? 100 : 0);
+    if (progress.value !== value) progress.value = value;
+    const label = `${value}%`;
+    if (percent.textContent !== label) percent.textContent = label;
+    if (compactProgress.textContent !== label) {
+      compactProgress.textContent = label;
+      compactProgress.setAttribute("aria-label", `Reading progress: ${label} through the article body`);
+    }
+    position.hidden = false;
+    const reached = node => node.getBoundingClientRect().top <=
+      clearance + parseFloat(getComputedStyle(node).scrollMarginTop) + 1;
+    let selected = sections[0];
+    for (const section of sections) {
+      if (!reached(section.anchor)) break;
+      selected = section;
+    }
+    if (current !== selected) {
+      current = selected;
+      sections.forEach(section => {
+        const active = section === selected;
+        section.item.dataset.active = String(active);
+        if (active) section.link.setAttribute("aria-current", "location");
+        else section.link.removeAttribute("aria-current");
+        if (wide.matches && !manualPoints.has(section.points) && !section.points.contains(document.activeElement))
+          section.points.open = active;
+      });
+      renderNotes();
+    }
+    let original = originalSections[0];
+    for (const node of originalSections) {
+      if (!reached(node)) break;
+      original = node;
+    }
+    originalLinks.forEach(link => {
+      if (link.hash === `#${original.id}`) link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
+    });
+  }
+  function renderNotes() {
+    notes.dataset.noteMode = showAll ? "all" : "current";
+    const id = current.item.dataset.guideSection;
+    let count = 0;
+    noteNodes.forEach(note => {
+      note.hidden = !showAll && note.dataset.noteSection !== id;
+      if (!note.hidden) count++;
+    });
+    notes.querySelector("[data-current-section]").textContent = showAll ? "All sections" : current.link.textContent.trim().replace(/^\d+\s*/, "");
+    notes.querySelector(".reader-note-empty").hidden = count > 0;
+    allNotes.setAttribute("aria-pressed", String(showAll));
+    allNotes.textContent = showAll ? "Follow the current section" : "Show all AI notes";
+  }
+  function schedule() {
+    if (frame !== null || away || document.hidden) return;
+    frame = requestAnimationFrame(update);
+  }
+  function suspend() {
+    if (frame !== null) cancelAnimationFrame(frame);
+    frame = null;
+  }
+  function cancelRestoration() {
+    if (restorationFrame !== null) cancelAnimationFrame(restorationFrame);
+    restorationFrame = null;
+  }
+  function rememberPosition() {
+    const state = history.state && typeof history.state === "object" ? history.state : {};
+    history.replaceState({ ...state, readerPosition: { url: location.href, y: scrollY } }, "");
+  }
+  function restoreHistory(event) {
+    cancelRestoration();
+    const intent = ++interaction;
+    away = false;
+    schedule();
+    const saved = history.state?.readerPosition;
+    const returning = event.persisted || performance.getEntriesByType("navigation")[0]?.type === "back_forward";
+    if (!returning || saved?.url !== location.href || !Number.isFinite(saved.y) || saved.y < 0) return;
+    // WebKit can restore scroll, then reapply the old fragment during load.
+    // Restore once after fonts and the browser's return frame, unless the user acts.
+    document.fonts.ready.then(() => {
+      if (away || document.hidden || interaction !== intent) return;
+      restorationFrame = requestAnimationFrame(() => {
+        restorationFrame = requestAnimationFrame(() => {
+          restorationFrame = null;
+          if (!away && !document.hidden && interaction === intent && Math.abs(scrollY - saved.y) > 1)
+            window.scrollTo({ top: saved.y, behavior: "instant" });
+        });
+      });
+    });
+  }
+  sections.forEach(section => section.points.querySelector("summary").addEventListener("click", () => {
+    manualPoints.set(section.points, !section.points.open);
+  }));
+  allNotes.addEventListener("click", () => {
+    showAll = !showAll;
+    if (current) renderNotes();
+  });
+  document.querySelector("[data-passage-toggle]").addEventListener("change", event => {
+    document.body.classList.toggle("show-passage-tools", event.target.checked);
+  });
+  for (const rail of [guide, notes]) {
+    rail.addEventListener("toggle", schedule, true);
+    rail.addEventListener("click", event => {
+      const link = event.target.closest('a[href^="#"]');
+      if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (!wide.matches) tools.open = false;
+      document.getElementById(link.hash.slice(1))?.focus({ preventScroll: true });
+    });
+  }
+  tools.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !wide.matches && tools.open) {
+      tools.open = false;
+      tools.querySelector(":scope > summary").focus({ preventScroll: true });
+    }
+  });
+  document.querySelector(".open-lens").addEventListener("click", () => {
+    if (!wide.matches) tools.open = false;
+  });
+  window.addEventListener("scroll", schedule, { passive: true });
+  window.addEventListener("resize", schedule);
+  window.addEventListener("hashchange", schedule);
+  window.addEventListener("popstate", schedule);
+  window.addEventListener("pagehide", () => { rememberPosition(); interaction++; away = true; suspend(); cancelRestoration(); });
+  window.addEventListener("pageshow", restoreHistory);
+  for (const type of ["pointerdown", "keydown", "wheel", "touchstart"]) {
+    window.addEventListener(type, () => { interaction++; cancelRestoration(); }, { passive: true });
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { interaction++; suspend(); cancelRestoration(); }
+    else schedule();
+  });
+  wide.addEventListener("change", responsive);
+  new ResizeObserver(schedule).observe(body);
+  document.fonts.ready.then(schedule);
+  responsive();
 }

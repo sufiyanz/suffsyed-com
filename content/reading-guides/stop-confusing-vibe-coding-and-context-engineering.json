@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "slug": "stop-confusing-vibe-coding-and-context-engineering",
+  "sourceSha256": "63af3e7d0b6cedf066f6dcf48dbe9a72848db0b953cd1aca784062e004b6ba9f",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "definitions-before-hype",
+      "label": "Precision before the AI hype",
+      "anchor": "p-2ea0ba9548",
+      "bullets": [
+        {
+          "text": "Clear definitions help distinguish meaningful practices amid rapid change, shallow reactions, and AI hype.",
+          "sourceIds": ["p-2ea0ba9548", "p-e98b92a3bf"]
+        }
+      ]
+    },
+    {
+      "id": "outsourcing-code-scrutiny",
+      "label": "When confidence replaces code scrutiny",
+      "anchor": "h-1de14dad5e",
+      "bullets": [
+        {
+          "text": "IDE integration made AI assistance more contextual and encouraged programmers to trust generated code.",
+          "sourceIds": ["p-697b6b7e96", "p-5a0d0ead7c"]
+        },
+        {
+          "text": "Karpathy's definition emphasizes accepting changes and chasing outcomes without closely inspecting the underlying implementation.",
+          "sourceIds": ["p-81b91bbaa6", "p-a9c4ffbea0", "p-756e512209"]
+        }
+      ]
+    },
+    {
+      "id": "prototype-to-frustration",
+      "label": "Why instant prototypes become frustrating",
+      "anchor": "p-667f88f537",
+      "bullets": [
+        {
+          "text": "Natural-language app builders offer immediate gratification, but broad requests can unravel without technical understanding.",
+          "sourceIds": ["p-667f88f537", "p-f1634fb48d"]
+        },
+        {
+          "text": "Dietschy's eventual success illustrates the persistence and frustration that unguided iteration can demand.",
+          "sourceIds": ["p-7bdd36231d-2", "p-f1634fb48d"]
+        }
+      ]
+    },
+    {
+      "id": "engineer-the-context",
+      "label": "Define the context before delegating",
+      "anchor": "h-cb8c98e10e",
+      "bullets": [
+        {
+          "text": "The human must curate relevant context as work moves between broad goals and small implementation tasks.",
+          "sourceIds": ["p-26c8e46c8d"]
+        },
+        {
+          "text": "Requirements, architecture, task breakdowns, and success criteria prepare agents to pursue defined outcomes with less supervision.",
+          "sourceIds": ["p-af1537b56d", "p-f83812ae84-2"]
+        }
+      ]
+    },
+    {
+      "id": "building-versus-demonstrating",
+      "label": "Judge the method behind the demo",
+      "anchor": "h-c136f3c565",
+      "bullets": [
+        {
+          "text": "Early guidelines can preserve easy app creation while supporting more reliable changes and small-team execution.",
+          "sourceIds": ["p-0fcc63f853"]
+        },
+        {
+          "text": "The author assesses technical ability through daily building practices, not the apparent completeness of a prototype.",
+          "sourceIds": ["p-46747de67c", "p-afd1eed474"]
+        }
+      ]
+    },
+    {
+      "id": "enterprise-reality",
+      "label": "Enterprise constraints outlast prototype speed",
+      "anchor": "h-70a6d7c2c9",
+      "bullets": [
+        {
+          "text": "The essay proposes that prototype excitement can conceal the integration, architecture, and security work needed for production.",
+          "sourceIds": ["p-823850f457"]
+        },
+        {
+          "text": "Reported weak enterprise returns frame a warning against experiments disconnected from measurable business value.",
+          "sourceIds": ["p-823850f457"]
+        }
+      ]
+    },
+    {
+      "id": "vibes-with-grounding",
+      "label": "Keep experimentation, engineer the foundation",
+      "anchor": "h-10a68dd4a7",
+      "bullets": [
+        {
+          "text": "The author still vibe codes, but only after establishing the context that makes delegation effective.",
+          "sourceIds": ["p-08884c0e74"]
+        },
+        {
+          "text": "Fast prototypes can test ideas; building something real requires discipline beyond the initial creative rush.",
+          "sourceIds": ["p-08884c0e74"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "behavior-not-interface",
+      "sectionId": "outsourcing-code-scrutiny",
+      "kind": "observation",
+      "text": "The definition turns on what the human stops doing: reading diffs and inspecting structure. Merely typing natural language does not capture the behavioral distinction the author is trying to preserve.",
+      "sourceIds": ["p-81b91bbaa6", "p-756e512209"]
+    },
+    {
+      "id": "success-does-not-remove-cost",
+      "sectionId": "prototype-to-frustration",
+      "kind": "observation",
+      "text": "Dietschy's eventual success matters: the objection is not that a prototype can never work, but that unguided iteration burns effort and offers little control as scope grows.",
+      "sourceIds": ["p-667f88f537", "p-f1634fb48d"]
+    },
+    {
+      "id": "test-the-success-criteria",
+      "sectionId": "engineer-the-context",
+      "kind": "question",
+      "text": "When the agent judges itself against predefined success criteria, how will you test whether those criteria capture the real requirement rather than merely reward a passing result?",
+      "sourceIds": ["p-af1537b56d"]
+    },
+    {
+      "id": "hypothesis-not-causal-proof",
+      "sectionId": "enterprise-reality",
+      "kind": "observation",
+      "text": "The pilot-failure explanation is explicitly a hypothesis. The cited return figures supply context for the concern; they do not, within this essay, establish vibe coding as the cause of those failures.",
+      "sourceIds": ["p-823850f457"]
+    },
+    {
+      "id": "a-demo-is-not-a-system",
+      "sectionId": "vibes-with-grounding",
+      "kind": "observation",
+      "text": "The ending keeps vibe coding as useful experimentation rather than forbidding it. The boundary is whether a convincing demonstration is being mistaken for a system ready to ship.",
+      "sourceIds": ["p-08884c0e74"]
+    }
+  ]
+}

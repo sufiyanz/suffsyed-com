@@ -1,5 +1,6 @@
 """Build the complete, offline scientific journal from committed content."""
 import html
+import argparse
 import json
 import shutil
 from pathlib import Path
@@ -16,6 +17,7 @@ from writing_frame import footer as writing_footer, header as writing_header
 from journal_home import render_cover, render_home
 from journal_questions import render_margin, render_research, render_research_teaser
 from question_atlas import build_atlas, render_atlas
+from reading_guide import load_guides, render_guide, render_notes
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs"
@@ -54,9 +56,11 @@ def layout(title, description, body, path, current="", cover=None, kind="page", 
     og = f'<meta property="og:image" content="{DOMAIN}{cover}">' if cover else ""
     page_assets = "".join(f'<link rel="stylesheet" href="/assets/{esc(name)}">' for name in styles)
     page_assets += "".join(f'<script type="module" src="/assets/{esc(name)}"></script>' for name in scripts)
-    motion = kind in ("essay", "archive")
+    motion = kind == "archive"
     if kind != "home":
         page_assets += '<link rel="stylesheet" href="/assets/writing.css">'
+        if kind == "essay":
+            page_assets += '<link rel="stylesheet" href="/assets/reader-detail.css">'
         if motion:
             page_assets += '<script type="module" src="/assets/motion.js"></script>'
         return layout_writing(title, description, body, path, current, cover, kind, page_assets)
@@ -92,7 +96,7 @@ def layout(title, description, body, path, current="", cover=None, kind="page", 
 
 def layout_writing(title, description, body, path, current, cover, kind, page_assets):
     og = f'<meta property="og:image" content="{DOMAIN}{cover}">' if cover else ""
-    return f'''<!doctype html><html lang="en" data-theme="light"><head>
+    return f'''<!doctype html><html lang="en" data-theme="light"{' class="reader-page"' if kind == "essay" else ''}><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)} — Suff Syed</title><meta name="description" content="{esc(description)}">
 <link rel="canonical" href="{DOMAIN}{path}">
@@ -106,7 +110,7 @@ def layout_writing(title, description, body, path, current, cover, kind, page_as
 <link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">
 <script type="module" src="/assets/app.js"></script>{page_assets}
 </head><body id="top" class="{kind} writing-frame">
-<a class="skip" href="#main">Skip to content</a>{writing_header(current=current, motion=kind in ("essay", "archive"))}
+<a class="skip" href="#main">Skip to content</a>{writing_header(current=current, motion=kind == "archive")}
 <div class="sheet"><main id="main" tabindex="-1">{body}</main></div>{writing_footer()}
 <dialog id="artwork-dialog" aria-labelledby="artwork-title"><div class="dialog-head"><h2 id="artwork-title">A closer look.</h2><button class="close" data-close-dialog aria-label="Close artwork">×</button></div>
 <figure><img id="artwork-image" alt=""><figcaption id="artwork-caption"></figcaption></figure>
@@ -114,9 +118,10 @@ def layout_writing(title, description, body, path, current, cover, kind, page_as
 </body></html>'''
 
 
-def essay_page(row, rows):
+def essay_page(row, rows, guide):
     with Image.open(OUT / row["cover"].lstrip("/")) as cover_image:
         cover_width = cover_image.width
+        cover_ratio = cover_image.width / cover_image.height
     body = BeautifulSoup(row["body"], "html.parser")
     for passage_number, el in enumerate(body.select("[data-passage]"), 1):
         tools = body.new_tag("span", attrs={"class": "passage-tools"})
@@ -145,17 +150,23 @@ def essay_page(row, rows):
     related = "".join(f'<a href="{item["url"]}"><span class="label">{esc(item["theme"])}</span><h3>{esc(item["title"])}</h3><span class="plain">Read the essay ↗</span></a>' for item in next_rows)
     content = f'''
 <header class="essay-head">
-<div class="arrival-field motion-field" data-motion-scene>{orbit("essay-" + row["slug"])}</div>
 <div class="essay-kicker label"><a href="/futurememo/">future(memo)</a><span>Essay {row["no"]:02d} / {esc(row["theme"])}</span><span>{row["words"]:,} words · About {row["minutes"]} min</span></div>
 <h1>{esc(row["title"])}</h1>
-<div class="head-foot"><span>By Suff Syed</span><a href="#reading">Begin reading ↓</a><a href="#reading-lens" class="enhanced">Read through a different lens ↗</a></div>
+<div class="head-foot"><span>By Suff Syed</span><a href="#essay-body">Begin reading ↓</a></div>
 </header>
-<figure class="essay-artwork" style="--art-width:{cover_width}px"><a href="{row["cover"]}" class="artwork-link" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])} Shown without cropping.">{image(row["cover"], row["coverAlt"], False, f"(max-width: 700px) calc(100vw - 32px), (max-width: 1199px) min(90vw, {cover_width}px), {min(1080, cover_width)}px")}</a><figcaption><span>Frontispiece / Original essay artwork</span><a href="{row["cover"]}" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])}">Enlarge the whole image ↗</a></figcaption></figure>
-<p class="essay-dek">{esc(row["description"])}</p>
-<figure class="reading-intro" id="reading"><figcaption><span class="label">Fig. 01 / The essay in sections</span><p>Each band opens the original section. The text index below names the same places.</p></figcaption><div><nav class="section-ribbon" aria-label="Sections, widths proportional to word counts">{ribbon}</nav><p class="micro">{len(row["sections"])} sections · {row["words"]:,} words. Width follows length, not importance. <a href="/methods/#counting">Counting notes ↗</a></p></div></figure>
-<div class="reading-layout"><aside class="reading-aside"><details class="contents" open><summary>In this essay <span class="label">{len(row["sections"])} parts</span></summary><ol>{toc}</ol></details><p class="aside-note">Every paragraph has an address. The ¶ keeps your place; the ↗ follows shared vocabulary into another essay.</p>
-<button class="plain enhanced open-lens" type="button">Open the reading lens ↗</button></aside>
-<article class="essay-body" id="essay-body" aria-label="Complete essay"><span id="introduction" tabindex="-1"></span>{body}</article>
+<figure class="essay-artwork" style="--art-width:{cover_width}px;--art-ratio:{cover_ratio:.8f}"><a href="{row["cover"]}" class="artwork-link" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])} Shown without cropping.">{image(row["cover"], row["coverAlt"], False, f"(max-width: 700px) min(calc(100vw - 64px), {390 * cover_ratio:.2f}px), {min(640, 390 * cover_ratio, cover_width):.2f}px")}</a><figcaption><span>Original essay artwork</span><a href="{row["cover"]}" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])}">View the whole image ↗</a></figcaption></figure>
+<div class="reader-composition" id="reading">
+<details class="reader-tools enhanced" id="reader-tools"><summary><span>Guide &amp; notes</span><span class="enhanced" data-compact-progress aria-label="Reading progress: 0% through the article body" title="Scroll position within the article body.">0%</span></summary><div class="reader-tools-content"></div></details>
+<aside class="reader-guide">{render_guide(guide)}
+<details class="reader-exploration"><summary>Explore the original text</summary>
+<button class="plain enhanced open-lens" type="button">Open the word lens ↗</button>
+<label class="passage-toggle enhanced"><input type="checkbox" data-passage-toggle> Show paragraph tools</label>
+<details class="contents"><summary>Original section headings</summary><ol>{toc}</ol></details>
+<details class="reading-intro"><summary>Section lengths</summary><nav class="section-ribbon" aria-label="Sections, widths proportional to word counts">{ribbon}</nav><p class="micro">{len(row["sections"])} sections · {row["words"]:,} words. Width follows length, not importance. <a href="/methods/#counting">Counting notes ↗</a></p></details>
+</details></aside>
+<aside class="reader-notes">{render_notes(guide)}</aside>
+<article class="essay-body" id="essay-body" tabindex="-1" aria-label="Complete essay"><span id="introduction" tabindex="-1"></span>{body}</article>
+</div>
 <aside class="reading-lens enhanced" id="reading-lens" aria-labelledby="lens-title" hidden>
 <div class="lens-heading"><span class="label">Fig. 02 / Reading lens</span><button class="plain" id="close-lens" type="button">Close lens ×</button></div>
 <h2 id="lens-title">Follow a word.<br>Find another thought.</h2><p class="lens-intro">Exact words, original passages. Nothing is rewritten.</p>
@@ -164,7 +175,7 @@ def essay_page(row, rows):
 <div class="lens-actions"><button type="button" id="clear-term" class="plain">Clear highlights</button><a href="/methods/#connections">About these connections ↗</a></div>
 <p id="term-status" class="lens-status" role="status"></p><ol id="term-results" class="passage-results"></ol>
 <section id="passage-inspector" hidden aria-labelledby="inspector-title"><span class="label" id="inspected-source">One passage / Other possibilities</span><h3 id="inspector-title">A thought in company.</h3><blockquote id="inspected-text"></blockquote><a id="inspected-link">Return to the passage ↗</a><p class="micro">Lexical neighbors, not agreement or evidence. Ranked by shared, less-common words. Short passages may have no match.</p><ol id="related-passages" class="passage-results"></ol></section>
-</aside></div>
+</aside>
 <div class="essay-end"><span class="label">End of essay {row["no"]:02d}</span><p>Keep the question open.</p><a href="/futurememo/">Return to the whole collection ↗</a></div>
 <section class="next-reading"><div><span class="label">Still in this preoccupation</span><h2>One thought leads<br>to another.</h2></div>{related}</section>
 <details class="provenance"><summary>A note on the archive</summary><p>The complete migrated text is preserved. The migration assigned the date label “{esc(row["migrationLastmodLabel"])}” using sitemap last-modified values or a fallback; it is not a confirmed publication date. <a href="/methods/">Text and measurement notes.</a></p></details>
@@ -232,6 +243,9 @@ def journal_home_page(public_rows, data):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--preview-guide", help="Explicit in-progress preview of one validated companion; other essay output is left untouched.")
+    args = parser.parse_args()
     data = json.loads((ROOT / "content/corpus.json").read_text())
     cover_descriptions = json.loads((ROOT / "content/cover-descriptions.json").read_text())
     descriptions = json.loads((ROOT / "content/photograph-descriptions.json").read_text())
@@ -242,6 +256,9 @@ def main():
         with Image.open(OUT / photo["src"].lstrip("/")) as im:
             photo["width"], photo["height"] = im.size
     rows = [measure(row, ROOT) for row in data["essays"]]
+    guides = load_guides(rows, ROOT, allow_partial=bool(args.preview_guide))
+    if args.preview_guide and args.preview_guide not in guides:
+        raise ValueError(f"No validated reading guide for preview: {args.preview_guide}")
     atlas = build_atlas(rows, data["themes"], json.loads((ROOT / "content/question-atlas.json").read_text()))
     for row in rows:
         row["coverAlt"] = cover_descriptions[row["slug"]]
@@ -267,7 +284,8 @@ def main():
     ET.register_namespace("", "http://www.w3.org/2000/svg")
     write("/assets/suff-syed-signature-reversed.svg", ET.tostring(signature, encoding="unicode") + "\n")
     for row in rows:
-        essay_page(row, rows)
+        if not args.preview_guide or row["slug"] == args.preview_guide:
+            essay_page(row, rows, guides[row["slug"]])
     public_rows = [{**{key: value for key, value in row.items() if key not in {"body", "passages"}},
                     "readingPlate": reading_plate(row)} for row in rows]
     playground_photos = []
@@ -308,7 +326,10 @@ def main():
         page = page.replace("</head>", f'<meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url={dest}"></head>')
         write(src + "/index.html", page)
     feeds(rows, data["pages"])
-    print(f"Built {len(rows)} complete essays / {sum(row['words'] for row in rows):,} measured words / {len(data['gallery'])} photographs. CNAME unchanged.")
+    if args.preview_guide:
+        print(f"IN-PROGRESS READER PREVIEW ONLY: rendered {args.preview_guide}; other essay output left untouched; {len(guides)}/{len(rows)} companions available.")
+    else:
+        print(f"Built {len(rows)} complete essays / {len(guides)} AI companions / {sum(row['words'] for row in rows):,} measured words / {len(data['gallery'])} photographs. CNAME unchanged.")
 
 
 if __name__ == "__main__":

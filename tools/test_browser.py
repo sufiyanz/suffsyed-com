@@ -11,6 +11,23 @@ DATA = json.loads((ROOT / "content/corpus.json").read_text())
 QUBIT = "/futurememo/qubit-teams-the-future-built-by-two-people-using-ai/"
 
 
+def open_lens(page, touch=False):
+    open_tools(page)
+    disclosure = page.locator(".reader-exploration")
+    if disclosure.count() and not disclosure.evaluate("el => el.open"):
+        disclosure.locator(":scope > summary").click()
+    if touch:
+        page.locator(".open-lens").tap()
+    else:
+        page.locator(".open-lens").click()
+
+
+def open_tools(page):
+    toolbar = page.locator("#reader-tools")
+    if toolbar.count() and toolbar.is_visible() and not toolbar.evaluate("el => el.open"):
+        toolbar.locator(":scope > summary").click()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://127.0.0.1:8766")
@@ -42,7 +59,7 @@ def main():
             page.goto(args.url + f'/futurememo/{row["slug"]}/', wait_until="networkidle")
             model = json.loads(page.locator("#essay-data").text_content())
             assert page.locator("#essay-body [data-passage]").count() == len(model["passages"])
-            page.locator(".open-lens").click()
+            open_lens(page)
             for term in [model["terms"][0]["term"], "ai", "judgment", "design", "team", "teams", "it's"]:
                 query = page.locator("#term-query")
                 query.fill(term)
@@ -61,7 +78,7 @@ def main():
         page.goto(args.url + QUBIT, wait_until="networkidle")
         page.screenshot(path=str(args.artifacts / "essay-desktop.png"), full_page=True)
         model = json.loads(page.locator("#essay-data").text_content())
-        page.locator(".open-lens").click()
+        open_lens(page)
         query = page.locator("#term-query")
         query.fill("systems")
         page.locator("#term-form").evaluate("form => form.requestSubmit()")
@@ -87,12 +104,15 @@ def main():
         assert "Shared words:" in page.locator("#related-passages").inner_text()
         destination = page.locator("#related-passages a").first
         href = destination.get_attribute("href")
+        returning_url = page.url
         destination.click()
-        assert page.url.endswith(href)
+        page.wait_for_url(args.url + href, wait_until="networkidle")
+        assert page.url.endswith(href), (page.url, href)
         assert page.locator(f'#{href.split("#")[1]}').count() == 1
         page.go_back(wait_until="networkidle")
+        page.wait_for_url(returning_url, wait_until="networkidle")
         assert QUBIT in page.url
-        page.locator(".open-lens").click()
+        open_lens(page)
         page.locator(f'button[data-inspect="{passage["id"]}"]').evaluate("button => button.click()")
         page.locator("#inspected-link").click()
         assert page.evaluate("document.activeElement.id") == passage["id"]
@@ -150,7 +170,7 @@ def main():
         offline_page = offline.new_page()
         offline_page.goto(args.url + QUBIT, wait_until="networkidle")
         offline.set_offline(True)
-        offline_page.locator(".open-lens").click()
+        open_lens(offline_page)
         offline_page.locator("#term-query").fill("systems")
         offline_page.locator("#term-form").evaluate("form => form.requestSubmit()")
         assert offline_page.locator("#term-status").inner_text().startswith("10 occurrences")
@@ -181,7 +201,7 @@ def main():
                 if name != "small-phone":
                     view.screenshot(path=str(args.artifacts / f"{label}-{name}.png"), full_page=True)
             view.goto(args.url + QUBIT)
-            view.locator(".open-lens").tap()
+            open_lens(view, touch=True)
             view.locator("#term-query").fill("judgment")
             view.locator("#term-form button[type=submit]").tap()
             assert "judgment" in view.locator("#term-status").inner_text()
@@ -191,11 +211,12 @@ def main():
             table = view.locator(".table-passage > .passage-text").first
             table.scroll_into_view_if_needed()
             assert table.evaluate("el=>el.scrollWidth > el.clientWidth")
-            table.evaluate("el=>el.scrollLeft=100")
-            assert table.evaluate("el=>el.scrollLeft") == 100
+            distance = table.evaluate("el=>Math.min(100, el.scrollWidth - el.clientWidth)")
+            table.evaluate("(el, distance)=>el.scrollLeft=distance", distance)
+            assert table.evaluate("el=>el.scrollLeft") == distance > 0
             assert not view.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
             view.goto(args.url + QUBIT, wait_until="networkidle")
-            view.locator(".open-lens").tap()
+            open_lens(view, touch=True)
             model = json.loads(view.locator("#essay-data").text_content())
             selected = next(p for p in model["passages"] if p["related"])
             view.locator(f'button[data-inspect="{selected["id"]}"]').evaluate("el=>el.click()")
@@ -211,6 +232,7 @@ def main():
             view.wait_for_timeout(150)
             assert abs(target.bounding_box()["y"] - before) < 3, (width, before, target.bounding_box()["y"])
             assert view.evaluate("document.activeElement.id") == selected["id"]
+            open_tools(view)
             view.locator(".contents summary").tap()
             if width < 760:
                 view.locator(".contents a").nth(1).tap()

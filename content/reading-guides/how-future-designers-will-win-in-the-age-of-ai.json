@@ -1,0 +1,195 @@
+{
+  "version": 1,
+  "slug": "how-future-designers-will-win-in-the-age-of-ai",
+  "sourceSha256": "cfc74e625bfaf69771eb2856a57401aa87c6985e0072a980bc547c7465b2cb3b",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "sovereign-outcomes",
+      "label": "Sovereignty means owning outcomes",
+      "anchor": "p-93486e8954",
+      "bullets": [
+        {
+          "text": "Ownership, autonomy, and responsibility reunite decision-making with accountability for a finished outcome.",
+          "sourceIds": ["p-9942f1521b", "p-54dcb13ff0", "p-1a861fb104"]
+        },
+        {
+          "text": "AI could reduce fragmented dependencies; Brand, Product, and Intelligence are proposed paths, not new job titles.",
+          "sourceIds": ["p-93486e8954", "p-7a14c05d5a", "p-846db3fe73"]
+        }
+      ]
+    },
+    {
+      "id": "brand-at-scale",
+      "label": "Brand craft beyond the studio",
+      "anchor": "h-4b2ef3da73",
+      "bullets": [
+        {
+          "text": "AI could scale an individual's creative direction without the studio's extensive execution and review machinery.",
+          "sourceIds": ["p-a9e20d8eaa", "p-acfc84a6ba"]
+        },
+        {
+          "text": "Distinctive brand judgment remains valuable despite commoditized production, though this path offers no promise of high compensation.",
+          "sourceIds": ["p-cb9d53db82", "p-6d72d7d580"]
+        }
+      ]
+    },
+    {
+      "id": "reinvent-the-category",
+      "label": "Reinvent categories, not their interfaces",
+      "anchor": "h-e386e668f8",
+      "bullets": [
+        {
+          "text": "Adding assistants to existing software can preserve the very workflows AI makes possible to rethink.",
+          "sourceIds": ["p-bf0e3b0b98", "p-094d5d422c"]
+        },
+        {
+          "text": "The proposed opportunity is domain-specific intelligence that changes the work, not another familiar interface.",
+          "sourceIds": ["p-9306ad6429", "p-9a66c285b8", "p-a687df29f7"]
+        }
+      ]
+    },
+    {
+      "id": "workflow-replacement",
+      "label": "Harvey as a workflow argument",
+      "anchor": "p-875f1fdea0",
+      "bullets": [
+        {
+          "text": "The author presents Harvey as replacing repetitive legal workflows while retaining senior review of AI output.",
+          "sourceIds": ["p-aa4652719a", "p-5c95b50fcf"]
+        },
+        {
+          "text": "Its claimed differentiation comes from choosing a consequential domain problem, rather than polishing a generic model wrapper.",
+          "sourceIds": ["p-0de95bfb25", "p-3e6f7d74dc"]
+        }
+      ]
+    },
+    {
+      "id": "insight-to-company",
+      "label": "From workflow insight to company",
+      "anchor": "p-461cbcb8c2",
+      "bullets": [
+        {
+          "text": "Accessible building tools shift the proposed advantage toward recognizing institutional friction and unmet workflow needs.",
+          "sourceIds": ["p-ce43643837", "p-29b0466efc", "p-9f318686c9"]
+        },
+        {
+          "text": "Product sovereignty means category ownership and economic value, not merely shipping features without engineers.",
+          "sourceIds": ["p-739f7af827", "p-2f3e7114ae", "p-d4168f2401"]
+        }
+      ]
+    },
+    {
+      "id": "behavior-beneath-interfaces",
+      "label": "Design the behavior beneath interfaces",
+      "anchor": "h-1d8ec7e399",
+      "bullets": [
+        {
+          "text": "Constitutions, retrieval policies, and refusal rules become design artifacts that shape model behavior and trust.",
+          "sourceIds": ["p-aed6b15b11", "p-9f01771999", "p-ff47142b1a"]
+        },
+        {
+          "text": "Technically informed designers can make values, conflicting evidence, and refusal boundaries more useful and understandable.",
+          "sourceIds": ["p-74deecf22e", "p-92265b1f0f", "p-fdc2adf5cd"]
+        }
+      ]
+    },
+    {
+      "id": "agents-and-builders",
+      "label": "Shape agents and their builders' tools",
+      "anchor": "p-1443d58981",
+      "bullets": [
+        {
+          "text": "Orchestration design sets permission, transparency, and failure behavior for agents acting on users' behalf.",
+          "sourceIds": ["p-b12cb71e6b", "p-69bc98fea3", "p-cc4f98c7fa"]
+        },
+        {
+          "text": "Developer experience makes powerful infrastructure learnable, debuggable, and usable beyond its expert builders.",
+          "sourceIds": ["p-c68f967bee", "p-0469e44b3d"]
+        }
+      ]
+    },
+    {
+      "id": "earned-influence",
+      "label": "Earn influence alongside technical experts",
+      "anchor": "h-e769a1ae73",
+      "bullets": [
+        {
+          "text": "Intelligence sovereignty rests on technical credibility and working prototypes, not replacing researchers or engineers.",
+          "sourceIds": ["p-e56dd269b6", "p-633354775f"]
+        },
+        {
+          "text": "Success is measured in better shipped systems and expert trust, rather than portfolio visibility.",
+          "sourceIds": ["p-9bd007aa0a", "p-682a67acd0"]
+        }
+      ]
+    },
+    {
+      "id": "defaults-and-urgency",
+      "label": "Act before defaults harden",
+      "anchor": "h-86bdc01975",
+      "bullets": [
+        {
+          "text": "The closing relocates human-centered design from surface craft to the decisions shaping intelligent systems.",
+          "sourceIds": ["p-e79f0e5124", "p-43a1a7104d"]
+        },
+        {
+          "text": "The author argues that entrenched model behaviors and crowded application markets make delayed reskilling costly.",
+          "sourceIds": ["p-56fd09f614", "p-ddf9141174"]
+        }
+      ]
+    },
+    {
+      "id": "unfinished-prescription",
+      "label": "A prescription still under investigation",
+      "anchor": "h-1bebaa756d",
+      "bullets": [
+        {
+          "text": "The author leaves daily practice, portfolios, and designers' unique advantage as open questions.",
+          "sourceIds": ["p-920a181c87"]
+        },
+        {
+          "text": "Further investigation, rather than a finished playbook, is offered as the next step.",
+          "sourceIds": ["p-af15846484"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "capability-versus-authority",
+      "sectionId": "sovereign-outcomes",
+      "kind": "observation",
+      "text": "The return to craft depends on AI shrinking coordination costs, but the definition also requires authority over decisions. Faster execution alone would not establish the sovereignty the author is describing.",
+      "sourceIds": ["p-7a14c05d5a", "p-9942f1521b"]
+    },
+    {
+      "id": "learning-without-the-ladder",
+      "sectionId": "brand-at-scale",
+      "kind": "question",
+      "text": "If AI replaces the junior work through which craft was learned, how will a young designer test whether their distinctive lens is developing? The essay proposes AI partnership as the alternative, rather than preserving the apprenticeship ladder.",
+      "sourceIds": ["p-990108ba8e", "p-7f5519e27c", "p-bea1a64388"]
+    },
+    {
+      "id": "replacement-or-improvement",
+      "sectionId": "insight-to-company",
+      "kind": "question",
+      "text": "What would show that a workflow needs replacement rather than a faster tool? The opportunity depends on designers' knowledge of institutional friction, not simply access to code generation.",
+      "sourceIds": ["p-29b0466efc", "p-9f318686c9"]
+    },
+    {
+      "id": "collaborative-sovereignty",
+      "sectionId": "earned-influence",
+      "kind": "observation",
+      "text": "Here, sovereignty means becoming useful in consequential decisions, not claiming ownership of alignment or engineering. That is a narrower form of authority than the word itself might suggest.",
+      "sourceIds": ["p-e56dd269b6", "p-633354775f", "p-682a67acd0"]
+    },
+    {
+      "id": "whose-advantage",
+      "sectionId": "unfinished-prescription",
+      "kind": "question",
+      "text": "The author explicitly leaves open whether designers have a unique advantage over anyone with a human lens. What evidence from day-to-day practice would distinguish a design-specific advantage from general AI fluency?",
+      "sourceIds": ["p-920a181c87"]
+    }
+  ]
+}

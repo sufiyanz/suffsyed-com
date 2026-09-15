@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "slug": "a-new-class-of-software-builders-is-emerging",
+  "sourceSha256": "6d37510a88d5c8c7a8dd8839ef706fb2c5c7f5e813251d3d465a63663bf6ac36",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "new-builders",
+      "label": "Software creation beyond professional developers",
+      "anchor": "p-31373fd2ce",
+      "bullets": [
+        {
+          "text": "AI opens software creation to non-coders, with early projects and platform revenues offered as demand signals.",
+          "sourceIds": ["p-03b9d9d533", "p-47bde39133", "p-9c97ea9cd5"]
+        }
+      ]
+    },
+    {
+      "id": "production-gap",
+      "label": "Code generation leaves the hard parts",
+      "anchor": "p-15b189a418",
+      "bullets": [
+        {
+          "text": "Current tools still leave engineering chores to users and favor quick output over architectural consistency and safeguards.",
+          "sourceIds": ["p-15b189a418", "p-d8287e2e4f"]
+        },
+        {
+          "text": "The proposed shift transfers responsibility for software quality from non-experts to an orchestration system.",
+          "sourceIds": ["p-e771e86866"]
+        }
+      ]
+    },
+    {
+      "id": "personal-local-modular",
+      "label": "Personal, local, and modular software",
+      "anchor": "p-3a0582d18a",
+      "bullets": [
+        {
+          "text": "Personal and culturally local tools address needs that mass-market software cannot economically or contextually serve.",
+          "sourceIds": ["p-21268f4cc6-2", "p-917ef1ecd6-2"]
+        },
+        {
+          "text": "Modular software lets creators assemble workflows across disconnected tools instead of buying another monolithic product.",
+          "sourceIds": ["p-de6a547ffe-2"]
+        }
+      ]
+    },
+    {
+      "id": "needs-outside-markets",
+      "label": "Situations, values, and workplace needs",
+      "anchor": "p-b71289690f-2",
+      "bullets": [
+        {
+          "text": "Temporary, mission-driven, and workplace tools widen the case for software built around a specific situation.",
+          "sourceIds": ["p-b71289690f-2", "p-e629ee0909-2", "p-a36d6adf87-2"]
+        },
+        {
+          "text": "These examples position previously excluded users, not established power users, as the next source of innovation.",
+          "sourceIds": ["p-c34bd02ebc"]
+        }
+      ]
+    },
+    {
+      "id": "creation-system",
+      "label": "Build the software creation system",
+      "anchor": "p-8b63fb907b",
+      "bullets": [
+        {
+          "text": "An envisioned Software Creation OS would own architecture, testing, deployment, and iterative changes, not just code generation.",
+          "sourceIds": ["p-2b75bd7756", "p-473a3410ad-2", "p-aeb9f5f110-2"]
+        },
+        {
+          "text": "Existing models are treated as sufficient inputs; architectural continuity and launch-ready quality become the differentiators.",
+          "sourceIds": ["p-ba5cdb86a4-2", "p-4f9a6a40e3-2", "p-f510ff332a-2"]
+        }
+      ]
+    },
+    {
+      "id": "continuity-and-tools",
+      "label": "The missing machinery of continuity",
+      "anchor": "p-7e7e4de94f",
+      "bullets": [
+        {
+          "text": "Orchestration needs persistent project memory and selective retrieval to preserve architectural intent across sessions.",
+          "sourceIds": ["p-ffe6448d71", "p-f2f24be0e3", "p-c83085821f"]
+        },
+        {
+          "text": "Specialist agents would coordinate fragmented tools under a shared architectural vision rather than require manual handoffs.",
+          "sourceIds": ["p-55e26a94b8"]
+        }
+      ]
+    },
+    {
+      "id": "bounded-proof",
+      "label": "Prove orchestration within a bounded scope",
+      "anchor": "p-0b0abedcb5",
+      "bullets": [
+        {
+          "text": "The proposed test is cross-functional orchestration across three to five features, not the entire creation lifecycle.",
+          "sourceIds": ["p-3725927a60", "p-e92f14c689"]
+        },
+        {
+          "text": "Task-level retention can test continuity before investing in perfect long-term memory or unlimited context.",
+          "sourceIds": ["p-ea7c5101ff"]
+        }
+      ]
+    },
+    {
+      "id": "building-with-intent",
+      "label": "From writing code to describing intent",
+      "anchor": "p-6428ed93c1",
+      "bullets": [
+        {
+          "text": "The conclusion imagines teachers, parents, organizers, and creators describing software around needs they already understand.",
+          "sourceIds": ["p-d9e7c8113e", "p-08f226de05"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "demand-versus-durability",
+      "sectionId": "new-builders",
+      "kind": "observation",
+      "text": "Market enthusiasm and early creator wins support the opportunity, but they measure uptake rather than durable software quality. The opening's evidence is strongest on willingness to try building.",
+      "sourceIds": ["p-47bde39133", "p-9c97ea9cd5"]
+    },
+    {
+      "id": "success-without-market-fit",
+      "sectionId": "personal-local-modular",
+      "kind": "question",
+      "text": "If an unmet need never warrants commercial product-market fit, how should a creation platform judge success for its builder? The personal-software examples make usefulness, not market size, the relevant test.",
+      "sourceIds": ["p-21268f4cc6-2"]
+    },
+    {
+      "id": "autonomy-with-co-creation",
+      "sectionId": "creation-system",
+      "kind": "observation",
+      "text": "Autonomy here does not mean a final product from one immutable prompt. The user is meant to step away from engineering chores while retaining an ongoing role in refining intent.",
+      "sourceIds": ["p-473a3410ad-2", "p-aeb9f5f110-2"]
+    },
+    {
+      "id": "persistence-versus-relevance",
+      "sectionId": "continuity-and-tools",
+      "kind": "observation",
+      "text": "A memory store and a context engine solve different problems here: one keeps decisions durable, the other chooses what an agent sees now. The proposed architecture needs both persistence and relevance.",
+      "sourceIds": ["p-f2f24be0e3", "p-c83085821f"]
+    },
+    {
+      "id": "what-the-prototype-proves",
+      "sectionId": "bounded-proof",
+      "kind": "question",
+      "text": "The prototype is deliberately smaller than the promised creation lifecycle. Would successful orchestration across three to five features justify treating everything else as scale, or leave launch reliability unproven?",
+      "sourceIds": ["p-0264a1a115", "p-e92f14c689", "p-7234eea97c"]
+    }
+  ]
+}

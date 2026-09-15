@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "slug": "the-vibe-coders-are-lying-to-you",
+  "sourceSha256": "ebb62f1d79166a40ac3d6a50d6866c080badf04354ff83f96a610aab66f6d46d",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "speed-without-durability",
+      "label": "Fast builds, concentrated value",
+      "anchor": "p-b9092a532d",
+      "bullets": [
+        {
+          "text": "Quickly recreating a client demonstrates cheaper code, not parity with the business and systems behind it.",
+          "sourceIds": ["p-b9092a532d", "p-bb97a35264"]
+        },
+        {
+          "text": "More software and scattered attention do not, in the essay's account, distribute revenue evenly.",
+          "sourceIds": ["p-f377341709", "p-26a68f3f80"]
+        }
+      ]
+    },
+    {
+      "id": "uneven-ai-fluency",
+      "label": "AI fluency changes the payoff",
+      "anchor": "h-13ea497690",
+      "bullets": [
+        {
+          "text": "AI's payoff varies with technical fluency and the ability to direct agents beyond autocomplete.",
+          "sourceIds": ["p-634bd0e8d0", "p-f1aba07bd0", "p-ea4aa395b3"]
+        },
+        {
+          "text": "Rapid builders can outpace organizational controls without gaining distribution, data, or discipline.",
+          "sourceIds": ["p-f1aba07bd0", "p-dccdaef8c5"]
+        }
+      ]
+    },
+    {
+      "id": "demo-to-market",
+      "label": "The obstacles after the demo",
+      "anchor": "h-e943beb31d",
+      "bullets": [
+        {
+          "text": "A personal-finance demo still faces brittle quality, compounding changes, and the task of reaching users.",
+          "sourceIds": ["p-b1ad0f9eb8-2", "p-42d32e2440-2", "p-27fa267129-2"]
+        },
+        {
+          "text": "Building platforms' growth and polished showcases do not establish demand for the products built with them.",
+          "sourceIds": ["p-61e0a61444", "p-03522a3a3d"]
+        }
+      ]
+    },
+    {
+      "id": "media-versus-product",
+      "label": "A media loop is not a product business",
+      "anchor": "h-645c720275",
+      "bullets": [
+        {
+          "text": "Creator demos can be effective advertising without being fraudulent or demonstrating a sustainable SaaS business.",
+          "sourceIds": ["p-6d0913b22f"]
+        },
+        {
+          "text": "The author challenges evidence of post-2023 solo clones by nontechnical founders reaching durable multimillion-dollar recurring revenue.",
+          "sourceIds": ["p-e9c55615b1"]
+        }
+      ]
+    },
+    {
+      "id": "read-the-case-studies",
+      "label": "What the platform examples demonstrate",
+      "anchor": "h-c0bc2d9ac1",
+      "bullets": [
+        {
+          "text": "Lovable's examples chiefly demonstrate prototyping speed, agency revenue, and platform success rather than product durability.",
+          "sourceIds": ["p-196509a101"]
+        },
+        {
+          "text": "Replit's internal savings and education revenue show real value without proving external SaaS traction.",
+          "sourceIds": ["p-cca46997fd-2", "p-7e1ac2bd36-2", "p-31f8f566cf-2"]
+        }
+      ]
+    },
+    {
+      "id": "adoption-under-pressure",
+      "label": "Enterprise pressure meets adoption friction",
+      "anchor": "h-a27eae0ebe",
+      "bullets": [
+        {
+          "text": "The essay links disappointing pilots to integration, workflow design, and governance rather than model capability alone.",
+          "sourceIds": ["p-ea222751c6"]
+        },
+        {
+          "text": "Rising AI expectations collide with inadequate training and employee fatigue.",
+          "sourceIds": ["p-ef08e8dfab"]
+        }
+      ]
+    },
+    {
+      "id": "conditions-for-scaling",
+      "label": "Build the conditions for scaling",
+      "anchor": "p-06d97ee265",
+      "bullets": [
+        {
+          "text": "Promising deployments redesign workflows and resolve data, identity, governance, and evaluation before scaling.",
+          "sourceIds": ["p-06d97ee265"]
+        },
+        {
+          "text": "KPI and unit-economics tests replace the spectacle of running more pilots.",
+          "sourceIds": ["p-06d97ee265"]
+        }
+      ]
+    },
+    {
+      "id": "operator-advantage",
+      "label": "Operators, not demo makers",
+      "anchor": "h-1029a69d51",
+      "bullets": [
+        {
+          "text": "The author expects advantage to shift toward AI-literate operators connecting models to dependable business systems.",
+          "sourceIds": ["p-97f278b3a5"]
+        },
+        {
+          "text": "Results require sustained execution while workers juggle delivery, learning, and rising expectations.",
+          "sourceIds": ["p-4521d05692"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "beyond-tool-adoption",
+      "sectionId": "uneven-ai-fluency",
+      "kind": "question",
+      "text": "The breakout group is not defined by coding expertise alone, but by directing agents effectively. What practices would let a struggling user become that kind of operator rather than merely adopt the same tools?",
+      "sourceIds": ["p-f1aba07bd0", "p-ea4aa395b3"]
+    },
+    {
+      "id": "scope-of-the-challenge",
+      "sectionId": "media-versus-product",
+      "kind": "observation",
+      "text": "The claim is about a narrowly defined kind of publicly verified success, not proof that such a business is impossible. Retention, reliability, and customers beyond an existing audience are the proposed tests.",
+      "sourceIds": ["p-e9c55615b1"]
+    },
+    {
+      "id": "different-kinds-of-value",
+      "sectionId": "read-the-case-studies",
+      "kind": "observation",
+      "text": "These cases separate value from the type of value being claimed. An internal cost-saving tool can be a genuine success without demonstrating demand, retention, or reliability for a public product.",
+      "sourceIds": ["p-cca46997fd-2", "p-8658ad01b7"]
+    },
+    {
+      "id": "responsibility-for-learning",
+      "sectionId": "adoption-under-pressure",
+      "kind": "question",
+      "text": "The training discussion makes adoption an organizational responsibility as well as an individual skill problem. How should employers change expectations when employees lack structured instruction and learning feels like a second job?",
+      "sourceIds": ["p-ef08e8dfab"]
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "slug": "ai-acceleration-org-chart-collapse",
+  "sourceSha256": "06f21d442061e4ca2d702a8498a4ac32758a02baff7e856e20db4c6d2d41f6c5",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "fifth-vector",
+      "label": "Acceleration changes the startup equation",
+      "anchor": "p-5674f9a78a",
+      "bullets": [
+        {
+          "text": "AI-driven acceleration joins four startup success factors, changing the time, cost, and staffing assumptions behind them.",
+          "sourceIds": ["p-28ac6bcc3f", "p-e3e423be74", "p-f4667bf66c"]
+        }
+      ]
+    },
+    {
+      "id": "iteration-evidence",
+      "label": "Signals of cheaper iteration",
+      "anchor": "h-ce06934171",
+      "bullets": [
+        {
+          "text": "Reported machine-generated codebases and startup revenue growth frame AI as a reduction in iteration costs.",
+          "sourceIds": ["p-45876cd0e2", "p-372584481c", "p-2053a539d9"]
+        },
+        {
+          "text": "The essay extends that pattern beyond software through forecasting and drug-discovery examples.",
+          "sourceIds": ["p-28c01ac7dd", "p-66fad2b0f6"]
+        }
+      ]
+    },
+    {
+      "id": "startup-mechanisms",
+      "label": "How startup leverage compounds",
+      "anchor": "h-3449b6104a",
+      "bullets": [
+        {
+          "text": "Generated code and proprietary data loops shift competitive emphasis toward choosing worthwhile problems.",
+          "sourceIds": ["p-3c765d4b2d-2", "p-5b36522f75-2", "p-cc83e0a272-2"]
+        },
+        {
+          "text": "Solo operators gain leverage while teams prioritize data, distribution, and readiness for more capable models.",
+          "sourceIds": ["p-1d6ed5e806-2", "p-3c1b5dfd8c-2"]
+        }
+      ]
+    },
+    {
+      "id": "enterprise-coordination",
+      "label": "The enterprise coordination argument",
+      "anchor": "h-b08d4bc59e",
+      "bullets": [
+        {
+          "text": "The enterprise argument treats managerial layers as coordination costs that AI can remove faster than incumbents adapt.",
+          "sourceIds": ["p-f649a592ae", "p-b323997bab"]
+        }
+      ]
+    },
+    {
+      "id": "organizational-replacements",
+      "label": "What replaces silos and titles",
+      "anchor": "h-006d24c444",
+      "bullets": [
+        {
+          "text": "The proposed replacements are agent swarms, real-time task markets, and capability portfolios instead of silos and titles.",
+          "sourceIds": ["p-602fdbf154"]
+        },
+        {
+          "text": "Culture becomes the decisive adaptation problem, rather than code alone.",
+          "sourceIds": ["p-aeeff24a82"]
+        }
+      ]
+    },
+    {
+      "id": "operating-playbook",
+      "label": "Budgets, pilots, and hybrid expertise",
+      "anchor": "h-0ca76d38cc",
+      "bullets": [
+        {
+          "text": "Leaders are urged to redirect budgets toward agents, audit repeatable workflows, and preserve expert human oversight.",
+          "sourceIds": ["p-9af5a79728-2", "p-bd70a51e92-2", "p-d86fe9cd8b-2"]
+        },
+        {
+          "text": "One-week pilots and monthly learning cycles make adaptation an ongoing operational practice.",
+          "sourceIds": ["p-3f339872af-2", "p-86a53a42e3-2"]
+        }
+      ]
+    },
+    {
+      "id": "redesign-or-be-redesigned",
+      "label": "Redesign before acceleration forces it",
+      "anchor": "h-f79ebae4aa",
+      "bullets": [
+        {
+          "text": "The ending argues that acceleration reshapes every earlier success factor, making organizational redesign a strategic necessity.",
+          "sourceIds": ["p-9e2412d51b"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "different-measures",
+      "sectionId": "iteration-evidence",
+      "kind": "question",
+      "text": "The cited metrics measure different things: machine-written code, revenue growth, and forecast performance. Do they demonstrate cheaper iteration in the same way, or offer separate signals of acceleration?",
+      "sourceIds": ["p-45876cd0e2", "p-372584481c", "p-28c01ac7dd"]
+    },
+    {
+      "id": "what-survives-better-models",
+      "sectionId": "startup-mechanisms",
+      "kind": "observation",
+      "text": "Owning proprietary data and models sits beside readiness for superior future models. The proposed advantage appears to depend on keeping useful context and distribution even as the underlying intelligence improves.",
+      "sourceIds": ["p-5b36522f75-2", "p-3c1b5dfd8c-2"]
+    },
+    {
+      "id": "coordination-premise",
+      "sectionId": "enterprise-coordination",
+      "kind": "question",
+      "text": "The case for flattening rests on a strong premise: AI eliminates the coordination tax. Which parts of managerial work are coordination, and which might remain even when execution becomes faster?",
+      "sourceIds": ["p-b323997bab"]
+    },
+    {
+      "id": "humans-still-guide",
+      "sectionId": "operating-playbook",
+      "kind": "observation",
+      "text": "The playbook qualifies the replacement rhetoric: experts retain institutional memory and strategic oversight. The proposed shift is toward hybrid responsibility, not a claim that agents can do everything.",
+      "sourceIds": ["p-d86fe9cd8b-2"]
+    }
+  ]
+}

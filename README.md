@@ -54,7 +54,7 @@ A compact Pause/Resume control only
 appears when enhancement is available. Reduced motion, forced colors, print
 and no-JS retain complete static content; no dead motion control is shown.
 The module is initialized once per document and survives bfcache restoration.
-There is no preloader, scroll interception, new app host or AI feature.
+There is no preloader, scroll interception, new app host or runtime model call.
 The compact navigation stays fixed while reading. Safe-area insets and native
 scroll padding keep section headings and keyboard targets clear, without
 scroll-state JavaScript or hide/reveal behavior.
@@ -113,6 +113,67 @@ suites describe the preserved interactive composition, **not** acceptance
 criteria for this writing-gallery iteration. Static checks still exercise
 its renderer, original reading plates, all essays, links and source assets.
 
+## Source-linked article reader
+
+Article detail pages use a centered 640px Newsreader measure on a quiet paper
+surface, with an uncropped original frontispiece and its existing full-view
+control. The spatial reference was
+[Making Software's GPU chapter](https://www.makingsoftware.com/chapters/how-does-a-gpu-work);
+its prose, proprietary fonts and book navigation are not copied. Home, archive
+and their exact path-following motion are unchanged. Article-only decorative
+motion is omitted so nothing moves behind prose or reading notes.
+
+`site/reader-detail.css` supplies the article-only composition. At 1280px and
+wider, the left AI reading guide and right progress/AI notes are independent,
+sticky grid children. The controller moves those same rail nodes into a native
+Guide & notes disclosure on narrower enhanced views; it never duplicates their
+contents or handlers. The mobile/tablet header and compact progress bar have
+opaque backgrounds, and the opened tools have their own bounded scroll area.
+Without JavaScript, both rails remain native, in-flow disclosures on narrow
+screens and separate columns on desktop; enhancement-only controls are hidden.
+
+All twenty companions in `content/reading-guides/` are explicitly AI-authored
+supplements, not published author text or live/community comments. Their 141
+sections, 268 concise bullets and 93 observations/questions are individually
+source-linked. The active guide section reveals its points; readers can also
+open another section manually. Notes follow the current section, with an
+explicit empty state and a Show all AI notes option. Complete original headings,
+section lengths, word lens, source connections and paragraph controls remain
+under Explore the original text. Paragraph tools are also available on focus,
+hover and native targets, without a permanent glyph beside every passage.
+
+`tools/reading_guide.py` validates the exact version-1 schema, AI attribution,
+raw-source SHA256, unique IDs, ordered original anchors and section-local
+citations. Plain data is HTML-escaped. A normal build requires complete,
+non-stale coverage; invalid or missing companions fail explicitly. To import
+an already authored set, validate/copy it before the ordinary build:
+
+```sh
+python tools/import_reading_guides.py /absolute/path/to/authored-guides
+python tools/build_site.py
+python tools/test_reading_guides.py
+python tools/test_reader_detail.py --url http://127.0.0.1:8774 \
+  --output /absolute/path/to/reader-review
+```
+
+The browser test uses an existing Playwright WebKit runtime. It exercises all
+twenty guides and source targets, six widths from 320 to 1600px, separate rail
+placement, body-only 0/mid/100 progress, keyboard/disclosure flows, native
+fragments, Back, media, no-JS and idle-work bounds. The static check preserves
+all 1,592 original anchored blocks, not just the 1,387 measured leaf passages.
+`tools/test_browser.py` continues to cover the original optional reading lens,
+archive search and photography viewer.
+
+Reading progress measures scroll position within `#essay-body`, excluding the
+arrival artwork/title, rails and footer; it makes no comprehension claim. The
+companion uses coalesced event-driven updates, not idle polling, and performs no
+model/network/corpus requests or web-storage writes. A namespaced
+`history.state.readerPosition` is recorded only on page exit, preserving other
+history state. On a history return, one guarded restoration after fonts and the
+browser's return frame prevents WebKit from replacing manual reading position
+with an old source fragment. It is cancelled by user input or suspension; fresh
+fragment navigation stays native and no repeated corrective scrolling occurs.
+
 ## Preserved journal design
 
 The internal-page shell is full-bleed paper, without an inset sheet, viewport
@@ -131,6 +192,7 @@ photograph pixels are never recolored or filtered.
 | `content/essays/*.html` | Complete, editable essay bodies, with persistent heading and paragraph IDs. |
 | `content/corpus.json` | Titles, excerpts, local cover paths, editorial themes, original text fingerprints and migration-date provenance. |
 | `content/cover-descriptions.json` | Descriptive alternatives for the original illustrated essay covers. |
+| `content/reading-guides/*.json` | Reviewed, source-hashed AI guide bullets and supplemental notes for all twenty essays. |
 | `content/pages/*.html` | Preserved About, About the Memo, FAQ, report and store content. |
 | `content/photograph-descriptions.json` | Descriptions of visible photographs, in original gallery order; not inferred locations or dates. |
 | `content/research-example.json` | Public-data record schema and empty evidence register; no live ingestion. |
@@ -139,9 +201,11 @@ photograph pixels are never recolored or filtered.
 | `site/` | Authored CSS, ES modules, favicon and self-hosted font assets, copied recursively to `docs/assets/`. |
 | `site/suff-syed-signature.svg` | User-supplied, visually validated vector autograph; exact master paths, not a font or embedded raster. |
 | `tools/corpus.py` | Deterministic passage extraction, word counts and lexical-neighbor ranking. |
+| `tools/reading_guide.py`, `tools/import_reading_guides.py` | Strict companion validation, escaped rendering and validated set import. |
 | `tools/build_site.py` | All routes, responsive images, searchable corpus, RSS and sitemap. |
 | `tools/foundation_home.py`, `site/foundation.css` | Observatory homepage and curated artwork exhibition. |
 | `tools/writing_frame.py`, `site/frame.css`, `site/writing.css`, `site/motion.js` | Shared writing frame, gallery/reading styles and bounded decorative motion. |
+| `site/reader-detail.css`, `site/reader.js` | Centered article, responsive AI rails, body progress, history restoration and optional lexical reader. |
 | `tools/foundation_art.py`, `site/foundation/` | Original line studies, deterministic grain generator and licensed homepage font/provenance. |
 | `tools/journal_home.py`, `tools/journal_questions.py` | Opening artwork and local question/research instruments. |
 | `tools/question_atlas.py` | Validated, server-rendered question/passage index for the existing writing archive. |

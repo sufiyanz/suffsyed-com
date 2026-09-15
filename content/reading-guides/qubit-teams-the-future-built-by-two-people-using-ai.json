@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "slug": "qubit-teams-the-future-built-by-two-people-using-ai",
+  "sourceSha256": "cec27415ada18986c463103b15310d20016756716065bbede7ea426ab6f049fa",
+  "authorship": "ai",
+  "sections": [
+    {
+      "id": "smaller-unit-of-invention",
+      "label": "From two pizzas to two people",
+      "anchor": "p-1e81730876",
+      "bullets": [
+        {
+          "text": "AI compresses research, testing, and initial building into work the author argues two people can undertake.",
+          "sourceIds": ["p-f594709552", "p-b0e38c214c", "p-0cdc7ccb1c"]
+        },
+        {
+          "text": "Qubit Teams couple imagining and building rather than simply shrinking the old team.",
+          "sourceIds": ["p-f8c4f2be24", "p-821e75dc32"]
+        }
+      ]
+    },
+    {
+      "id": "oscillating-states",
+      "label": "Two modes, not fixed handoffs",
+      "anchor": "h-eebf630178",
+      "bullets": [
+        {
+          "text": "Vision frames possibilities; Reality builds durable systems, with leadership shifting as experiments mature.",
+          "sourceIds": ["p-e10987ea51-2", "p-ac0e22fe39-2", "p-416483f836"]
+        },
+        {
+          "text": "AI absorbs iterative work so human effort concentrates on direction, taste, and strategic judgment.",
+          "sourceIds": ["p-b3695749db"]
+        }
+      ]
+    },
+    {
+      "id": "experiments-and-signal",
+      "label": "Explore broadly, commit selectively",
+      "anchor": "h-0a07e62a7c",
+      "bullets": [
+        {
+          "text": "AI enables many small bets; the scarce skill becomes recognizing signal and killing weak ideas.",
+          "sourceIds": ["p-1d28f97cfd", "p-8ac29276d2", "p-0d9ef08735"]
+        },
+        {
+          "text": "Promising prototypes still face production pressures that make Reality's contribution indispensable.",
+          "sourceIds": ["p-d0ab3f5cd8"]
+        }
+      ]
+    },
+    {
+      "id": "reliable-foundations",
+      "label": "Build reliability into experimentation",
+      "anchor": "h-499a1615f9",
+      "bullets": [
+        {
+          "text": "Reality builds reusable foundations while Vision experiments, reducing the cost of each subsequent test.",
+          "sourceIds": ["p-4a40cda04d", "p-de2b41bfac-2", "p-ea51f607c6-2"]
+        },
+        {
+          "text": "Embedded guardrails and continuous verification are meant to preserve speed without abandoning quality.",
+          "sourceIds": ["p-332334373a", "p-5284a0dd90", "p-a9ac9530fb"]
+        }
+      ]
+    },
+    {
+      "id": "shared-transition",
+      "label": "Switch together when signal emerges",
+      "anchor": "h-7fb64cb51f",
+      "bullets": [
+        {
+          "text": "A breakthrough shifts Vision toward focused execution and Reality toward product architecture in the same hour.",
+          "sourceIds": ["p-71b245e3cf", "p-89d628f9cb", "p-ffb01f56df"]
+        },
+        {
+          "text": "Shared system context, rather than handoff meetings, is supposed to carry that transition.",
+          "sourceIds": ["p-5a226c3b0f", "p-36c53991bf"]
+        }
+      ]
+    },
+    {
+      "id": "proposed-toolchain",
+      "label": "A proposed stack for machine-speed work",
+      "anchor": "h-78990e765a",
+      "bullets": [
+        {
+          "text": "The proposed stack combines continuous testing agents, shared organizational context, and pipelines that anticipate drift.",
+          "sourceIds": ["p-25df86fce2-2", "p-bf3d1c76eb-2", "p-e7a5313183-2"]
+        },
+        {
+          "text": "Human judgment governs what to amplify, discard, and override as more maintenance becomes automated.",
+          "sourceIds": ["p-e122a895b8", "p-9742077490"]
+        }
+      ]
+    },
+    {
+      "id": "discovery-and-accountability",
+      "label": "Multiply discovery, retain accountability",
+      "anchor": "h-7aff51aa46",
+      "bullets": [
+        {
+          "text": "The organizational bet is a network of experimental and supporting pairs, not just a smaller headcount.",
+          "sourceIds": ["p-3b39fbe861", "p-256166a0df"]
+        },
+        {
+          "text": "As coordination recedes, the closing makes precise decisions and enduring responsibility the pair's central test.",
+          "sourceIds": ["p-ce66ff8663", "p-8e4313eda0", "p-2ebf57fc22"]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "not-a-miniature-relay",
+      "sectionId": "oscillating-states",
+      "kind": "observation",
+      "text": "The two names can look like job titles, but the text calls them oscillating states. That distinction matters: the proposal depends on continuous mutual influence, not a miniature version of the old relay.",
+      "sourceIds": ["p-d77b3ce946", "p-0d56c72b95", "p-6624213211"]
+    },
+    {
+      "id": "threshold-for-commitment",
+      "sectionId": "experiments-and-signal",
+      "kind": "question",
+      "text": "What evidence would be strong enough to move a bet from breadth to depth? The model makes experiments cheaper, but the passage still leaves the threshold for a real signal to human judgment.",
+      "sourceIds": ["p-8ac29276d2", "p-0d9ef08735"]
+    },
+    {
+      "id": "trusting-the-guardrails",
+      "sectionId": "reliable-foundations",
+      "kind": "question",
+      "text": "The claim that code can be born compliant makes the surrounding environment do much of the quality work. What would continuous verification need to show before a pair could trust those guardrails over line-by-line review?",
+      "sourceIds": ["p-332334373a", "p-a9ac9530fb"]
+    },
+    {
+      "id": "where-efficiency-goes",
+      "sectionId": "discovery-and-accountability",
+      "kind": "question",
+      "text": "The organizational proposal spends AI's efficiency gains on more discovery rather than treating smaller teams as the endpoint. How would a company decide which pairs to stop and which deserve sustained backing?",
+      "sourceIds": ["p-3b39fbe861", "p-256166a0df"]
+    }
+  ]
+}
