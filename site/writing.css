@@ -10,14 +10,23 @@
   --cp-border: var(--site-rule);
   --cp-border-strong: var(--site-muted);
   --cp-accent: var(--site-ink);
+  --font-display: var(--font-body);
+  --font-ui: var(--font-body);
+  --sans: var(--font-body);
+  background-color: var(--site-ground);
+  background-image: var(--grain), var(--site-wash);
 }
-.writing-frame .sheet { padding-top: 120px; padding-bottom: 80px; background: var(--site-ground); background-image: var(--grain); }
+.writing-frame .sheet {
+  padding: calc(var(--masthead-height) + var(--opening-gap)) var(--page-right) 80px var(--page-left);
+  background: none; box-shadow: none;
+}
 .writing-frame .site-header, .writing-frame .site-footer { line-height: 1.45; }
 .writing-frame .skip { position: fixed; }
 .writing-frame:is(.essay, .archive) { --font-display: var(--font-body); --font-ui: var(--font-body); --sans: var(--font-body); }
-.writing-frame:is(.essay, .archive) .sheet {
-  background-image: var(--grain), radial-gradient(ellipse 80vw 650px at 80% 0, var(--site-light), var(--site-light-fade));
-}
+.writing-frame .page-opening { padding-top: 0; }
+.writing-frame .legacy-document { padding-top: 0; }
+.writing-frame .page-opening h1 { font-family: var(--font-body); font-weight: 400; }
+.writing-frame .primary-link { font: 400 16px/1.4 var(--font-body); }
 .writing-frame:is(.essay, .archive) h1,
 .writing-frame:is(.essay, .archive) h2,
 .writing-frame:is(.essay, .archive) h3 { font-weight: 400; }
@@ -37,7 +46,7 @@
 .archive-notes { display: flex; gap: 24px; flex-wrap: wrap; padding-block: 8px; font: 400 14px/1.5 var(--font-body); }
 .archive-notes a { display: inline-flex; align-items: center; min-height: 44px; }
 .archive .archive-meta { align-items: center; padding-block: 8px 0; gap: 8px 16px; font: 400 12px/1.5 var(--font-technical); }
-.archive .archive-meta .primary-link { font: 400 12px/1.5 var(--font-technical); white-space: nowrap; }
+.archive .archive-meta .primary-link { font: 400 16px/1.5 var(--font-body); white-space: nowrap; }
 .archive .archive-entries {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: start; column-gap: 7%; row-gap: 96px; padding: 24px 0 112px;
@@ -82,7 +91,7 @@
   .essay .reading-lens { top: auto; max-height: 70dvh; }
 }
 @media (max-width: 700px) {
-  .writing-frame .sheet { --page-gutter: 16px; padding: max(104px, calc(var(--nav-clearance) + 8px)) 16px 56px; }
+  .writing-frame .sheet { padding: calc(var(--masthead-height) + var(--opening-gap)) var(--page-right) 56px var(--page-left); }
   .arrival-field { height: 80px; margin-bottom: 24px; }
   .arrival-field .photo-geometry { width: 390px; top: -146px; right: -90px; }
   .archive .arrival-field { height: 40px; margin-bottom: 16px; }
@@ -108,6 +117,7 @@
   .essay .reading-aside { max-height: none; }
 }
 @media (forced-colors: active) {
+  .writing-frame { background-image: none !important; }
   .writing-frame .sheet { background-image: none !important; }
 }
 @media print {

@@ -21,10 +21,6 @@ img { display: block; width: 100%; height: auto; }
 }
 .skip:focus { transform: none; }
 .technical-surface { background-image: var(--grain); }
-.text-link {
-  display: inline-flex; align-items: center; gap: 24px; min-height: 44px;
-  font: 12px/1.4 var(--font-technical); text-transform: uppercase; text-decoration: none;
-}
 .cover {
   position: relative; isolation: isolate; display: grid; grid-template-columns: 1fr 1fr;
   align-items: end; gap: 8%; min-height: 830px; padding: 140px 32px 32px; overflow: clip;
@@ -45,9 +41,6 @@ img { display: block; width: 100%; height: auto; }
   padding-block: 88px 128px;
   background-image: var(--grain), radial-gradient(ellipse at 85% 35%, var(--site-warm), var(--site-light-fade) 62%);
 }
-.chapter-heading { text-align: center; }
-.chapter-heading h2 { font: 13px/1.4 var(--font-technical); text-transform: uppercase; }
-.chapter-heading .text-link { margin-top: 12px; }
 .writing-list {
   display: grid; grid-template-columns: 1.6fr 1fr; gap: 0 8%; align-items: start;
   max-width: 1480px; margin: 72px auto 0; padding: 0 32px; list-style: none;
@@ -55,6 +48,7 @@ img { display: block; width: 100%; height: auto; }
 .writing-plane { min-width: 0; }
 .writing-plane--2 { margin-top: 220px; }
 .writing-plane--3 { grid-column: 1; margin-top: 40px; }
+.writing-plane--4 { margin-top: 160px; }
 .exhibition-art { display: block; }
 .exhibition-art img { width: 100%; height: auto; }
 .essay-copy { padding: 24px 0 40px; }
@@ -97,7 +91,7 @@ img { display: block; width: 100%; height: auto; }
   .editorial-plane .text-link { margin-top: 20px; }
   .writing { padding-block: 64px; }
   .writing-list { display: block; padding-inline: 16px; margin-top: 48px; }
-  .writing-plane, .writing-plane--2, .writing-plane--3 { margin: 0 0 40px; }
+  .writing-plane, .writing-plane--2, .writing-plane--3, .writing-plane--4 { margin: 0 0 40px; }
   .essay-copy { padding: 24px 8px 32px; }
   .writing-list h3 { font-size: 32px; max-width: 22ch; }
   .ideas { display: flex; flex-direction: column; padding: 0 24px 72px; gap: 32px; align-items: stretch; }

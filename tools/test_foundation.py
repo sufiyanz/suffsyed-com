@@ -66,7 +66,7 @@ def main():
                 assert page.goto(args.url + route, wait_until="networkidle").status == 200
                 page.evaluate("document.fonts.ready")
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), (width, route)
-                assert page.locator(".site-header").evaluate("el => getComputedStyle(el).position") == ("absolute" if name == "home" else "fixed")
+                assert page.locator(".site-header").evaluate("el => getComputedStyle(el).position") == "absolute"
                 assert page.locator("[data-motion-toggle]").count() == 0
                 assert page.evaluate("document.getAnimations().length") == 0
                 collisions = page.evaluate("""() => {

@@ -14,7 +14,9 @@ from bs4 import BeautifulSoup
 from corpus import content_digest, flat_text, reading_plate, tokens
 from build_site import journal_home_page
 from foundation_art import orbit, ribbon
-from foundation_home import DESCRIPTION, IDENTITY, SELECTED_ESSAYS, render_foundation
+from foundation_home import DESCRIPTION, IDENTITY, render_foundation
+from series import load_series
+from test_series import SERIES_SLUGS
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs"
@@ -42,7 +44,7 @@ class JournalTests(unittest.TestCase):
         self.assertEqual(home.select_one(".cover-role").get_text(), IDENTITY)
         self.assertEqual(home.select_one(".cover-description").get_text(), DESCRIPTION)
         self.assertEqual([a["href"] for a in home.select(".site-header nav a")],
-                         ["/futurememo/", "/lightworks/", "/about-me/"])
+                         ["/futurememo/", "/about-me/"])
         self.assertEqual([link["href"] for link in home.select('link[rel="stylesheet"]')],
                          ["/assets/foundation.css", "/assets/frame.css", "/assets/gallery-home.css"])
         self.assertFalse(home.select("canvas, dialog, iframe, form"))
@@ -70,8 +72,12 @@ class JournalTests(unittest.TestCase):
                          (OUT / "assets/foundation.css").read_bytes())
         rows = {row["slug"]: row for row in DATA["essays"]}
         selections = home.select(".writing-list li")
-        self.assertEqual(len(selections), 3)
-        for item, slug in zip(selections, SELECTED_ESSAYS):
+        self.assertEqual(len(selections), 4)
+        self.assertEqual(home.select_one("#writing h2").get_text(), "The Future of Design")
+        self.assertNotIn(lead["slug"], SERIES_SLUGS)
+        for index, (item, slug) in enumerate(zip(selections, SERIES_SLUGS), 1):
+            self.assertEqual(item["data-series-part"], str(index))
+            self.assertEqual(item["data-series-slug"], slug)
             self.assertEqual(item.h3.a["href"], f"/futurememo/{slug}/")
             self.assertEqual(item.h3.get_text(), rows[slug]["title"])
             self.assertTrue(rows[slug]["description"].startswith(item.p.get_text()))
@@ -120,17 +126,16 @@ class JournalTests(unittest.TestCase):
             page = self.pages[OUT / "futurememo" / source["slug"] / "index.html"]
             rows.append({**source, "url": f'/futurememo/{source["slug"]}/',
                          "coverAlt": page.select_one(".essay-artwork img")["alt"]})
-        for slug in (rows[0]["slug"], SELECTED_ESSAYS[0], SELECTED_ESSAYS[1]):
+        series = load_series(rows, ROOT)
+        for slug in (rows[0]["slug"], SERIES_SLUGS[0], SERIES_SLUGS[1]):
             ordered = sorted(rows, key=lambda row: row["slug"] != slug)
-            page = BeautifulSoup(render_foundation(ordered, lambda src, alt, **kw: "<img>"), "html.parser")
+            page = BeautifulSoup(render_foundation(ordered, lambda src, alt, **kw: "<img>", series), "html.parser")
             self.assertEqual(page.select_one(".featured-essay")["data-featured-slug"], slug)
             following = [a["href"] for a in page.select(".writing-list .exhibition-art")]
-            self.assertEqual(len(following), 3)
-            self.assertEqual(len(set(following)), 3)
-            self.assertNotIn(f"/futurememo/{slug}/", following)
+            self.assertEqual(following, [f"/futurememo/{part}/" for part in SERIES_SLUGS])
         self.assertTrue(all(row["publicationDate"] is None for row in rows))
         with self.assertRaisesRegex(ValueError, "archive lead"):
-            render_foundation([], lambda *args, **kwargs: "")
+            render_foundation([], lambda *args, **kwargs: "", series)
 
     def test_preserved_journal_cover_and_internal_header(self):
         home = self.journal_home
@@ -156,16 +161,19 @@ class JournalTests(unittest.TestCase):
         self.assertEqual(home.select_one(".mast").find_next_sibling().get("id"), "main")
         self.assertEqual(len(home.select("h1")), 1)
         self.assertEqual([a.get_text() for a in home.select(".mast nav a")],
-                         ["Future (Memo)", "Light (works)", "About (Me)"])
+                         ["Future (Memo)", "About (Me)"])
         for path, soup in self.pages.items():
             self.assertEqual(len(soup.select(".site-header")), 1)
             self.assertEqual([a["href"] for a in soup.select(".site-header nav a")],
-                             ["/futurememo/", "/lightworks/", "/about-me/"])
+                             ["/futurememo/", "/about-me/"])
             self.assertEqual([a.get_text() for a in soup.select(".site-header nav a")],
-                             ["Future (Memo)", "Light (works)", "About (Me)"])
+                             ["Future (Memo)", "About (Me)"])
+            self.assertEqual(len(soup.select(".site-header .site-signature")), 1)
+            self.assertFalse(soup.select(".site-header .site-name"))
             self.assertEqual(len(soup.select(".site-footer")), 1)
-            self.assertEqual([a.get_text() for a in soup.select(".site-footer > nav a")[:3]],
-                             ["Future (Memo)", "Light (works)", "About (Me)"])
+            self.assertEqual([a.get_text() for a in soup.select(".site-footer > nav a")[:2]],
+                             ["Future (Memo)", "About (Me)"])
+            self.assertFalse(soup.select('.site-header a[href="/lightworks/"], .site-footer a[href="/lightworks/"]'))
             self.assertFalse(soup.select("[data-motion-toggle], .motion-toggle"))
             if path != OUT / "index.html":
                 self.assertIsNone(soup.select_one(".home-cover"))

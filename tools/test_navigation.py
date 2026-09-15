@@ -8,8 +8,8 @@ from playwright.sync_api import sync_playwright
 from test_reader_detail import SEED, assert_anchor, body_position, click_native, open_details
 
 WIDTHS = (320, 390, 820, 1024, 1280, 1440, 1600)
-LABELS = ["Future (Memo)", "Light (works)", "About (Me)"]
-DESTINATIONS = ["/futurememo/", "/lightworks/", "/about-me/"]
+LABELS = ["Future (Memo)", "About (Me)"]
+DESTINATIONS = ["/futurememo/", "/about-me/"]
 ARTICLE = f"/futurememo/{SEED}/"
 
 
@@ -54,8 +54,8 @@ def main():
         page = context.new_page()
         page.on("pageerror", lambda error: errors.append(str(error)))
         routes = [("/", "home", None), ("/futurememo/", "archive", DESTINATIONS[0]),
-                  (ARTICLE, "article", DESTINATIONS[0]), ("/lightworks/", "photography", DESTINATIONS[1]),
-                  ("/about-me/", "about", DESTINATIONS[2]), ("/methods/", "methods", None)]
+                  (ARTICLE, "article", DESTINATIONS[0]), ("/lightworks/", "photography", None),
+                  ("/about-me/", "about", DESTINATIONS[1]), ("/methods/", "methods", None)]
         if args.home_only:
             routes = routes[:1]
         for width in WIDTHS:
@@ -71,7 +71,13 @@ def main():
                     assert current.count() == 1 and current.get_attribute("href") == active
                 else:
                     assert current.count() == 0
-                assert page.locator(".site-footer > nav a").all_text_contents()[:3] == LABELS
+                assert page.locator(".site-footer > nav a").all_text_contents()[:2] == LABELS
+                for link in page.locator(".site-footer > nav a").all():
+                    assert link.bounding_box()["height"] >= 44
+                    assert link.evaluate("e=>parseFloat(getComputedStyle(e).fontSize)") >= 16
+                assert page.locator('.site-footer a[href="/lightworks/"]').count() == 0
+                assert page.locator(".site-header .site-signature").count() == 1
+                assert page.locator(".site-header").evaluate("e=>getComputedStyle(e).backgroundColor") == "rgba(0, 0, 0, 0)"
                 first_title = page.locator("main h1").first.bounding_box()
                 assert first_title["y"] >= box["y"] + box["height"]
                 collisions = page.locator("[data-motion-scene]").evaluate_all("""es=>es.filter(e=>{
@@ -83,12 +89,17 @@ def main():
                 if width in (320, 390, 1280, 1440, 1600):
                     page.screenshot(path=str(args.output / f"{name}-opening-{width}.png"))
                 if route != ARTICLE:
+                    page.evaluate("scrollTo(0, 240)")
+                    moved = header_bounds(page)
+                    assert abs(moved["y"] + page.evaluate("scrollY")) < 1
+                    assert page.locator(".site-header").evaluate("e=>getComputedStyle(e).position") == "absolute"
                     continue
                 body_position(page, .5)
-                assert header_bounds(page) == box
+                moved = header_bounds(page)
+                assert abs(moved["y"] + page.evaluate("scrollY")) < 1
+                assert moved["y"] + moved["height"] <= 0
                 assert box["x"] == box["y"] == 0 and box["width"] == width
-                assert page.locator(".site-header").evaluate(
-                    "e=>getComputedStyle(e).backgroundColor===getComputedStyle(document.body).backgroundColor")
+                assert page.locator(".sheet").evaluate("e=>getComputedStyle(e).backgroundColor") == "rgba(0, 0, 0, 0)"
                 clearance = page.evaluate("parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)")
                 body = page.locator("#essay-body").bounding_box()
                 assert abs(body["x"] + body["width"] / 2 - width / 2) < .1
@@ -96,7 +107,7 @@ def main():
                 toolbar = None
                 if width < 1280:
                     toolbar = page.locator("#reader-tools > summary").bounding_box()
-                    assert abs(toolbar["y"] - box["height"]) < 1
+                    assert abs(toolbar["y"]) < 1
                     assert toolbar["y"] + toolbar["height"] <= clearance
                 if width in (320, 390, 1280, 1440, 1600):
                     page.screenshot(path=str(args.output / f"article-reading-{width}.png"))
@@ -116,17 +127,15 @@ def main():
                 assert_anchor(page, target)
                 body_position(page, .5)
                 y, url = page.evaluate("scrollY"), page.url
-                click_native(page, page.locator(".site-header nav a").first)
-                page.wait_for_url(args.url + "/futurememo/", wait_until="networkidle")
+                # Navigate from the reading position, without auto-scrolling to the departed masthead.
+                page.goto(args.url + "/futurememo/", wait_until="networkidle")
                 assert page.locator(".archive-entry").count() == 20
                 page.go_back(wait_until="networkidle")
                 assert page.url == url and abs(page.evaluate("scrollY") - y) < 2
                 report["readers"].append({"width": width, "bodyWidth": body["width"], "header": box,
                                           "toolbar": toolbar, "clearance": clearance,
                                           "backError": abs(page.evaluate("scrollY") - y)})
-        page.goto(args.url, wait_until="networkidle")
-        click_native(page, page.locator('.site-header a[href="/lightworks/"]'))
-        page.wait_for_url(args.url + "/lightworks/", wait_until="networkidle")
+        page.goto(args.url + "/lightworks/", wait_until="networkidle")
         assert page.locator(".photograph").count() == 22
         page.locator("[data-gallery]").first.click()
         assert page.locator("#artwork-dialog").is_visible()
@@ -156,7 +165,7 @@ def main():
         browser.close()
     assert not errors, errors
     (args.output / "acceptance.json").write_text(json.dumps(report, indent=2) + "\n")
-    scope = "homepage, canonical destinations, photography and no-JS" if args.home_only else "opaque article band, toolbar/source clearance, Back, photography and no-JS"
+    scope = "homepage, canonical destinations, parked photography and no-JS" if args.home_only else "natural mastheads, toolbar/source clearance, Back, parked photography and no-JS"
     print(f"PASS: exact canonical navigation/active states; seven widths; {scope}.")
 
 

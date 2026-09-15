@@ -18,6 +18,7 @@ from journal_home import render_cover, render_home
 from journal_questions import render_margin, render_research, render_research_teaser
 from question_atlas import build_atlas, render_atlas
 from reading_guide import load_guides, render_guide, render_notes
+from series import load_series, render_context, render_part_navigation
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs"
@@ -117,7 +118,7 @@ def layout_writing(title, description, body, path, current, cover, kind, page_as
 </body></html>'''
 
 
-def essay_page(row, rows, guide):
+def essay_page(row, rows, guide, series):
     with Image.open(OUT / row["cover"].lstrip("/")) as cover_image:
         cover_width = cover_image.width
         cover_ratio = cover_image.width / cover_image.height
@@ -151,7 +152,8 @@ def essay_page(row, rows, guide):
 <header class="essay-head">
 <div class="essay-kicker label"><a href="/futurememo/">future(memo)</a><span>Essay {row["no"]:02d} / {esc(row["theme"])}</span><span>{row["words"]:,} words · About {row["minutes"]} min</span></div>
 <h1>{esc(row["title"])}</h1>
-<div class="head-foot"><span>By Suff Syed</span><a href="#essay-body">Begin reading ↓</a></div>
+<div class="head-foot"><span>By Suff Syed</span><a class="text-link reading-action" href="#essay-body">Begin reading <span aria-hidden="true">↓</span></a></div>
+{render_context(series, row["slug"])}
 </header>
 <figure class="essay-artwork" style="--art-width:{cover_width}px;--art-ratio:{cover_ratio:.8f}"><a href="{row["cover"]}" class="artwork-link" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])} Shown without cropping.">{image(row["cover"], row["coverAlt"], False, f"(max-width: 700px) min(calc(100vw - 64px), {390 * cover_ratio:.2f}px), {min(640, 390 * cover_ratio, cover_width):.2f}px")}</a><figcaption><span>Original essay artwork</span><a href="{row["cover"]}" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])}">View the whole image ↗</a></figcaption></figure>
 <div class="reader-composition" id="reading">
@@ -175,7 +177,8 @@ def essay_page(row, rows, guide):
 <p id="term-status" class="lens-status" role="status"></p><ol id="term-results" class="passage-results"></ol>
 <section id="passage-inspector" hidden aria-labelledby="inspector-title"><span class="label" id="inspected-source">One passage / Other possibilities</span><h3 id="inspector-title">A thought in company.</h3><blockquote id="inspected-text"></blockquote><a id="inspected-link">Return to the passage ↗</a><p class="micro">Lexical neighbors, not agreement or evidence. Ranked by shared, less-common words. Short passages may have no match.</p><ol id="related-passages" class="passage-results"></ol></section>
 </aside>
-<div class="essay-end"><span class="label">End of essay {row["no"]:02d}</span><p>Keep the question open.</p><a href="/futurememo/">Return to the whole collection ↗</a></div>
+<div class="essay-end"><span class="label">End of essay {row["no"]:02d}</span><p>Keep the question open.</p><a class="text-link" href="/futurememo/">Return to the whole collection <span aria-hidden="true">↗</span></a></div>
+{render_part_navigation(series, row["slug"])}
 <section class="next-reading"><div><span class="label">Still in this preoccupation</span><h2>One thought leads<br>to another.</h2></div>{related}</section>
 <details class="provenance"><summary>A note on the archive</summary><p>The complete migrated text is preserved. The migration assigned the date label “{esc(row["migrationLastmodLabel"])}” using sitemap last-modified values or a fallback; it is not a confirmed publication date. <a href="/methods/">Text and measurement notes.</a></p></details>
 <script id="essay-data" type="application/json">{safe_json({k: v for k, v in row.items() if k != "body"})}</script>'''
@@ -255,6 +258,7 @@ def main():
         with Image.open(OUT / photo["src"].lstrip("/")) as im:
             photo["width"], photo["height"] = im.size
     rows = [measure(row, ROOT) for row in data["essays"]]
+    series = load_series(rows, ROOT)
     guides = load_guides(rows, ROOT, allow_partial=bool(args.preview_guide))
     if args.preview_guide and args.preview_guide not in guides:
         raise ValueError(f"No validated reading guide for preview: {args.preview_guide}")
@@ -284,7 +288,7 @@ def main():
     write("/assets/suff-syed-signature-reversed.svg", ET.tostring(signature, encoding="unicode") + "\n")
     for row in rows:
         if not args.preview_guide or row["slug"] == args.preview_guide:
-            essay_page(row, rows, guides[row["slug"]])
+            essay_page(row, rows, guides[row["slug"]], series)
     public_rows = [{**{key: value for key, value in row.items() if key not in {"body", "passages"}},
                     "readingPlate": reading_plate(row)} for row in rows]
     playground_photos = []
@@ -305,7 +309,7 @@ def main():
         "signature": {"src": "/assets/suff-syed-signature.svg", "viewBox": [0, 0, 350, 148]},
         "photos": playground_photos, "passages": playground_passages,
     }))
-    write("/index.html", render_foundation(rows, image))
+    write("/index.html", render_foundation(rows, image, series))
     archive_page(rows, data, atlas)
     gallery_page(data)
     for page in data["pages"]:

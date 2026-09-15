@@ -12,6 +12,8 @@ from test_foundation import image_evidence
 from test_navigation import header_bounds
 
 WIDTHS = (320, 390, 820, 1028, 1280, 1440, 1600)
+SERIES_SLUGS = [part["slug"] for part in json.loads(
+    (Path(__file__).resolve().parents[1] / "content/series.json").read_text())["parts"]]
 
 
 def main():
@@ -20,7 +22,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
-    report, errors = {"viewports": [], "scroll": []}, []
+    report, errors = {"viewports": [], "scroll": [], "series": []}, []
     with sync_playwright() as p:
         browser = p.webkit.launch()
         context = browser.new_context()
@@ -94,6 +96,29 @@ def main():
                                               "maximumChannelDifference": maximum, "pixelsOverOneLevel": 0})
                     current.save(args.output / f"scroll-{width}-{y}.png")
             dimensions = image_evidence(feature.locator("img"))
+            heading = page.locator("#writing .chapter-heading h2")
+            assert heading.inner_text() == "The Future of Design"
+            assert heading.evaluate("el=>parseFloat(getComputedStyle(el).fontSize)") >= 36
+            assert page.locator(".writing-list > li").evaluate_all(
+                "es=>es.map(e=>e.dataset.seriesSlug)") == list(SERIES_SLUGS)
+            actions = []
+            for link in page.locator(".text-link").all():
+                action = link.evaluate("""el=>{
+                  const r=el.getBoundingClientRect(),s=getComputedStyle(el);
+                  return {label:el.textContent.trim(),fontSize:parseFloat(s.fontSize),
+                    height:r.height,transform:s.textTransform,primary:el.classList.contains('reading-action')};
+                }""")
+                assert action["fontSize"] >= (18 if action["primary"] else 16), action
+                assert action["height"] >= 44 and action["transform"] == "none", action
+                if action["primary"]:
+                    icon = link.locator("[aria-hidden]").bounding_box()
+                    assert icon["width"] >= 44 and icon["height"] >= 44
+                actions.append(action)
+            series_art = [image_evidence(image) for image in page.locator(".writing-list img").all()]
+            report["series"].append({"width": width, "artworks": series_art, "actions": actions})
+            if width in (390, 1440, 1600):
+                page.locator("#writing").evaluate("el=>el.scrollIntoView()")
+                page.screenshot(path=str(args.output / f"series-{width}.png"))
             for selector in (".featured-essay h2 a", ".writing-list h3 a", ".site-footer > nav a"):
                 link = page.locator(selector).first
                 link.focus()
@@ -126,7 +151,7 @@ def main():
     assert not errors, errors
     report["archiveLead"] = archive_lead
     (args.output / "acceptance.json").write_text(json.dumps(report, indent=2) + "\n")
-    print("PASS: real archive lead, exact credit, original art/resolution, complete caption, seven widths, natural header scrolling without a band, focus and no-JS.")
+    print("PASS: real archive lead/credit, four ordered full-ratio series artworks, readable 44px+ actions, seven widths, natural masthead, focus and no-JS.")
 
 
 if __name__ == "__main__":

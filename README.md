@@ -11,13 +11,15 @@ runtime dependency on Squarespace.
 The approved sage observatory now opens with a direct Gallery entrance:
 an integrated autograph masthead, introduction and exact role credit on the
 sage/grain field, followed by one generous original artwork and its complete
-linked essay title. Three further illustrations remain below; all twenty are at gallery
+linked essay title. The four-part **The Future of Design** series follows below;
+all twenty essays are at gallery
 scale in `/futurememo/`, and full-ratio frontispieces on every essay arrival.
-The compact fixed navigation, exact autograph, pale editorial plane, Instrument
+Natural-scroll autograph mastheads, a continuous sage surface, Instrument
 Sans / DM Mono hierarchy and dark forest footer form a shared writing-first
 frame. Light(works) is no longer a homepage scene; its 22 photographs and
-full-view behavior remain intact. The shared main navigation is exactly
-**Future (Memo)** (`/futurememo/`), **Light (works)** (`/lightworks/`) and
+full-view behavior remain intact at the parked `/lightworks/` route, without
+primary navigation or footer promotion. The shared main navigation is exactly
+**Future (Memo)** (`/futurememo/`) and
 **About (Me)** (`/about-me/`), including the preserved renderers. The first link
 always opens the complete archive, not a homepage fragment. Primary footer
 labels match; the memo description remains in the site-notes disclosure.
@@ -28,11 +30,16 @@ material craft. Blink informed the spatial hierarchy, not the artwork or code;
 no proprietary fonts, branded diagrams, animation or scroll mechanics are copied.
 
 `tools/foundation_home.py` renders the homepage; `site/gallery-home.css` scopes
-the chosen cover, transparent masthead and single painted surface to that page.
+the chosen cover and single painted opening surface to that page.
 `site/foundation.css` retains the shared fields and lower composition.
 `tools/writing_frame.py` and `site/frame.css` share the navigation,
-footer and material tokens; `site/writing.css` carries these through the index
-and article arrivals while retaining Newsreader for long reading. Support-page
+autograph masthead, footer, material/spacing tokens, display section headings and
+readable action styles. Primary reading actions use a forest square arrow;
+secondary actions have a clear baseline rule. Both have 44px-plus targets, without
+restyling authored inline links or source citations.
+`site/writing.css` carries the gallery field and typography through all public
+pages; `.sheet` is transparent rather than a separate white slab. Newsreader
+remains the long-reading face, and internal essay headings retain their scale. Support-page
 content is unchanged. All artwork is still, uncropped, untinted and displayed
 at its native aspect ratio. Responsive `sizes` match the new scale; sources
 include 640/960px derivatives and full original files.
@@ -63,19 +70,19 @@ button is absent from the markup, with no replacement settings UI or divider.
 Reduced motion, forced colors, print and no-JS retain complete static content.
 The module is initialized once per document and survives bfcache restoration.
 There is no preloader, scroll interception, new app host or runtime model call.
-Non-homepage navigation stays fixed while reading. Safe-area insets and native
-scroll padding keep section headings and keyboard targets clear, without
-scroll-state JavaScript or hide/reveal behavior. At 540px and narrower, the
+Safe-area insets and native scroll padding keep section headings and keyboard
+targets clear, without scroll-state JavaScript or hide/reveal behavior.
+At 700px and narrower, the
 header has two calm rows with the complete labels at 12px and 48px touch
 targets. Shared row-height/count tokens determine its height and clearances.
-Articles use an opaque full-width top band (56px rows) so the longer navigation
-cannot float over the centered prose; the mobile reader toolbar sticks directly
-below that band, and source offsets account for both.
-The homepage alone has an integrated, left-aligned autograph masthead. It is a
+All public pages have an integrated, left-aligned autograph masthead. It is a
 transparent, document-positioned header over reserved cover padding, and scrolls
 away with the opening. One continuous cover surface paints the sage/grain wash
 behind both masthead and introduction/artwork; there is no independent header
-background, pinned strip or transition. Other-page persistent headers are unchanged.
+background, pinned strip or transition. The same natural-flow behavior applies
+to archive, article and support-page mastheads. Only the reading instruments
+remain sticky: desktop rails sit 32px from the safe top; the narrow reader
+toolbar sits at the safe top after the masthead leaves, with 56px source clearance.
 The opening has one autograph and no separate text-name logo, card or hero
 wireform. The original closing autograph and lower ideas scene remain.
 
@@ -84,9 +91,20 @@ wireform. The original closing autograph and lower ideas scene remain.
 archive entry, with its original image/description, complete title and URL.
 This is an editorial ordering contract, **not independently verified chronology**:
 all `publicationDate` values are null, and `migrationLastmod` is never used to
-infer one. The UI says **Featured essay**. If the lead is also one of the curated
-lower selections, it is excluded there and the next eligible archive entry fills
-the slot, without duplicates. No sample slug controls the feature.
+infer one. The UI says **Featured essay**. No sample slug controls the feature.
+
+`content/series.json` is the separate, source-backed definition of **The Future
+of Design**. Its exact authored order is Hassabis → Surface/Substrate → Design
+Leaders → Future Designers (Parts I–IV). The homepage renders all four original
+artworks, complete titles and canonical links; it never infers membership from
+themes, backfills unrelated recommendations, or truncates the series to three.
+The current archive-lead feature is outside this series. Feature selection and
+the complete series order are independent.
+`tools/series.py` validates the exact schema, explicit ordered part numbers,
+known unique members, raw-source SHA256 and local, ordered evidence IDs.
+Planned “dropping” dates in the source are not publication dates. Only these four
+articles receive a series context, an original author's-note link and genuine
+previous/next part navigation outside `#essay-body`; endpoints do not wrap.
 
 Regular **Instrument Sans** supplies the deliberate grotesk hierarchy; the
 existing **DM Mono** supplies small technical annotations. A 24KB static
@@ -129,8 +147,8 @@ a sampled frame budget (p95 below 50ms in headless WebKit; no site JS frame loop
 Headless visibility is explicitly emulated; offscreen suspension uses real scroll.
 It saves desktop/phone compositions, motion frames and machine-readable evidence.
 `tools/test_navigation.py --url http://127.0.0.1:8774 --output /absolute/path`
-checks the three exact destinations, active states, header/touch bounds,
-article bands and sticky tools, native source focus and Back at seven widths.
+checks the two exact destinations, active states, natural masthead/touch bounds,
+sticky reading tools, native source focus and Back at seven widths.
 Use `--home-only` for a homepage-only navigation change.
 `tools/test_foundation.py --motion-only --output /absolute/path` isolates actual
 moving/frozen pixels and the frame budget without rerunning the gallery suite.
@@ -153,10 +171,14 @@ lower homepage ideas and archive origins with the unchanged motion controller.
 `tools/test_gallery_entrance.py --output /absolute/path` verifies the real archive
 lead, role credit, original image ratios/resolution, responsive caption and
 natural header scrolling/focus behavior without rerunning unrelated reader suites.
+It also checks the four series artworks at their full ratios/decoded resolution,
+display section hierarchy and primary/secondary 44px-plus action affordances.
+`tools/test_series.py` checks authored membership/order, source-local evidence,
+invalid/stale definitions, escaped output and member-only previous/next links.
 
 ## Source-linked article reader
 
-Article detail pages use a centered 640px Newsreader measure on a quiet paper
+Article detail pages use a centered 640px Newsreader measure on a quiet sage
 surface, with an uncropped original frontispiece and its existing full-view
 control. The spatial reference was
 [Making Software's GPU chapter](https://www.makingsoftware.com/chapters/how-does-a-gpu-work);
@@ -171,8 +193,9 @@ wide, with symmetrical 64px gutters at 1280px, 80px at 1440px and 96px at 1600px
 the centered prose remains 640px and sidebar type sizes are unchanged.
 On narrower enhanced views, the controller moves those same nodes into a native
 Guide & notes disclosure; it never duplicates their
-contents or handlers. The mobile/tablet header and compact progress bar have
-opaque backgrounds, and the opened tools have their own bounded scroll area.
+contents or handlers. The mobile/tablet compact progress bar is opaque; the
+main masthead remains transparent and scrolls away. Opened tools have their own
+bounded scroll area.
 Without JavaScript, both rails remain native, in-flow disclosures on narrow
 screens and separate columns on desktop; enhancement-only controls are hidden.
 

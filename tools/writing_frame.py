@@ -3,7 +3,6 @@
 
 PRIMARY_NAV = (
     ("Future (Memo)", "/futurememo/", "writing"),
-    ("Light (works)", "/lightworks/", "light"),
     ("About (Me)", "/about-me/", "about"),
 )
 
@@ -15,9 +14,11 @@ def primary_links(current=""):
     )
 
 
-def header(current=""):
-    return f'''<header class="site-header">
-<a class="site-name" href="/" aria-label="Suff Syed, home">Suff Syed</a>
+def header(current="", home=False):
+    return f'''<header class="site-header{' gallery-masthead' if home else ''}">
+<a class="site-autograph" href="/" aria-label="Suff Syed, home"><span class="signature-ink">
+<img class="site-signature{' cover-signature' if home else ''}" src="/assets/suff-syed-signature.svg" width="350" height="148" alt="" fetchpriority="high">
+</span></a>
 <nav aria-label="Main navigation">{primary_links(current)}</nav></header>'''
 
 

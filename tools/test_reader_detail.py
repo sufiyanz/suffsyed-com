@@ -146,11 +146,10 @@ def main():
                     assert not toolbar.evaluate("el => el.open")
                     header = page.locator(".site-header").bounding_box()
                     control = toolbar.locator(":scope > summary").bounding_box()
-                    assert header["y"] == 0 and header["x"] == 0 and header["width"] == width
-                    assert control["y"] >= header["y"] + header["height"] - 1
+                    assert header["y"] + header["height"] < 0 and header["x"] == 0 and header["width"] == width
                     clearance = page.evaluate("parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)")
                     assert control["y"] + control["height"] <= clearance
-                    assert abs(control["y"] - header["y"] - header["height"]) < 1
+                    assert abs(control["y"]) < 1
                     assert page.locator("[data-compact-progress]").inner_text() == "50%"
                     toolbar.locator(":scope > summary").focus()
                     page.keyboard.press("Enter")
@@ -174,7 +173,7 @@ def main():
                     for selector in [".reader-guide", ".reader-notes"]:
                         rail = page.locator(selector).bounding_box()
                         assert rail["width"] == 188, (width, selector, rail)
-                        assert rail["y"] >= page.locator(".site-header").bounding_box()["y"] + 48
+                        assert abs(rail["y"] - 32) < 1
                         assert rail["y"] + rail["height"] <= height
                         if selector == ".reader-guide":
                             gaps.append(body["x"] - rail["x"] - rail["width"])
@@ -195,8 +194,7 @@ def main():
                 y = page.evaluate("scrollY")
                 returning_url = page.url
                 page.evaluate("history.replaceState({...history.state, unrelated: {value: 'preserved'}}, '')")
-                page.locator(".site-header a[href='/futurememo/']").click()
-                page.wait_for_url(args.url + "/futurememo/", wait_until="networkidle")
+                page.goto(args.url + "/futurememo/", wait_until="networkidle")
                 page.go_back(wait_until="networkidle")
                 assert page.url == returning_url
                 assert abs(page.evaluate("scrollY") - y) < 2, (width, y, page.evaluate("scrollY"))
@@ -295,7 +293,7 @@ def main():
             open_details(page, ".guide-points")
             target = page.locator(".inline-sources a").first.get_attribute("href")[1:]
             click_native(page, page.locator(".inline-sources a").first)
-            assert page.locator("#" + target).bounding_box()["y"] >= (100 if width == 390 else 80)
+            assert_anchor(page, target)
             open_details(page, "#ai-reading-notes")
             assert page.locator(".reader-note:visible").count() == 5
             assert page.locator("[data-all-notes]").is_hidden()

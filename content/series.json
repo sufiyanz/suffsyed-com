@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "id": "future-of-design",
+  "title": "The Future of Design",
+  "description": "From designing interfaces to shaping intelligence.",
+  "parts": [
+    {
+      "number": 1,
+      "slug": "designers-should-look-to-demis-hassabis-not-jony-ive",
+      "sourceSha256": "dd49541516437dbc12b0c75e30b1632b0ab894a250dd700fce0d8b265de3b015",
+      "sourceIds": ["p-5b280a09b4"]
+    },
+    {
+      "number": 2,
+      "slug": "designers-have-to-move-from-the-surface-to-the-substrate",
+      "sourceSha256": "f10577fd4a31c384faf2b54e3c9b31e025c2ddbe43f90363f88610111d3cb61b",
+      "sourceIds": ["p-d39b1d94fc", "p-c7d2a0a576"]
+    },
+    {
+      "number": 3,
+      "slug": "the-design-leaders-are-lying-to-you",
+      "sourceSha256": "f661d6ab1b1cbbf1137a91b9e5b13fbccccc8b16406af0d45a4afd1d59e6c827",
+      "sourceIds": ["p-aea8ed8271", "p-d3066fdf47"]
+    },
+    {
+      "number": 4,
+      "slug": "how-future-designers-will-win-in-the-age-of-ai",
+      "sourceSha256": "cfc74e625bfaf69771eb2856a57401aa87c6985e0072a980bc547c7465b2cb3b",
+      "sourceIds": ["p-93486e8954", "p-f9ec788ad5"]
+    }
+  ]
+}
