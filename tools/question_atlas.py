@@ -103,7 +103,7 @@ def render_atlas(atlas):
         entries = []
         for item in question["entries"]:
             entries.append(f"""
-            <li class="atlas-entry" data-atlas-entry="{text(item['slug'])}" data-number="{item['no']:02d}">
+            <li class="atlas-entry" data-atlas-entry="{text(item['slug'])}">
               <a class="atlas-essay-title" href="{text(item['url'])}">{text(item['title'])}</a>
               <details class="atlas-source" id="atlas-source-{text(item['slug'])}">
                 <summary>Read the source passage <span aria-hidden="true">↗</span></summary>
@@ -134,13 +134,13 @@ def render_atlas(atlas):
     return f"""
     <section class="question-atlas" id="by-preoccupation" data-question-atlas aria-labelledby="atlas-title">
       <header class="section-heading">
-        <span class="label">Five preoccupations</span>
+        <span class="label">Editorial preoccupations</span>
         <h2 id="atlas-title">An atlas of questions.</h2>
       </header>
       <p class="atlas-introduction">Editorial questions and curated routes, not measured similarity.
         <a href="/methods/#question-atlas">Method ↗</a></p>
       <details class="atlas-map-disclosure" data-atlas-map>
-        <summary><span>Explore the map</span><span class="atlas-map-invitation">Five ways in <span aria-hidden="true">↗</span></span></summary>
+        <summary><span>Explore the map</span><span class="atlas-map-invitation">Follow the questions <span aria-hidden="true">↗</span></span></summary>
         <p class="atlas-map-notice" data-atlas-notice role="status">The interactive map needs JavaScript. All questions, passages and connections are readable in the index below.</p>
         <button class="plain" type="button" data-atlas-retry hidden>Retry the map</button>
         <div data-atlas-mount></div>
@@ -148,8 +148,8 @@ def render_atlas(atlas):
       <nav class="atlas-jumps" aria-label="Question index">{jumps}</nav>
       <div class="atlas-index">{"".join(groups)}</div>
       <details class="atlas-bridges">
-        <summary>Four bridges / Why these questions meet</summary>
-        <p class="atlas-bridge-note">Editorial pairings. Each explanation names two original passages. The map’s dashed lines represent these same four routes; their position and length are not measurements.</p>
+        <summary>Curated bridges / Why these questions meet</summary>
+        <p class="atlas-bridge-note">Editorial pairings. Each explanation names two original passages. The map’s dashed lines represent these same routes; their position and length are not measurements.</p>
         <ol>{"".join(bridges)}</ol>
       </details>
     </section>"""

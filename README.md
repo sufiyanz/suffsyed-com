@@ -47,6 +47,18 @@ The archive opens on art, not utilities: a native Search & explore disclosure
 holds the complete passage search, theme filter and compact-list controls.
 Linked searches open the disclosure automatically; without JavaScript it
 explains the limitation and retains native memo/question-index links.
+`/futurememo/` uses aligned, full-width editorial rows: uncropped original art
+and a consistent copy/action column, separated by full-width rules. Phone rows
+stack the image and copy. There are no arbitrary essay numbers, staggered
+offsets or detached arrow-only links. The shared **Read essay** action leads;
+measured word counts and word-thread links remain secondary and available.
+Compact mode removes the artwork and description, not the reading action or
+word-thread link, and uses the full row width without an empty number gutter.
+Archive branding and native/atlas invitations do not promise a fixed-size
+collection. Search/result and theme-member counts derive from the supplied
+rows. The atlas retains its deliberately bounded map preview while its native
+index and detail list retain every essay; passage numbers remain meaningful
+source references, not archive rankings.
 
 `tools/foundation_art.py` produces original parametric SVG line studies and a
 seeded static 160px grain tile. `site/motion.js` combines slow 24-second carrier
@@ -175,6 +187,12 @@ It also checks the four series artworks at their full ratios/decoded resolution,
 display section hierarchy and primary/secondary 44px-plus action affordances.
 `tools/test_series.py` checks authored membership/order, source-local evidence,
 invalid/stale definitions, escaped output and member-only previous/next links.
+`tools/test_archive.py --static-only --fixtures /absolute/path/to/fixtures`
+checks the archive renderer and writes a test-only 21-row fixture outside the
+published site. Run the same tool with `--browser-only`, the same `--fixtures`
+and `--artifacts /absolute/path` in the existing WebKit environment for row
+geometry, full-ratio decoded artwork, search/source/error/reset/compact/no-JS
+and growth checks. No twenty-first essay is added to the corpus or public site.
 
 ## Source-linked article reader
 

@@ -340,7 +340,6 @@ def browser_checks(args):
               const list = document.querySelector('[data-atlas-question="design"] > ol');
               const entry = list.firstElementChild.cloneNode(true);
               entry.dataset.atlasEntry = 'atlas-sixth-essay-fixture';
-              entry.dataset.number = '21';
               entry.querySelector('.atlas-source').id = 'atlas-source-sixth-fixture';
               entry.querySelector('.atlas-essay-title').textContent = 'Test fixture / sixth essay';
               list.append(entry);
@@ -361,7 +360,7 @@ def browser_checks(args):
             assert page.locator('[data-atlas-node="atlas-sixth-essay-fixture"]').count() == 0
             assert page.locator(".atlas-detail blockquote").text_content() == source["text"]
             assert page.locator(".atlas-detail .atlas-context").get_attribute("href") == source["href"]
-            assert "not one of the five mapped nodes" in page.locator(".atlas-detail-intro").inner_text()
+            assert "outside the bounded map preview" in page.locator(".atlas-detail-intro").inner_text()
             assert page.locator('.atlas-node[aria-pressed="true"]').count() == 0
             page.locator(".atlas-detail").screenshot(path=str(args.artifacts / f"atlas-{width}-sixth-source.png"))
             page.get_by_role("button", name="Back to this question", exact=True).click()

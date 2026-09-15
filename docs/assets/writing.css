@@ -35,6 +35,7 @@
 .arrival-field .photo-geometry { position: absolute; width: 560px; height: auto; top: -210px; right: 0; }
 .archive .page-opening h1 { font-size: clamp(44px, 5.8vw, 92px); max-width: 16ch; line-height: 1; letter-spacing: -.05em; }
 .archive .page-opening { padding-block: 32px 28px; }
+.archive .archive-brand { text-transform: none; }
 .archive .arrival-field { height: 60px; margin-bottom: 24px; }
 .archive .page-dek { display: block; margin-top: 24px; }
 .archive .page-dek p { max-width: 42ch; font-size: 22px; }
@@ -48,31 +49,27 @@
 .archive .archive-meta { align-items: center; padding-block: 8px 0; gap: 8px 16px; font: 400 12px/1.5 var(--font-technical); }
 .archive .archive-meta .primary-link { font: 400 16px/1.5 var(--font-body); white-space: nowrap; }
 .archive .archive-entries {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start; column-gap: 7%; row-gap: 96px; padding: 24px 0 112px;
-  max-width: 1460px; margin-inline: auto;
+  display: block; padding: 0; max-width: 1460px; margin: 24px auto 96px;
+  border-bottom: 1px solid var(--cp-border);
 }
 .archive .archive-entry {
-  display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 0;
-  border: 0; padding: 0; min-width: 0;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(32px, 5vw, 80px); align-items: start;
+  border: 0; border-top: 1px solid var(--cp-border); padding: 48px 0; margin: 0; min-width: 0;
 }
-.archive .archive-entry:nth-child(even) { margin-top: 120px; }
-.archive .entry-number { grid-row: 1; grid-column: 1/-1; padding: 0 0 16px; }
-.archive .archive-art { grid-column: 1/-1; grid-row: 2; display: block; margin-bottom: 24px; }
+.archive .archive-art { grid-column: 1; grid-row: 1; display: block; margin: 0; }
 .archive .archive-art img { width: 100%; height: auto; max-height: none; background: none; }
-.archive .entry-copy { grid-column: 1; grid-row: 3; padding: 0; max-width: 100%; }
+.archive .entry-copy { grid-column: 2; grid-row: 1; padding: 0; min-width: 0; max-width: 100%; }
 .archive .entry-copy h2 { font: 400 clamp(28px, 2.6vw, 42px)/1.08 var(--font-body); letter-spacing: -.04em; margin: 16px 0; }
 .archive .entry-copy > p { display: block; font-size: 17px; }
 .archive .entry-copy .label { font-size: 12px; }
-.archive .entry-thread { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 15px; }
+.archive .entry-thread { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 20px; font-size: 14px; }
 .archive .entry-thread > .label { font-size: 11px; }
-.archive .entry-read { display: block; grid-row: 3; grid-column: 2; min-height: 44px; }
-.archive .archive-entries.compact { display: block; padding-top: 16px; }
-.archive .archive-entries.compact .archive-entry { grid-template-columns: 30px minmax(0, 1fr) 44px; margin: 0; padding: 24px 0; border-bottom: 1px solid var(--site-rule); gap: 16px; }
-.archive .archive-entries.compact .entry-number { grid-column: 1; grid-row: 1; }
-.archive .archive-entries.compact .entry-copy { grid-column: 2; grid-row: 1; }
-.archive .archive-entries.compact .entry-read { grid-column: 3; grid-row: 1; }
+.archive .entry-read { display: inline-flex; padding: 0; margin-top: 24px; }
+.archive .archive-entries.compact .archive-entry { grid-template-columns: minmax(0, 1fr); padding: 28px 0; gap: 0; }
+.archive .archive-entries.compact .entry-copy { grid-column: 1; grid-row: 1; }
 .archive .archive-entries.compact .entry-copy h2 { font-size: 26px; }
+.archive .archive-entries.compact .entry-thread { display: flex; }
 .essay .essay-head { max-width: 1320px; margin: auto; padding-top: 32px; }
 .essay .essay-head h1 { font-size: clamp(40px, 5.2vw, 78px); line-height: 1.02; max-width: 22ch; letter-spacing: -.045em; }
 .essay .essay-dek { max-width: 800px; margin: 0 auto 72px; font: 400 23px/1.5 var(--font-body); color: var(--site-muted); }
@@ -98,9 +95,10 @@
   .archive .page-opening h1 { margin-block: 16px 20px; }
   .archive .page-dek { margin-top: 20px; }
   .archive .page-dek p { font-size: 20px; max-width: 32ch; }
-  .archive .archive-entries { display: block; padding: 24px 0 56px; }
-  .archive .archive-entry, .archive .archive-entry:nth-child(even) { margin: 0 0 64px; }
-  .archive .archive-art { margin-bottom: 20px; }
+  .archive .archive-entries { margin-bottom: 56px; }
+  .archive .archive-entry { grid-template-columns: minmax(0, 1fr); padding: 32px 0; gap: 24px; }
+  .archive .archive-art { grid-column: 1; grid-row: 1; }
+  .archive .entry-copy { grid-column: 1; grid-row: 2; }
   .archive .entry-copy h2 { font-size: 30px; }
   .archive .entry-copy > .label span { display: inline; }
   .archive .entry-thread small { display: inline; }

@@ -30,7 +30,6 @@ export function mountAtlas(root, mount) {
     label: group.querySelector("h3").textContent,
     entries: [...group.querySelectorAll("[data-atlas-entry]")].map(entry => ({
       id: entry.dataset.atlasEntry,
-      number: entry.dataset.number,
       title: entry.querySelector(".atlas-essay-title").textContent,
       note: entry.querySelector(".atlas-source-note").textContent,
       text: entry.querySelector("blockquote").textContent,
@@ -67,9 +66,9 @@ export function mountAtlas(root, mount) {
 
   const shell = element("div", "atlas-interactive");
   const toolbar = element("div", "atlas-toolbar");
-  const overview = button("All five questions", () => showOverview(true), "atlas-overview");
+  const overview = button("All questions", () => showOverview(true), "atlas-overview");
   const textIndex = link("Use the text index ↓", "#theme-1", "atlas-text-link");
-  const position = element("span", "label atlas-position", "01—05 / The overview");
+  const position = element("span", "label atlas-position", "The overview");
   toolbar.append(overview, position, textIndex);
   const legend = element("p", "atlas-legend");
   legend.append(element("span", "atlas-legend-member", "Essay in an editorial theme"),
@@ -211,7 +210,7 @@ export function mountAtlas(root, mount) {
     selected = null;
     coverage.hidden = true;
     overview.disabled = true;
-    position.textContent = "01—05 / The overview";
+    position.textContent = "The overview";
     textIndex.href = "#theme-1";
     resetGraph("overview");
     // An editorial reading route, not a ranking or a force-directed embedding.
@@ -224,9 +223,9 @@ export function mountAtlas(root, mount) {
     edges = bridges.map(b => ({ from: b.from, to: b.to, kind: "bridge" }));
     heading("A reading route, not a verdict", "Where would you begin?");
     detail.append(element("p", "atlas-detail-intro",
-      "Five questions recur across the collection. The map offers four deliberately chosen bridges between them. Open a question to see the essays around it; every passage has an address."),
+      "Questions recur across the collection. The map offers deliberately chosen bridges between them. Open a question to see the essays around it; every passage has an address."),
     element("p", "micro", "Position, distance and size do not measure importance, similarity or certainty."));
-    announce("Overview. Five editorial questions and four curated bridges.");
+    announce(`Overview. ${questions.length} editorial questions and ${bridges.length} curated bridges.`);
     schedule();
     if (focus) focusGraph(nodeById.get(order[0]));
   }
@@ -244,7 +243,7 @@ export function mountAtlas(root, mount) {
     nodes.append(center);
     const essays = element("div", "atlas-essay-nodes");
     for (const entry of question.entries.slice(0, MAPPED_ESSAYS)) {
-      essays.append(graphNode(entry.id, "essay", `Essay ${entry.number} / read a passage`, entry.title,
+      essays.append(graphNode(entry.id, "essay", "Read a source passage", entry.title,
         () => selectEssay(question, entry, true)));
       edges.push({ from: question.id, to: entry.id, kind: "member" });
     }
@@ -266,9 +265,9 @@ export function mountAtlas(root, mount) {
   function selectEssay(question, entry, focus = false) {
     for (const node of nodeById.values()) node.removeAttribute("aria-pressed");
     nodeById.get(entry.id)?.setAttribute("aria-pressed", "true");
-    heading(`Essay ${entry.number} / ${question.name}`, entry.title);
+    heading(`Essay / ${question.name}`, entry.title);
     const note = "A curated entry point, not a summary. The complete original passage follows."
-      + (nodeById.has(entry.id) ? "" : " This essay is in the full index, not one of the five mapped nodes.");
+      + (nodeById.has(entry.id) ? "" : " This essay is in the full index, outside the bounded map preview.");
     detail.append(element("p", "atlas-detail-intro", note),
       quote(entry), button("Back to this question", () => questionDetail(question, true), "plain"));
     announce(`${entry.title}. Original source passage selected.`);

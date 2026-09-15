@@ -11,7 +11,7 @@ if (root) {
   let attempts = 0;
   const active = () => disclosure.open && visible && !document.hidden;
   const sync = () => controller?.setActive(active());
-  notice.textContent = "Five editorial questions, with their original passages. The map loads only when opened.";
+  notice.textContent = "Editorial questions, with their original passages. The map loads only when opened.";
 
   async function load() {
     if (controller || loading || attempts >= 3 || !disclosure.open) return;
