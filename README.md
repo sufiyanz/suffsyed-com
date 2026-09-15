@@ -231,6 +231,12 @@ Guide & notes disclosure; it never duplicates their
 contents or handlers. The mobile/tablet compact progress bar is opaque; the
 main masthead remains transparent and scrolls away. Opened tools have their own
 bounded scroll area.
+Only these reader rails and the compact tools panel hide native scrollbar
+tracks/thumbs; wheel, touch and keyboard/focus scrolling remain native. The
+page scrollbar and reading-progress indicator are unchanged.
+`tools/test_reader_scrollbars.py --output /absolute/path` checks overflowing
+short-viewport rails and compact tools, wheel isolation, end-link keyboard access,
+source focus and body progress without running the full reader suite.
 Without JavaScript, both rails remain native, in-flow disclosures on narrow
 screens and separate columns on desktop; enhancement-only controls are hidden.
 

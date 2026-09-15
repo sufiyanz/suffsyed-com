@@ -24,10 +24,12 @@
 .reader-tools { grid-column: 1; grid-row: 1; min-width: 0; }
 .reader-tools > summary { cursor: pointer; min-height: 44px; font: 12px/1.5 var(--font-technical); padding-block: 12px; }
 .reader-tools-content { min-width: 0; }
+.reader-guide, .reader-notes, .reader-tools-content { scrollbar-width: none; }
+.reader-guide::-webkit-scrollbar, .reader-notes::-webkit-scrollbar, .reader-tools-content::-webkit-scrollbar { display: none; }
 .reader-guide, .reader-notes {
   position: sticky; top: calc(var(--nav-clearance) + 16px); width: min(100%, 220px);
   max-height: calc(100dvh - var(--nav-clearance) - 40px); overflow-y: auto;
-  scrollbar-width: thin; font: 400 14px/1.5 var(--font-body); color: var(--site-muted);
+  font: 400 14px/1.5 var(--font-body); color: var(--site-muted);
 }
 .reader-guide { grid-column: 1; grid-row: 1; justify-self: end; padding-right: 4px; }
 .reader-notes { grid-column: 3; grid-row: 1; padding-left: 4px; }
