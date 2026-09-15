@@ -204,6 +204,22 @@ its prose, proprietary fonts and book navigation are not copied. Home, archive
 and their exact path-following motion are unchanged. Article-only decorative
 motion is omitted so nothing moves behind prose or reading notes.
 
+Article presentation uses one opening illustration. The explicitly reviewed
+exception in `tools/article_art.py` promotes the complete wide illustration
+`9fe1e028baa0.webp` in *How Future Designers Will Win in the Age of AI* to that
+opening and omits only its former, uncaptioned leading-body occurrence.
+The raw source and portrait metadata cover remain unchanged for archive,
+homepage/series and sharing. Raw-source and image SHA256s, metadata identity,
+and the exact anchorless opening shape must still match; changes fail for
+review rather than silently removing a figure. This is not first-image or
+duplicate-image detection. All seven captioned Cowork screenshots stay in place.
+Lead dimensions, responsive resources and both full-view links follow the
+rendered image, using the existing 640px/390px height-aware sizing.
+`tools/test_article_art.py --static-only` audits the 20 leads plus seven supporting
+images and exercises stale/changed-source guards. Its `--browser-only --artifacts
+/absolute/path` mode checks image ratios/resolution/viewers at 390/1028/1440px
+and the affected reader's guide/source/progress/Back/no-JS behavior.
+
 `site/reader-detail.css` supplies the article-only composition. At 1280px and
 wider, the left AI reading guide and right progress/AI notes are independent,
 sticky grid children. Desktop rails are 188px

@@ -17,6 +17,7 @@ from writing_frame import footer as writing_footer, header as writing_header, pr
 from journal_home import render_cover, render_home
 from journal_questions import render_margin, render_research, render_research_teaser
 from question_atlas import build_atlas, render_atlas
+from article_art import article_artwork
 from reading_guide import load_guides, render_guide, render_notes
 from series import load_series, render_context, render_part_navigation
 
@@ -119,10 +120,10 @@ def layout_writing(title, description, body, path, current, cover, kind, page_as
 
 
 def essay_page(row, rows, guide, series):
-    with Image.open(OUT / row["cover"].lstrip("/")) as cover_image:
+    lead, body = article_artwork(row, ROOT)
+    with Image.open(OUT / lead.lstrip("/")) as cover_image:
         cover_width = cover_image.width
         cover_ratio = cover_image.width / cover_image.height
-    body = BeautifulSoup(row["body"], "html.parser")
     for passage_number, el in enumerate(body.select("[data-passage]"), 1):
         tools = body.new_tag("span", attrs={"class": "passage-tools"})
         if "table-passage" in el.get("class", []):
@@ -155,7 +156,7 @@ def essay_page(row, rows, guide, series):
 <div class="head-foot"><span>By Suff Syed</span><a class="text-link reading-action" href="#essay-body">Begin reading <span aria-hidden="true">↓</span></a></div>
 {render_context(series, row["slug"])}
 </header>
-<figure class="essay-artwork" style="--art-width:{cover_width}px;--art-ratio:{cover_ratio:.8f}"><a href="{row["cover"]}" class="artwork-link" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])} Shown without cropping.">{image(row["cover"], row["coverAlt"], False, f"(max-width: 700px) min(calc(100vw - 64px), {390 * cover_ratio:.2f}px), {min(640, 390 * cover_ratio, cover_width):.2f}px")}</a><figcaption><span>Original essay artwork</span><a href="{row["cover"]}" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])}">View the whole image ↗</a></figcaption></figure>
+<figure class="essay-artwork" style="--art-width:{cover_width}px;--art-ratio:{cover_ratio:.8f}"><a href="{lead}" class="artwork-link" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])} Shown without cropping.">{image(lead, row["coverAlt"], False, f"(max-width: 700px) min(calc(100vw - 64px), {390 * cover_ratio:.2f}px), {min(640, 390 * cover_ratio, cover_width):.2f}px")}</a><figcaption><span>Original essay artwork</span><a href="{lead}" data-artwork data-caption="Original cover illustration for {esc(row["title"])}. {esc(row["coverAlt"])}">View the whole image ↗</a></figcaption></figure>
 <div class="reader-composition" id="reading">
 <details class="reader-tools enhanced" id="reader-tools"><summary><span>Guide &amp; notes</span><span class="enhanced" data-compact-progress aria-label="Reading progress: 0% through the article body" title="Scroll position within the article body.">0%</span></summary><div class="reader-tools-content"></div></details>
 <aside class="reader-guide">{render_guide(guide)}
@@ -270,6 +271,7 @@ def main():
     # Asset originals are committed migration inputs; the build never fetches.
     (OUT / "assets/responsive").mkdir(parents=True, exist_ok=True)
     sources = {row["cover"] for row in rows} | {photo["src"] for photo in data["gallery"]}
+    sources.update(article_artwork(row, ROOT)[0] for row in rows)
     for src in sorted(sources):
         with Image.open(OUT / src.lstrip("/")) as im:
             for width in [640, 960]:

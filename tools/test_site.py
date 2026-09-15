@@ -16,6 +16,7 @@ from build_site import journal_home_page
 from foundation_art import orbit, ribbon
 from foundation_home import DESCRIPTION, IDENTITY, render_foundation
 from series import load_series
+from article_art import PROMOTED_IMAGE, PROMOTED_SLUG
 from test_series import SERIES_SLUGS
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -281,7 +282,15 @@ class JournalTests(unittest.TestCase):
                 all_tokens = tokens(flat_text(source))
                 passage_tokens = [token for passage in body.select(".passage-text") for token in tokens(flat_text(passage))]
                 self.assertEqual(all_tokens, passage_tokens, "Every written word must belong to exactly one measured passage")
-                self.assertEqual(soup.select_one(".essay-artwork > a")["href"], row["cover"])
+                lead = PROMOTED_IMAGE if row["slug"] == PROMOTED_SLUG else row["cover"]
+                self.assertEqual(soup.select_one(".essay-artwork > a")["href"], lead)
+                expected_images = source.select("img")
+                if row["slug"] == PROMOTED_SLUG:
+                    self.assertEqual(len(expected_images), 1)
+                    self.assertEqual(expected_images[0]["src"], PROMOTED_IMAGE)
+                    self.assertFalse(expected_images[0].parent.get_text(strip=True))
+                    expected_images = []
+                self.assertEqual([img["src"] for img in body.select("img")], [img["src"] for img in expected_images])
                 self.assertEqual(soup.select_one('link[rel="canonical"]')["href"], f'https://suffsyed.com/futurememo/{row["slug"]}/')
 
     def test_every_measured_passage_and_connection(self):
