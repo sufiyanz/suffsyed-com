@@ -104,9 +104,6 @@
   .archive .entry-thread small { display: inline; }
   .archive .archive-view { gap: 20px; }
   .archive .archive-view button { font-size: 15px; }
-  .archive .question-atlas .atlas-toolbar { column-gap: 6px; padding-block: 12px; }
-  .archive .question-atlas .atlas-toolbar button { padding-inline: 3px; }
-  .archive .question-atlas .atlas-graph { padding-top: 16px; }
   .essay .essay-artwork { width: 100%; margin: 24px auto 56px; }
   .essay .essay-artwork figcaption { display: block; font-size: 11px; }
   .essay .essay-artwork figcaption a { display: inline-flex; align-items: center; min-height: 44px; white-space: normal; }

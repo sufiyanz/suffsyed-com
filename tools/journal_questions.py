@@ -217,7 +217,7 @@ def render_research(rows: Iterable[Mapping] | Mapping | None = None) -> str:
           <p class="question-label">01 / Questions still open</p>
           <h2 id="open-questions-title">What would change<br> our minds?</h2>
           <p>Questions to investigate, not a queue of work being performed.</p>
-          <a class="primary-link" href="/futurememo/#by-preoccupation">Trace questions through the essays ↗</a>
+          <a class="primary-link" href="/futurememo/">Browse the essays ↗</a>
         </div>
         <ol class="open-questions">
           <li><span class="question-label">Capability</span>

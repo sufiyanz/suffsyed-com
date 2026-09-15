@@ -46,7 +46,7 @@ include 640/960px derivatives and full original files.
 The archive opens on art, not utilities: a native Search & explore disclosure
 holds the complete passage search, theme filter and compact-list controls.
 Linked searches open the disclosure automatically; without JavaScript it
-explains the limitation and retains native memo/question-index links.
+explains the limitation and retains the complete native essay list.
 `/futurememo/` uses aligned, full-width editorial rows: uncropped original art
 and a consistent copy/action column, separated by full-width rules. Phone rows
 stack the image and copy. There are no arbitrary essay numbers, staggered
@@ -54,11 +54,9 @@ offsets or detached arrow-only links. The shared **Read essay** action leads;
 measured word counts and word-thread links remain secondary and available.
 Compact mode removes the artwork and description, not the reading action or
 word-thread link, and uses the full row width without an empty number gutter.
-Archive branding and native/atlas invitations do not promise a fixed-size
+Archive branding and native invitations do not promise a fixed-size
 collection. Search/result and theme-member counts derive from the supplied
-rows. The atlas retains its deliberately bounded map preview while its native
-index and detail list retain every essay; passage numbers remain meaningful
-source references, not archive rankings.
+rows. Passage numbers remain meaningful source references, not archive rankings.
 
 `tools/foundation_art.py` produces original parametric SVG line studies and a
 seeded static 160px grain tile. `site/motion.js` combines slow 24-second carrier
@@ -96,7 +94,9 @@ to archive, article and support-page mastheads. Only the reading instruments
 remain sticky: desktop rails sit 32px from the safe top; the narrow reader
 toolbar sits at the safe top after the masthead leaves, with 56px source clearance.
 The opening has one autograph and no separate text-name logo, card or hero
-wireform. The original closing autograph and lower ideas scene remain.
+wireform. The series now leads directly to the original closing autograph/footer;
+the retired atlas teaser and its decorative scene are gone. The homepage loads
+no motion controller; the archive's separate decorative arrival remains.
 
 `render_foundation()` and `archive_page()` receive the same ordered `rows` from
 `content/corpus.json`. The cover feature is `rows[0]`, exactly the first rendered
@@ -127,8 +127,8 @@ using the existing `requirements-fonts.txt` tooling; the ordinary build remains
 offline. The homepage requests exactly these two local font files.
 
 The writing templates and shared frame intentionally evolve the static-only
-checkpoint. Original essay bodies, metadata, passage IDs, theme anchors, atlas
-sources, search, compact list mode, gallery and public fonts are preserved. All ten
+checkpoint. Original essay bodies, metadata, passage IDs, essay themes,
+search, compact list mode, gallery and public fonts are preserved. All ten
 experiments, host/lifecycle API, scenes, reader margin and research sources are
 preserved, but parked off the homepage until the visual direction is approved.
 `build_site.journal_home_page()` retains the complete previous composition as an
@@ -143,7 +143,7 @@ For this proposal, use the ordinary public-font preview, **without**
 python3 tools/build_site.py
 python3 tools/test_site.py
 python3 tools/test_preview.py
-python3 tools/test_atlas.py --static-only
+python3 tools/test_atlas_retirement.py --static-only
 python3 tools/serve.py --port 8774
 # In a separate terminal, with the existing Playwright environment:
 python tools/test_foundation.py --url http://127.0.0.1:8774 --browser webkit \
@@ -163,7 +163,8 @@ checks the two exact destinations, active states, natural masthead/touch bounds,
 sticky reading tools, native source focus and Back at seven widths.
 Use `--home-only` for a homepage-only navigation change.
 `tools/test_foundation.py --motion-only --output /absolute/path` isolates actual
-moving/frozen pixels and the frame budget without rerunning the gallery suite.
+remaining archive motion/frozen pixels and the frame budget without rerunning
+the gallery suite. It does not require a homepage scene.
 `tools/test_path_motion.py --url http://127.0.0.1:8774 --output /absolute/path`
 adds 2,037 rendered-marker-to-visible-path samples across full cycles at all
 seven widths, with a 1 CSS-pixel ceiling, independent carrier poses, forward
@@ -179,7 +180,7 @@ criteria for this writing-gallery iteration. Static checks still exercise
 its renderer, original reading plates, all essays, links and source assets.
 The retained ribbon is now exercised in an in-memory browser fixture, not a
 published route or a restored homepage hero. Live checks still exercise the
-lower homepage ideas and archive origins with the unchanged motion controller.
+archive origins with the unchanged motion controller, not the removed home scene.
 `tools/test_gallery_entrance.py --output /absolute/path` verifies the real archive
 lead, role credit, original image ratios/resolution, responsive caption and
 natural header scrolling/focus behavior without rerunning unrelated reader suites.
@@ -297,9 +298,9 @@ photograph pixels are never recolored or filtered.
 | `content/pages/*.html` | Preserved About, About the Memo, FAQ, report and store content. |
 | `content/photograph-descriptions.json` | Descriptions of visible photographs, in original gallery order; not inferred locations or dates. |
 | `content/research-example.json` | Public-data record schema and empty evidence register; no live ingestion. |
-| `content/question-atlas.json` | Twenty curated passage IDs and four editorial source-pair bridges; no copied quotations or inferred beliefs. |
+| `content/question-atlas.json` | Retired historical source-pair configuration; not imported or required by production builds. |
 | `docs/assets/img/` | **Committed source image originals from the migration.** The builder reads these; do not delete this directory when rebuilding. |
-| `site/` | Authored CSS, ES modules, favicon and self-hosted font assets, copied recursively to `docs/assets/`. |
+| `site/` | Authored CSS, ES modules, favicon and fonts; copied to `docs/assets/` except the three explicitly retired atlas assets. |
 | `site/suff-syed-signature.svg` | User-supplied, visually validated vector autograph; exact master paths, not a font or embedded raster. |
 | `tools/corpus.py` | Deterministic passage extraction, word counts and lexical-neighbor ranking. |
 | `tools/reading_guide.py`, `tools/import_reading_guides.py` | Strict companion validation, escaped rendering and validated set import. |
@@ -309,7 +310,7 @@ photograph pixels are never recolored or filtered.
 | `site/reader-detail.css`, `site/reader.js` | Centered article, responsive AI rails, body progress, history restoration and optional lexical reader. |
 | `tools/foundation_art.py`, `site/foundation/` | Original line studies, deterministic grain generator and licensed homepage font/provenance. |
 | `tools/journal_home.py`, `tools/journal_questions.py` | Opening artwork and local question/research instruments. |
-| `tools/question_atlas.py` | Validated, server-rendered question/passage index for the existing writing archive. |
+| `tools/question_atlas.py`, `tools/retired_atlas_checks.py` | Dormant atlas implementation and historical checks, not current-site acceptance. |
 | `docs/` | Complete generated site and the preserved `CNAME`. Do not hand-edit generated HTML. |
 
 The one-time migration used the existing committed static pages as the full-text
@@ -631,96 +632,36 @@ shared words and links directly to its source passage. This is not semantic
 truth, agreement, confidence, influence or fact-checking.
 
 The archive searches case-insensitive literal phrases through the full passage
-index, loaded only when needed. Its compact list and theme index remain useful
+index, loaded only when needed. Its compact list and theme filters remain useful
 alternatives to the illustrated index. Default essays remain calm and complete;
 the analytical layer is reversible and closing it removes all highlights.
 
 ## Local instruments and privacy
 
-### Question atlas
+### Retired question atlas
 
-`/futurememo/#by-preoccupation` extends the existing alternative theme index,
-rather than adding another lexical instrument or a new research feed. The five
-question labels and essay memberships come from `content/corpus.json`; they are
-explicitly **editorial index questions**, not quotations or claims that an essay
-answers a question. The original `#theme-1` through `#theme-5` links still work.
-Home's reading-plate chapter and the research notebook link to this same surface.
+The question atlas has been removed from the public site, including its home
+teaser, archive index/map, research entry point and methods explanation. Nothing
+replaces the graph. Old external archive fragments naturally open the ordinary
+archive; the report's former Design-index link now uses the existing theme filter.
+Ordinary questions, essay themes, genuine series navigation, AI reading guides,
+notes and measured lexical connections are independent and remain available.
 
-Each of the twenty essays has one deliberately selected complete prose passage.
-`content/question-atlas.json` stores only its slug and persistent passage ID.
-`question_atlas.build_atlas()` resolves exact text, section, word count and URL
-from `corpus.measure()`, never a second HTML-to-text reconstruction. Missing IDs,
-non-prose/oversized passages, omitted essays, mismatched bridge endpoints and
-unexplained or disconnected bridges fail the build. Changing an original essay
-does not silently invent a replacement passage. Valid new essay/passage references
-can extend a theme without changing the map's rendering budget.
+`content/question-atlas.json`, `tools/question_atlas.py`, and the three
+`site/atlas*` assets remain historical source only. Production does not import
+the implementation, read its configuration or require passage coverage or graph
+topology validation when posts change. The builder excludes exactly `atlas.css`,
+`atlas.js` and `atlas-map.js` from publishing and removes only those known stale
+files under `docs/assets/`; it never cleans the original image directory.
+`tools/retired_atlas_checks.py` is explicitly historical and refuses current-site
+acceptance runs.
 
-The four bridges are named, curated comparisons: autonomy and judgment, work
-beyond code, earning understanding, and depth and direction. Each explanation
-names two actual source passages, shown side by side in the map or linked in the
-ordinary index. They are reading suggestions, not measured similarity, author
-endorsement, influence, agreement, confidence or empirical evidence. Speculation
-and claims within a quotation remain the original essay's argument, not a new
-finding. Existing measured lexical neighbors remain unchanged and separate.
-
-Only the archive loads scoped `site/atlas.css` and the small `site/atlas.js`
-loader. Opening the native map disclosure imports `site/atlas-map.js`, which reads
-the already-rendered text index; there is no extra corpus JSON or search-index
-request. The deterministic SVG/HTML plate shows five questions or a neighborhood
-of at most eight native buttons: one question, up to five essays and up to two
-adjacent questions. Solid lines indicate theme membership; dashed lines indicate
-curated source-pair bridges. Position, size and distance are not measurements.
-If a theme grows beyond five essays, the graph maps its first five in archive
-order and explicitly reports "5 of N essays mapped." Every essay remains in the
-native index and the question's complete detail list. Selecting an unmapped essay
-opens its exact source passage without adding a ninth node.
-Phones get full-size text and a vertical connected route, not a shrunken desktop
-diagram. First opening at 320/390px keeps the first question visible without a
-second scroll: one compact editorial note precedes the controls, while the fuller
-legend and caveats live in the native map guide and Method. All five questions returns to the overview; source links keep their
-original paragraph addresses. Map selection does not rewrite archive filters or
-the URL. Browser back preserves the live map when the browser retains the page;
-a full reload starts at the readable overview.
-Explicit essay and bridge inspections focus the detail heading and align the
-whole detail section to the journal's native scroll-padding clearance, revealing
-the quotation or rationale rather than leaving it below the viewport. Question
-selection and Follow instead reveal the graph neighborhood. These immediate
-alignments run only for user actions, never initialization, resizing or browser
-back restoration; no global scroll-restoration setting is changed.
-
-The complete index, native passage disclosures and all bridge rationales work
-without JavaScript. No source text is hidden by successful enhancement. Failures
-leave an explicit notice and the index available. Retry uses up to three distinct
-local module URLs because browsers cache rejected imports; after that the notice
-asks for a page reload. No storage, timers, simulation, animation or external
-services are used. SVG lines redraw only for visible changes, resizing or font
-readiness; observers disconnect and pending work cancels when closed, offscreen,
-hidden or leaving the page. Reduced motion needs no alternative animation.
-Forced colors retain native control borders and system-color lines; WebKit media
-checks are not proof of native OS palette remapping.
-
-```sh
-python3 tools/build_site.py
-python3 tools/test_atlas.py --static-only
-python3 tools/serve.py --port 8772
-# Use an existing Playwright environment with its installed WebKit browser:
-python tools/test_atlas.py --browser-only --browser webkit \
-  --url http://127.0.0.1:8772 --artifacts /absolute/path/to/session-artifacts
-```
-
-The atlas checks compare all twenty rendered quotes with canonical extraction,
-test invalid source fixtures and payload limits (5 KiB initial CSS/loader and
-6 KiB lazy map, gzip), then exercise real pointer/keyboard controls, all four
-source-pair routes, no-JS, failed-load Retry, close-during-load, archive-filter
-independence, exact paragraph destinations and settled/offscreen/hidden work.
-Synthetic six-member data checks prove growth retains all sources while the
-rendered neighborhood stays within its eight-node budget.
-Viewport-coordinate checks require actual quotation/rationale text after
-inspection and the selected question plus an essay after Follow. Full-viewport
-captures are taken before any screenshot-helper scrolling.
-They capture readable overview, neighborhood, quotation and bridge plates at
-320/390/1028/1600px. The general `tools/test_browser.py` also accepts
-`--browser webkit` without changing the default Chromium runner.
+`tools/test_atlas_retirement.py --static-only` audits all public pages and tests
+an isolated rebuild with atlas configuration reads/imports blocked and the three
+stale assets seeded. Its `--browser-only --artifacts /absolute/path` mode checks
+public page requests, the natural home ending and representative series/reader
+navigation. The active archive tests retain the unpublished 21-row growth,
+search, filters, compact/reset, source-link and no-JS checks without an atlas.
 
 ### Reader's Margin and research
 

@@ -58,12 +58,6 @@ img { display: block; width: 100%; height: auto; }
 .writing-list h3 a:hover { text-decoration: underline; }
 .writing-list p { color: var(--site-muted); max-width: 42ch; font-size: 17px; margin-top: 20px; }
 .writing-list .text-link { margin-top: 16px; }
-.ideas { display: grid; grid-template-columns: 1fr 1fr; gap: 8%; align-items: center; padding: 0 7% 120px; }
-.idea-field { position: relative; height: 500px; }
-.idea-field .photo-geometry { position: absolute; width: 680px; height: auto; top: -90px; right: -60px; opacity: .8; }
-.idea-copy h2 { font: 400 clamp(36px, 4vw, 64px)/1.03 var(--font-body); letter-spacing: -.04em; margin: 24px 0; }
-.idea-copy > p:not(.exhibition-label) { max-width: 35ch; color: var(--site-muted); }
-.idea-copy .text-link { margin-top: 28px; gap: 12px; }
 @media (min-width: 1800px) {
   .cover { padding-inline: 4%; min-height: 900px; }
   .hero-geometry { width: 1200px; top: -436px; }
@@ -77,8 +71,6 @@ img { display: block; width: 100%; height: auto; }
   .editorial-plane { padding: 28px; }
   .writing-list { padding-inline: 24px; gap: 0 6%; grid-template-columns: 1.3fr 1fr; }
   .writing-plane--2 { margin-top: 120px; }
-  .ideas { padding-inline: 24px; gap: 32px; }
-  .idea-field { height: 400px; }
 }
 @media (max-width: 700px) {
   .cover { --hero-top: max(80px, var(--nav-clearance)); display: block; padding: calc(var(--hero-top) + 244px) 16px 24px; min-height: 0; }
@@ -94,9 +86,6 @@ img { display: block; width: 100%; height: auto; }
   .writing-plane, .writing-plane--2, .writing-plane--3, .writing-plane--4 { margin: 0 0 40px; }
   .essay-copy { padding: 24px 8px 32px; }
   .writing-list h3 { font-size: 32px; max-width: 22ch; }
-  .ideas { display: flex; flex-direction: column; padding: 0 24px 72px; gap: 32px; align-items: stretch; }
-  .idea-field { height: 240px; }
-  .idea-field .photo-geometry { width: 480px; top: -120px; right: -80px; }
 }
 @media (max-width: 360px) {
   .editorial-plane { padding-inline: 20px; }
@@ -112,5 +101,4 @@ img { display: block; width: 100%; height: auto; }
   .writing-list { display: block; }
   .writing-plane { margin: 24px 0; break-inside: avoid; }
   .exhibition-art { max-width: 60%; }
-  .ideas { display: block; }
 }

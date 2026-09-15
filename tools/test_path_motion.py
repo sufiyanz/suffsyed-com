@@ -217,11 +217,10 @@ def main():
             # Reading pages deliberately omit decorative motion; retained origins stay bound.
             page.goto(args.url + ARTICLE, wait_until="networkidle")
             assert page.locator("[data-motion-scene], [data-motion-toggle]").count() == 0
-            for route, selector in (("/", ".idea-field"), ("/futurememo/", ".arrival-field")):
+            for route, selector in (("/futurememo/", ".arrival-field"),):
                 page.goto(args.url + route, wait_until="networkidle")
-                if route == "/":
-                    assert page.locator(".hero-field, .hero-geometry, [data-motion-follower]").count() == 0
-                    assert page.locator("[data-motion-scene]").count() == 1
+                assert page.locator(".hero-field, .hero-geometry, [data-motion-follower]").count() == 0
+                assert page.locator("[data-motion-scene]").count() == 1
                 page.locator(selector).evaluate("el=>el.scrollIntoView({block:'center'})")
                 page.wait_for_function("selector=>document.querySelector(selector).dataset.motionState==='running'", arg=selector, polling=50)
                 hold_geometry(page)
@@ -252,7 +251,7 @@ def main():
             aligned(before, cycle=False)
             page.wait_for_timeout(250)
             assert page.evaluate(GEOMETRY, {"cycle": False}) == before
-            page.goto(args.url, wait_until="networkidle")
+            page.goto(args.url + "/futurememo/", wait_until="networkidle")
             assert page.locator(".hero-geometry, [data-motion-follower]").count() == 0
             anchors = page.evaluate(ANCHORS)
             assert anchors and max(a["error"] for a in anchors) <= 1

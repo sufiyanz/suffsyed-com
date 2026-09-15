@@ -49,11 +49,11 @@ class JournalTests(unittest.TestCase):
         self.assertEqual([link["href"] for link in home.select('link[rel="stylesheet"]')],
                          ["/assets/foundation.css", "/assets/frame.css", "/assets/gallery-home.css"])
         self.assertFalse(home.select("canvas, dialog, iframe, form"))
-        self.assertEqual([script["src"] for script in home.select("script")], ["/assets/motion.js"])
+        self.assertFalse(home.select("script"))
         self.assertFalse(home.select("button, [data-motion-toggle]"))
         self.assertFalse(home.select("h1 a, h1 button"))
-        self.assertEqual(len(home.select("main > section")), 3)
-        self.assertEqual(len(home.select("svg.line-study")), 1)
+        self.assertEqual(len(home.select("main > section")), 2)
+        self.assertFalse(home.select("svg.line-study, .ideas"))
         self.assertFalse(home.select(".hero-geometry, .hero-field, .editorial-plane, .site-name"))
         self.assertEqual(len(home.select(".gallery-masthead .cover-signature")), 1)
         self.assertFalse(home.select(".gallery-cover .cover-signature"))
@@ -88,7 +88,7 @@ class JournalTests(unittest.TestCase):
                 self.assertTrue((OUT / source.split()[0].lstrip("/")).is_file())
         self.assertFalse(home.select(".photo-pair, #photography"))
         self.assertFalse(home.select('main a[href^="/lightworks/"]'))
-        self.assertEqual(len(home.select("[data-motion-scene]")), 1)
+        self.assertFalse(home.select("[data-motion-scene]"))
         archive = self.pages[OUT / "futurememo/index.html"]
         for entry, row in zip(archive.select(".archive-entry"), DATA["essays"]):
             self.assertEqual(entry.select_one(".archive-art")["href"], f'/futurememo/{row["slug"]}/')

@@ -150,12 +150,12 @@ def main():
 
         context = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="no-preference")
         page = context.new_page()
-        page.goto(args.url, wait_until="networkidle")
+        page.goto(args.url + "/futurememo/", wait_until="networkidle")
         page.evaluate("document.fonts.ready")
-        field = page.locator(".idea-field")
+        field = page.locator(".arrival-field")
         field.evaluate("el => el.scrollIntoView({block:'center'})")
         assert page.locator("[data-motion-toggle]").count() == 0
-        page.wait_for_function("document.querySelector('.idea-field').dataset.motionState === 'running'")
+        page.wait_for_function("document.querySelector('.arrival-field').dataset.motionState === 'running'")
         a = field.screenshot()
         page.wait_for_timeout(1100)
         b = field.screenshot()
@@ -177,7 +177,7 @@ def main():
         page.wait_for_timeout(300)
         assert page.evaluate("document.getAnimations().some(a => a.playState === 'running')")
         # A real offscreen transition freezes timelines and resumes at the same pose.
-        page.locator(".writing-plane--2").evaluate("el => el.scrollIntoView({block:'center'})")
+        page.locator(".archive-entry").nth(2).evaluate("el => el.scrollIntoView({block:'center'})")
         page.wait_for_timeout(250)
         times = page.evaluate("document.getAnimations().map(a => a.currentTime)")
         page.wait_for_timeout(400)
@@ -195,7 +195,7 @@ def main():
         page.evaluate("delete document.hidden; document.dispatchEvent(new Event('visibilitychange'))")
         assert page.evaluate("document.getAnimations().some(a => a.playState === 'running')")
         page.evaluate("document.documentElement.dataset.bfcacheProbe = 'gallery'")
-        page.goto(args.url + "/futurememo/")
+        page.goto(args.url)
         page.go_back(wait_until="networkidle")
         # Back may restore a document or reload it: neither may duplicate controllers.
         assert page.locator("[data-motion-toggle]").count() == 0
@@ -258,7 +258,7 @@ def main():
             page.locator(".archive-discovery > summary").click()
             assert page.locator(".archive-native-note").is_visible()
             assert page.locator(".archive-tools").is_hidden()
-            assert page.locator('.archive-notes a[href="#by-preoccupation"]').is_visible()
+            assert page.locator('.archive-notes a[href="/about-the-memo/"]').is_visible()
             page.locator(".archive-art").first.click()
             assert page.locator("#essay-body").is_visible()
             page.locator(".essay-artwork a").first.click()

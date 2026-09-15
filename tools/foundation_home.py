@@ -1,7 +1,6 @@
 """An art-led gallery entrance following the archive's ordered essay sequence."""
 from html import escape
 
-from foundation_art import orbit
 from writing_frame import footer, header
 
 
@@ -52,7 +51,6 @@ def render_foundation(rows, image, series):
 <link rel="stylesheet" href="/assets/foundation.css">
 <link rel="stylesheet" href="/assets/frame.css">
 <link rel="stylesheet" href="/assets/gallery-home.css">
-<script type="module" src="/assets/motion.js"></script>
 </head>
 <body id="top" class="foundation">
 <a class="skip" href="#main">Skip to content</a>
@@ -78,13 +76,6 @@ def render_foundation(rows, image, series):
 <a class="text-link" href="/futurememo/">All essays <span aria-hidden="true">↗</span></a></div>
 </header>
 <ol class="writing-list">{"".join(writing)}</ol>
-</section>
-<section class="ideas technical-surface" aria-labelledby="ideas-title">
-<div class="idea-field motion-field" data-motion-scene>{orbit("home-ideas")}</div>
-<div class="idea-copy"><p class="exhibition-label">A thought in company</p>
-<h2 id="ideas-title">One question.<br>Many ways in.</h2>
-<p>Follow a preoccupation through the writing. Every connection leads back to an original passage.</p>
-<a class="text-link" href="/futurememo/#by-preoccupation">Enter the question atlas <span aria-hidden="true">↗</span></a></div>
 </section>
 </main>
 {footer()}

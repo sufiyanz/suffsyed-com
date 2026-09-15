@@ -15,16 +15,14 @@ def static_checks(fixtures):
     from bs4 import BeautifulSoup
     from build_site import archive_page
     from corpus import measure
-    from question_atlas import build_atlas
 
     data = json.loads((ROOT / "content/corpus.json").read_text())
     descriptions = json.loads((ROOT / "content/cover-descriptions.json").read_text())
-    config = json.loads((ROOT / "content/question-atlas.json").read_text())
     rows = [{**measure(row, ROOT), "coverAlt": descriptions[row["slug"]]} for row in data["essays"]]
 
-    def render(items, atlas_config):
+    def render(items):
         with patch("build_site.write") as write:
-            archive_page(items, data, build_atlas(items, data["themes"], atlas_config))
+            archive_page(items, data)
         write.assert_called_once()
         assert write.call_args.args[0] == "/futurememo/index.html"
         return write.call_args.args[1]
@@ -36,7 +34,7 @@ def static_checks(fixtures):
         assert page.select_one("#archive-theme option").get_text() == "All themes"
         assert not page.select(".entry-number, .archive-entry > .entry-read, [data-number]")
         assert page.select_one("#archive-status").get_text() == f'{len(items)} essays · {sum(r["words"] for r in items):,} words'
-        for node in page.select(".page-opening, .archive-native-note, .atlas-map-invitation, .atlas-bridge-note, .atlas-bridges > summary"):
+        for node in page.select(".page-opening, .archive-native-note"):
             assert not re.search(r"\b(twenty|five|four)\b", node.get_text(), re.I)
         entries = page.select(".archive-entry")
         assert len(entries) == len(items)
@@ -48,22 +46,21 @@ def static_checks(fixtures):
             assert [entry.select_one(s)["href"] for s in (".archive-art", "h2 a", ".entry-read")] == [row["url"]] * 3
             assert "Read essay" in entry.select_one(".reading-action").get_text()
             assert entry.select_one(".entry-thread a")["href"].startswith(row["url"] + "?term=")
-        assert len(page.select("[data-atlas-entry]")) == len(items)
+        assert not page.select("[data-question-atlas], [data-atlas-entry], #by-preoccupation")
+        assert len(page.select("#archive-theme option")) == len(data["themes"]) + 1
         return page
 
-    actual = render(rows, config)
+    actual = render(rows)
     verify(actual, rows)
     assert actual == (ROOT / "docs/futurememo/index.html").read_text()
     original = next(row for row in rows if row["theme"] == "Design")
     extra = copy.deepcopy(original)
     extra.update(slug=FIXTURE_SLUG, no=21, title=FIXTURE_TITLE, url=f"/futurememo/{FIXTURE_SLUG}/")
     grown_rows = [*rows, extra]
-    grown_config = copy.deepcopy(config)
-    grown_config["entries"][FIXTURE_SLUG] = config["entries"][original["slug"]]
-    grown = render(grown_rows, grown_config)
+    grown = render(grown_rows)
     page = verify(grown, grown_rows)
     assert len(page.select(".archive-entry")) == 21
-    assert len(page.select('[data-atlas-question="design"] [data-atlas-entry]')) == 6
+    assert len(page.select('.archive-entry[data-theme="Design"]')) == 6
     assert not (ROOT / "docs/futurememo" / FIXTURE_SLUG).exists()
     assert FIXTURE_SLUG not in [row["slug"] for row in data["essays"]]
     if fixtures:
@@ -73,7 +70,7 @@ def static_checks(fixtures):
         search_extra = copy.deepcopy(next(row for row in index if row["slug"] == original["slug"]))
         search_extra.update(slug=extra["slug"], title=extra["title"], url=extra["url"])
         (fixtures / "search-index.json").write_text(json.dumps([*index, search_extra]))
-    print("PASS: exact titles/art/URLs, size-neutral branding, data-derived counts, no essay indices; unpublished 21-row renderer and six-member native atlas.")
+    print("PASS: exact titles/art/URLs, size-neutral branding, data-derived counts, no atlas dependency; unpublished 21-row renderer and six-member theme.")
 
 
 def browser_checks(args):

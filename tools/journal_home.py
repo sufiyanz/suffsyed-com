@@ -396,8 +396,7 @@ def render_home(rows, themes, gallery):
       <div><p class="label chapter-number">The collection / {collection_count} essays</p>
         <h2 id="connections-title">Follow a thought further.</h2></div>
       <div class="chapter-purpose"><p>Read a whole passage. Follow a word through the essay around it.</p>
-        <a class="secondary-link" href="/methods/#reading-plates">How to read this plate ↗</a><br>
-        <a class="secondary-link" href="/futurememo/#by-preoccupation">Or enter through a question ↗</a></div>
+        <a class="secondary-link" href="/methods/#reading-plates">How to read this plate ↗</a></div>
     </header>
     <div class="collection-instrument">
       <details class="theme-selector" data-home-theme-selector open>

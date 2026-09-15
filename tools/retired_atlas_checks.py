@@ -1,4 +1,4 @@
-"""Source integrity and real pointer/keyboard checks for the bounded question atlas."""
+"""Historical atlas checks, retained as reference, not active public acceptance."""
 import argparse
 import copy
 import gzip
@@ -463,6 +463,7 @@ def browser_checks(args):
 
 
 if __name__ == "__main__":
+    raise SystemExit("The question atlas is retired. Run its historical tests from a pre-retirement checkout, not the current public site.")
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://127.0.0.1:8772")
     parser.add_argument("--artifacts", type=Path)
