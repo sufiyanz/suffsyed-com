@@ -92,6 +92,8 @@
 .essay .essay-end, .essay .provenance { max-width: 640px; margin: 56px auto 0; }
 .essay .next-reading { max-width: 1080px; margin: 72px auto 0; }
 @media (min-width: 1280px) {
+  .reader-composition { column-gap: clamp(64px, calc(10vw - 64px), 96px); }
+  .reader-guide, .reader-notes { width: min(100%, 188px); }
   .js .reader-tools { display: none !important; }
   .reader-rail-disclosure[open] > summary { list-style: none; }
   .reader-rail-disclosure[open] > summary::-webkit-details-marker { display: none; }

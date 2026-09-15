@@ -123,7 +123,7 @@ def main():
             report["articles"].append({"slug": guide["slug"], "sections": len(guide["sections"]), "notes": len(guide["notes"]), "passages": len(model["passages"])})
         shortest = min(models, key=lambda model: model["words"])["slug"]
         longest = max(models, key=lambda model: model["words"])["slug"]
-        for width, height in [(320, 700), (390, 844), (820, 1180), (1024, 900), (1440, 1000), (1600, 1000)]:
+        for width, height in [(320, 700), (390, 844), (820, 1180), (1024, 900), (1280, 1000), (1440, 1000), (1600, 1000)]:
             page.set_viewport_size({"width": width, "height": height})
             for slug in [SEED, shortest, longest]:
                 page.goto(f"{args.url}/futurememo/{slug}/", wait_until="networkidle")
@@ -168,14 +168,19 @@ def main():
                     assert not toolbar.evaluate("el => el.open")
                     assert_anchor(page, target)
                 else:
+                    gaps = []
                     for selector in [".reader-guide", ".reader-notes"]:
                         rail = page.locator(selector).bounding_box()
+                        assert rail["width"] == 188, (width, selector, rail)
                         assert rail["y"] >= page.locator(".site-header").bounding_box()["y"] + 48
                         assert rail["y"] + rail["height"] <= height
                         if selector == ".reader-guide":
-                            assert rail["x"] + rail["width"] <= body["x"]
+                            gaps.append(body["x"] - rail["x"] - rail["width"])
                         else:
-                            assert rail["x"] >= body["x"] + body["width"]
+                            gaps.append(rail["x"] - body["x"] - body["width"])
+                    expected_gap = min(96, max(64, width * .1 - 64))
+                    assert all(abs(gap - expected_gap) < .1 for gap in gaps), (width, gaps)
+                    assert abs(gaps[0] - gaps[1]) < .1
                     click_native(page, page.locator("[data-guide-anchor]").nth(2))
                     page.wait_for_function("""() => document.querySelector('.guide-link[aria-current]')?.dataset.guideAnchor
                       === document.querySelectorAll('[data-guide-anchor]')[2].dataset.guideAnchor""")
@@ -195,10 +200,43 @@ def main():
                 assert abs(page.evaluate("scrollY") - y) < 2, (width, y, page.evaluate("scrollY"))
                 assert page.locator("#reader-tools").count() == 1
                 assert page.evaluate("history.state.unrelated.value") == "preserved"
-                report["viewports"].append({"width": width, "slug": slug, "bodyWidth": body["width"], "progress": [0, 50, 100], "backError": abs(page.evaluate("scrollY") - y)})
+                report["viewports"].append({"width": width, "slug": slug, "bodyWidth": body["width"],
+                                           "railWidths": [188, 188] if width >= 1280 else None,
+                                           "railGaps": gaps if width >= 1280 else None,
+                                           "progress": [0, 50, 100], "backError": abs(page.evaluate("scrollY") - y)})
+        report["railScrolling"] = []
+        for width in [1280, 1440, 1600]:
+            page.set_viewport_size({"width": width, "height": 1000})
+            page.goto(f"{args.url}/futurememo/{SEED}/", wait_until="networkidle")
+            body_position(page, .5)
+            y = page.evaluate("scrollY")
+            for points in page.locator(".guide-points").all():
+                if not points.evaluate("el => el.open"):
+                    click_native(page, points.locator(":scope > summary"))
+            expansion_shift = abs(page.evaluate("scrollY") - y)
+            assert expansion_shift < 2
+            scrolls = {}
+            for selector in [".reader-guide", ".reader-notes"]:
+                rail = page.locator(selector)
+                if selector == ".reader-notes":
+                    body_position(page, .5)
+                    y = page.evaluate("scrollY")
+                    click_native(page, page.locator("[data-all-notes]"))
+                    expansion_shift = max(expansion_shift, abs(page.evaluate("scrollY") - y))
+                    assert expansion_shift < 2
+                assert rail.evaluate("el => el.scrollHeight > el.clientHeight")
+                assert rail.evaluate("el => el.scrollWidth <= el.clientWidth + 1")
+                source = rail.locator(".guide-sources a").last
+                target = source.get_attribute("href")[1:]
+                click_native(page, source)
+                assert_anchor(page, target)
+                scrolls[selector] = rail.evaluate("el => el.scrollTop")
+                assert scrolls[selector] > 0
+            report["railScrolling"].append({"width": width, "scrollTop": scrolls, "bodyShiftOnExpansion": expansion_shift})
         # Real native fragment history, reduced media, and no idle/persistent work.
         page.set_viewport_size({"width": 1440, "height": 1000})
         fresh_anchor = next(guide for guide in companions if guide["slug"] == SEED)["sections"][2]["anchor"]
+        page.goto(args.url + "/futurememo/", wait_until="networkidle")
         page.goto(f"{args.url}/futurememo/{SEED}/#{fresh_anchor}", wait_until="networkidle")
         assert_anchor(page, fresh_anchor)
         click_native(page, page.locator("[data-guide-anchor]").nth(1))
@@ -264,6 +302,7 @@ def main():
                 body = page.locator("#essay-body").bounding_box()
                 left = page.locator(".reader-guide").bounding_box()
                 right = page.locator(".reader-notes").bounding_box()
+                assert left["width"] == right["width"] == 188
                 assert left["x"] + left["width"] <= body["x"]
                 assert right["x"] >= body["x"] + body["width"]
                 assert right["y"] < 200
@@ -277,7 +316,7 @@ def main():
     report["externalRequests"] = external
     report["extraCorpusFetches"] = corpus_fetches
     (args.output / "acceptance.json").write_text(json.dumps(report, indent=2))
-    print(f"PASS: 20 source-bound readers; six widths; native targets, notes, body progress, Back, media and no-JS; idle frames=0; callback p95={p95:.2f}ms.")
+    print(f"PASS: 20 source-bound readers; seven widths; native targets, notes, body progress, Back, media and no-JS; idle frames=0; callback p95={p95:.2f}ms.")
 
 
 if __name__ == "__main__":

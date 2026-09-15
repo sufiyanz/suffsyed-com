@@ -125,8 +125,11 @@ motion is omitted so nothing moves behind prose or reading notes.
 
 `site/reader-detail.css` supplies the article-only composition. At 1280px and
 wider, the left AI reading guide and right progress/AI notes are independent,
-sticky grid children. The controller moves those same rail nodes into a native
-Guide & notes disclosure on narrower enhanced views; it never duplicates their
+sticky grid children. Desktop rails are 188px
+wide, with symmetrical 64px gutters at 1280px, 80px at 1440px and 96px at 1600px;
+the centered prose remains 640px and sidebar type sizes are unchanged.
+On narrower enhanced views, the controller moves those same nodes into a native
+Guide & notes disclosure; it never duplicates their
 contents or handlers. The mobile/tablet header and compact progress bar have
 opaque backgrounds, and the opened tools have their own bounded scroll area.
 Without JavaScript, both rails remain native, in-flow disclosures on narrow
@@ -157,7 +160,7 @@ python tools/test_reader_detail.py --url http://127.0.0.1:8774 \
 ```
 
 The browser test uses an existing Playwright WebKit runtime. It exercises all
-twenty guides and source targets, six widths from 320 to 1600px, separate rail
+twenty guides and source targets, seven widths from 320 to 1600px, separate rail
 placement, body-only 0/mid/100 progress, keyboard/disclosure flows, native
 fragments, Back, media, no-JS and idle-work bounds. The static check preserves
 all 1,592 original anchored blocks, not just the 1,387 measured leaf passages.
