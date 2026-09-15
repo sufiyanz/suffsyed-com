@@ -58,7 +58,7 @@ def render_foundation(rows, image):
 </head>
 <body id="top" class="foundation">
 <a class="skip" href="#main">Skip to content</a>
-{header(home=True, motion=True)}
+{header()}
 <main id="main" tabindex="-1">
 <section class="cover technical-surface" aria-labelledby="cover-title">
 <div class="hero-field motion-field" data-motion-scene>{ribbon("home-ribbon")}</div>

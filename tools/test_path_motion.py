@@ -5,7 +5,7 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-WIDTHS = (320, 390, 820, 1440, 1600)
+WIDTHS = (320, 390, 820, 1024, 1280, 1440, 1600)
 ARTICLE = "/futurememo/qubit-teams-the-future-built-by-two-people-using-ai/"
 PROBE = """window.pathFrames = 0;
 const request = window.requestAnimationFrame;
@@ -99,10 +99,10 @@ def freeze(page):
     return after
 
 
-def pause(page):
-    toggle = page.locator("[data-motion-toggle]")
-    if toggle.get_attribute("aria-pressed") != "true":
-        toggle.click()
+def hold_geometry(page):
+    # Test-only clock control for deterministic samples, not a product pause UI.
+    page.evaluate("""document.getAnimations().forEach(a=>a.pause());
+      document.querySelectorAll('[data-motion-scene] svg').forEach(svg=>svg.pauseAnimations());""")
     return freeze(page)
 
 
@@ -135,7 +135,9 @@ def main():
             page.on("pageerror", lambda error: errors.append(str(error)))
             page.goto(args.url, wait_until="networkidle")
             page.wait_for_timeout(100)
-            pause(page)
+            assert page.locator("[data-motion-toggle], .motion-toggle").count() == 0
+            assert page.locator("html").get_attribute("data-motion-initialized") == "true"
+            hold_geometry(page)
             results = page.evaluate(GEOMETRY, {"cycle": True})
             aligned(results, cycle=True)
             evidence["widths"][width] = {"followers": results, "anchors": []}
@@ -147,18 +149,14 @@ def main():
             # Three different native route durations, one SVG clock, <=2 WAAPI carriers.
             assert page.locator("animateMotion").count() == 3
             assert page.evaluate("document.getAnimations().length") <= 2
-            page.locator("[data-motion-toggle]").click()
+            page.reload(wait_until="networkidle")
+            start = page.evaluate(CLOCKS)
             page.wait_for_timeout(200)
             running = page.evaluate(CLOCKS)
             assert running["active"] <= 2 and any(not c["paused"] for c in running["native"])
+            assert running["native"][0]["time"] > start["native"][0]["time"]
+            assert running["native"][0]["started"]
             assert running["raf"] == 0
-            pause(page)
-            page.locator(".writing-plane--2").evaluate("el=>el.scrollIntoView({block:'center'})")
-            freeze(page)
-            page.evaluate("scrollTo(0,0)")
-            freeze(page)
-            assert page.locator("[data-motion-toggle]").get_attribute("aria-pressed") == "true"
-            page.locator("[data-motion-toggle]").click()
             page.locator(".writing-plane--2").evaluate("el=>el.scrollIntoView({block:'center'})")
             page.wait_for_timeout(150)
             freeze(page)
@@ -171,39 +169,36 @@ def main():
             page.evaluate("delete document.hidden; document.dispatchEvent(new Event('visibilitychange'))")
             page.wait_for_timeout(100)
             assert not page.evaluate(CLOCKS)["native"][0]["paused"]
-            pause(page)
             for media in ({"reduced_motion": "reduce"},
                           {"reduced_motion": "no-preference", "forced_colors": "active"},
                           {"forced_colors": "none", "media": "print"}):
                 page.emulate_media(**media)
                 page.wait_for_timeout(100)
-                assert page.locator("[data-motion-toggle]").is_hidden()
+                assert page.locator("[data-motion-toggle]").count() == 0
                 state = freeze(page)
                 assert not state["waapi"] and not any(c["started"] for c in state["native"])
                 if media.get("media") != "print":
                     aligned(page.evaluate(GEOMETRY, {"cycle": False}), cycle=False)
             page.emulate_media(media="screen", reduced_motion="no-preference", forced_colors="none")
-            assert page.locator("[data-motion-toggle]").get_attribute("aria-pressed") == "true"
-            freeze(page)
-            aligned(page.evaluate(GEOMETRY, {"cycle": False}), cycle=False)
-            page.locator("[data-motion-toggle]").click()
             page.wait_for_timeout(150)
             assert page.evaluate(CLOCKS)["native"][0]["started"]
             assert page.evaluate(CLOCKS)["native"][0]["time"] > .1
-            pause(page)
+            hold_geometry(page)
             aligned(page.evaluate(GEOMETRY, {"cycle": True}), cycle=True)
+            page.reload(wait_until="networkidle")
             page.evaluate("document.documentElement.dataset.pathRestore='yes'")
-            saved = pause(page)
             page.goto(args.url + "/futurememo/", wait_until="networkidle")
             page.go_back(wait_until="networkidle")
-            if page.locator("html").get_attribute("data-path-restore") == "yes":
-                assert page.locator("[data-motion-toggle]").get_attribute("aria-pressed") == "true"
-                assert freeze(page)["native"] == saved["native"]
-            assert page.locator("[data-motion-toggle]").count() == 1
+            assert page.locator("[data-motion-toggle]").count() == 0
+            assert page.locator("html").get_attribute("data-motion-initialized") == "true"
             assert page.locator("animateMotion").count() == 3
+            page.evaluate("import('/assets/motion.js?initialization-check')")
+            assert page.evaluate("document.getAnimations().length") <= 2
             page.evaluate("window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}))")
             freeze(page)
             page.evaluate("window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}))")
+            page.wait_for_timeout(100)
+            assert any(not clock["paused"] for clock in page.evaluate(CLOCKS)["native"])
             # Reading pages deliberately omit decorative motion; retained origins stay bound.
             page.goto(args.url + ARTICLE, wait_until="networkidle")
             assert page.locator("[data-motion-scene], [data-motion-toggle]").count() == 0
@@ -211,7 +206,7 @@ def main():
                 page.goto(args.url + route, wait_until="networkidle")
                 page.locator(selector).evaluate("el=>el.scrollIntoView({block:'center'})")
                 page.wait_for_function("selector=>document.querySelector(selector).dataset.motionState==='running'", arg=selector, polling=50)
-                pause(page)
+                hold_geometry(page)
                 anchors = page.evaluate("""() => {
                   const nodes=[...document.querySelectorAll('[data-motion-anchor]')],results=[];
                   for(const node of nodes) {
@@ -232,7 +227,8 @@ def main():
             context = browser.new_context(viewport={"width": width, "height": 900}, java_script_enabled=False)
             page = context.new_page()
             page.goto(args.url, wait_until="networkidle")
-            assert page.locator("[data-motion-toggle]").is_hidden()
+            assert page.locator("[data-motion-toggle]").count() == 0
+            assert page.locator("html").get_attribute("data-motion-initialized") is None
             before = page.evaluate(GEOMETRY, {"cycle": False})
             aligned(before, cycle=False)
             page.wait_for_timeout(250)
@@ -243,7 +239,7 @@ def main():
     (args.output / "after-alignment.json").write_text(json.dumps(evidence, indent=2) + "\n")
     maximum = max(s["pathError"] for width in evidence["widths"].values()
                   for route in width["followers"] for s in route["samples"])
-    print(f"PASS: 1455 full-cycle rendered-path samples at five widths; max {maximum:.6f}px error; "
+    print(f"PASS: {len(WIDTHS) * 3 * 97} full-cycle rendered-path samples at {len(WIDTHS)} widths; max {maximum:.6f}px error; "
           "forward traversal, closed seams, fixed origins, both clocks, media/hidden/offscreen/Back/no-JS, zero JS frames.")
 
 

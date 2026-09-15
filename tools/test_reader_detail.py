@@ -148,7 +148,9 @@ def main():
                     control = toolbar.locator(":scope > summary").bounding_box()
                     assert header["y"] == 0 and header["x"] == 0 and header["width"] == width
                     assert control["y"] >= header["y"] + header["height"] - 1
-                    assert control["y"] + control["height"] <= 112
+                    clearance = page.evaluate("parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)")
+                    assert control["y"] + control["height"] <= clearance
+                    assert abs(control["y"] - header["y"] - header["height"]) < 1
                     assert page.locator("[data-compact-progress]").inner_text() == "50%"
                     toolbar.locator(":scope > summary").focus()
                     page.keyboard.press("Enter")

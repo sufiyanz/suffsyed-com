@@ -47,13 +47,15 @@ def main():
     parser.add_argument("--url", default="http://127.0.0.1:8774")
     parser.add_argument("--browser", default="webkit", choices=("webkit", "chromium", "firefox"))
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--motion-only", action="store_true", help="Run the focused automatic-motion/lifecycle checks.")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     rows = json.loads((ROOT / "content/corpus.json").read_text())["essays"]
+    widths = () if args.motion_only else WIDTHS
     evidence = {"url": args.url, "widths": {}, "motion": {}, "covers": [], "archiveArrivals": {}}
     with sync_playwright() as p:
         browser = getattr(p, args.browser).launch()
-        for width in WIDTHS:
+        for width in widths:
             context = browser.new_context(viewport={"width": width, "height": 1000 if width > 700 else 844}, reduced_motion="reduce")
             page = context.new_page()
             errors = []
@@ -65,7 +67,7 @@ def main():
                 page.evaluate("document.fonts.ready")
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), (width, route)
                 assert page.locator(".site-header").evaluate("el => getComputedStyle(el).position") == "fixed"
-                assert page.locator("[data-motion-toggle]").is_hidden()
+                assert page.locator("[data-motion-toggle]").count() == 0
                 assert page.evaluate("document.getAnimations().length") == 0
                 collisions = page.evaluate("""() => {
                   const fields = [...document.querySelectorAll('[data-motion-scene]')];
@@ -151,8 +153,7 @@ def main():
         page.goto(args.url, wait_until="networkidle")
         page.evaluate("document.fonts.ready")
         field = page.locator(".hero-field")
-        toggle = page.locator("[data-motion-toggle]")
-        assert toggle.is_visible()
+        assert page.locator("[data-motion-toggle]").count() == 0
         page.wait_for_function("document.querySelector('.hero-field').dataset.motionState === 'running'")
         a = field.screenshot()
         page.wait_for_timeout(1100)
@@ -164,19 +165,14 @@ def main():
         evidence["motion"]["changedPixels"] = changed
         assert page.evaluate("document.getAnimations().filter(a => a.playState === 'running').length") <= 2
         assert page.locator("animateMotion").count() == 3
-        toggle.click()
+        page.evaluate("""Object.defineProperty(document, 'hidden', {configurable:true, value:true});
+          document.dispatchEvent(new Event('visibilitychange'));""")
         page.wait_for_timeout(100)
         a = field.screenshot()
         page.wait_for_timeout(500)
         assert frame_diff(a, field.screenshot()) == 0
-        assert toggle.get_attribute("aria-pressed") == "true"
-        times = page.evaluate("document.getAnimations().map(a => a.currentTime)")
-        page.locator(".writing-plane--2").evaluate("el => el.scrollIntoView({block:'center'})")
-        page.wait_for_timeout(300)
-        page.evaluate("scrollTo(0,0)")
-        page.wait_for_timeout(300)
-        assert page.evaluate("document.getAnimations().map(a => a.currentTime)") == times
-        toggle.click()
+        assert page.locator("[data-motion-scene] svg").evaluate_all("es=>es.every(svg=>svg.animationsPaused())")
+        page.evaluate("delete document.hidden; document.dispatchEvent(new Event('visibilitychange'))")
         page.wait_for_timeout(300)
         assert page.evaluate("document.getAnimations().some(a => a.playState === 'running')")
         # A real offscreen transition freezes timelines and resumes at the same pose.
@@ -197,24 +193,20 @@ def main():
         assert page.evaluate("document.getAnimations().map(a => a.currentTime)") == times
         page.evaluate("delete document.hidden; document.dispatchEvent(new Event('visibilitychange'))")
         assert page.evaluate("document.getAnimations().some(a => a.playState === 'running')")
-        toggle.click()
         page.evaluate("document.documentElement.dataset.bfcacheProbe = 'gallery'")
         page.goto(args.url + "/futurememo/")
         page.go_back(wait_until="networkidle")
         # Back may restore a document or reload it: neither may duplicate controllers.
-        assert page.locator("[data-motion-toggle]").count() == 1
+        assert page.locator("[data-motion-toggle]").count() == 0
         assert page.evaluate("document.getAnimations().length") <= 2
-        if page.locator("html").get_attribute("data-bfcache-probe") == "gallery":
-            assert page.locator("[data-motion-toggle]").get_attribute("aria-pressed") == "true"
+        assert page.locator("html").get_attribute("data-motion-initialized") == "true"
         page.evaluate("window.dispatchEvent(new PageTransitionEvent('pagehide', {persisted:true}))")
         assert page.evaluate("document.getAnimations().every(a => a.playState !== 'running')")
         page.evaluate("window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted:true}))")
-        if page.locator("[data-motion-toggle]").get_attribute("aria-pressed") == "true":
-            page.locator("[data-motion-toggle]").click()
         for media in ({"reduced_motion": "reduce"}, {"reduced_motion": "no-preference", "forced_colors": "active"}, {"media": "print", "forced_colors": "none"}):
             page.emulate_media(**media)
             page.wait_for_timeout(100)
-            assert page.locator("[data-motion-toggle]").is_hidden()
+            assert page.locator("[data-motion-toggle]").count() == 0
             assert page.evaluate("document.getAnimations().length") == 0
         page.emulate_media(media="screen", reduced_motion="no-preference", forced_colors="none")
         page.wait_for_timeout(200)
@@ -230,34 +222,32 @@ def main():
                                    "maxFrameMs": max(samples), "jsFrameCallbacks": 0, "maxScenes": 2,
                                    "maxCarrierTracks": 2, "maxNativeFollowers": 3,
                                    "visibilityCheck": "emulated hidden event; real IntersectionObserver scroll",
-                                   "pausePixelDifference": 0})
+                                   "hiddenPixelDifference": 0})
         assert len(samples) >= 40 and ordered[int(len(ordered)*.95)] < 50, evidence["motion"]
         context.close()
 
-        for width in WIDTHS:
+        for width in widths:
             context = browser.new_context(viewport={"width": width, "height": 900}, reduced_motion="no-preference")
             page = context.new_page()
             page.goto(args.url, wait_until="networkidle")
-            toggle = page.locator("[data-motion-toggle]")
-            assert toggle.is_visible()
-            toggle.click()
-            assert toggle.inner_text() == "Resume"
+            assert page.locator("[data-motion-toggle]").count() == 0
             header = page.locator(".site-header").bounding_box()
-            assert header["height"] <= 56 and header["x"] + header["width"] <= width
-            assert toggle.bounding_box()["height"] >= 44
+            assert header["height"] == (96 if width <= 540 else 48)
+            assert header["x"] + header["width"] <= width
             page.locator(".writing-list h3 a").first.focus()
             assert page.locator(".writing-list h3 a").first.bounding_box()["y"] >= header["y"] + header["height"]
             assert page.locator(".site-header").bounding_box() == header
             context.close()
 
-        for width in WIDTHS:
+        for width in widths:
             context = browser.new_context(java_script_enabled=False, viewport={"width": width, "height": 900})
             page = context.new_page()
             page.goto(args.url)
-            assert page.locator("[data-motion-toggle]").is_hidden()
+            assert page.locator("[data-motion-toggle]").count() == 0
             page.locator(".site-header nav a").first.click()
-            assert page.locator("#writing").bounding_box()["y"] >= 79
-            page.locator(".exhibition-art").first.click()
+            page.wait_for_url(args.url + "/futurememo/", wait_until="networkidle")
+            assert page.locator(".archive-entry").count() == 20
+            page.locator(".archive-art").first.click()
             assert page.locator("#essay-body").is_visible()
             page.goto(args.url + "/futurememo/")
             assert page.locator(".archive-entry").count() == 20
@@ -276,8 +266,8 @@ def main():
             context.close()
         browser.close()
     (args.output / "gallery-evidence.json").write_text(json.dumps(evidence, indent=2) + "\n")
-    print("PASS: artwork scale/full ratios/decoded resources at five widths, 20 title-image-URL associations, "
-          "native writing/Lightworks paths, actual animated pixels, pause/resume, suspension, media fallback and frame budget.")
+    prefix = "" if args.motion_only else "artwork scale/full ratios/decoded resources, 20 title-image-URL associations, native writing/Lightworks paths; "
+    print(f"PASS: {prefix}actual animated pixels without a toggle, hidden/offscreen/lifecycle suspension, media fallback and frame budget.")
 
 
 if __name__ == "__main__":

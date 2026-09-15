@@ -42,13 +42,12 @@ class JournalTests(unittest.TestCase):
         self.assertEqual(home.select_one(".cover-role").get_text(), IDENTITY)
         self.assertEqual(home.select_one(".cover-description").get_text(), DESCRIPTION)
         self.assertEqual([a["href"] for a in home.select(".site-header nav a")],
-                         ["#writing", "/about-me/"])
+                         ["/futurememo/", "/lightworks/", "/about-me/"])
         self.assertEqual([link["href"] for link in home.select('link[rel="stylesheet"]')],
                          ["/assets/foundation.css", "/assets/frame.css"])
         self.assertFalse(home.select("canvas, dialog, iframe, form"))
         self.assertEqual([script["src"] for script in home.select("script")], ["/assets/motion.js"])
-        self.assertEqual(len(home.select("button")), 1)
-        self.assertTrue(home.select_one("[data-motion-toggle]").has_attr("hidden"))
+        self.assertFalse(home.select("button, [data-motion-toggle]"))
         self.assertFalse(home.select("h1 a, h1 button"))
         self.assertEqual(len(home.select("main > section")), 3)
         self.assertEqual(len(home.select("svg.line-study")), 2)
@@ -126,14 +125,18 @@ class JournalTests(unittest.TestCase):
         self.assertEqual(cover.find_next_sibling().get("class"), ["mast"])
         self.assertEqual(home.select_one(".mast").find_next_sibling().get("id"), "main")
         self.assertEqual(len(home.select("h1")), 1)
+        self.assertEqual([a.get_text() for a in home.select(".mast nav a")],
+                         ["Future (Memo)", "Light (works)", "About (Me)"])
         for path, soup in self.pages.items():
-            if path == OUT / "index.html":
-                continue
             self.assertEqual(len(soup.select(".site-header")), 1)
             self.assertEqual([a["href"] for a in soup.select(".site-header nav a")],
-                             ["/futurememo/", "/about-me/"])
+                             ["/futurememo/", "/lightworks/", "/about-me/"])
+            self.assertEqual([a.get_text() for a in soup.select(".site-header nav a")],
+                             ["Future (Memo)", "Light (works)", "About (Me)"])
             self.assertEqual(len(soup.select(".site-footer")), 1)
-            self.assertFalse(soup.select('.site-header a[href="/lightworks/"], .site-footer a[href="/lightworks/"]'))
+            self.assertEqual([a.get_text() for a in soup.select(".site-footer > nav a")[:3]],
+                             ["Future (Memo)", "Light (works)", "About (Me)"])
+            self.assertFalse(soup.select("[data-motion-toggle], .motion-toggle"))
             if path != OUT / "index.html":
                 self.assertIsNone(soup.select_one(".home-cover"))
 

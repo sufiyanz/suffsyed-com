@@ -13,7 +13,7 @@ from PIL import Image
 from corpus import connect, measure, reading_plate
 from foundation_home import render_foundation
 from foundation_art import orbit, write_grain
-from writing_frame import footer as writing_footer, header as writing_header
+from writing_frame import footer as writing_footer, header as writing_header, primary_links
 from journal_home import render_cover, render_home
 from journal_questions import render_margin, render_research, render_research_teaser
 from question_atlas import build_atlas, render_atlas
@@ -48,8 +48,7 @@ def image(src, alt, lazy=True, sizes="(max-width: 700px) 90vw, 70vw"):
 
 
 def layout(title, description, body, path, current="", cover=None, kind="page", styles=(), scripts=()):
-    nav = [("Writing", "/futurememo/", "writing"), ("Light(works)", "/lightworks/", "light"), ("The unfinished", "/research/", "research"), ("About", "/about-me/", "about")]
-    links = "".join(f'<a href="{url}"{" aria-current=" + chr(34) + "page" + chr(34) if key == current else ""}>{label}</a>' for label, url, key in nav)
+    links = primary_links(current)
     opening = render_cover() if kind == "home" else ""
     cover_script = '<script src="/assets/home-cover-init.js"></script>\n' if kind == "home" else ""
     playground_style = '<link rel="stylesheet" href="/assets/playground.css">' if kind == "home" else ""
@@ -85,7 +84,7 @@ def layout(title, description, body, path, current="", cover=None, kind="page", 
 <div class="sheet">{opening}{mast}
 <main id="main" tabindex="-1">{body}</main>
 <footer class="foot"><div><a class="signature" href="/">Suff Syed</a><p>A mind at work. A work in progress.</p><p><a href="/about-me/">About the person behind these questions ↗</a></p></div>
-<nav aria-label="Further reading"><a href="/about-the-memo/">About the memo</a><a href="/faqs/">FAQs</a><a href="/the-end-of-design-report/">The End of Design</a><a href="/store/">A coffee, perhaps</a><a href="/methods/">How to read the data</a><a href="/futurememo/rss.xml">RSS</a></nav>
+<nav aria-label="Further reading">{primary_links()}<a href="/about-the-memo/">About the memo</a><a href="/faqs/">FAQs</a><a href="/the-end-of-design-report/">The End of Design</a><a href="/store/">A coffee, perhaps</a><a href="/methods/">How to read the data</a><a href="/futurememo/rss.xml">RSS</a></nav>
 <nav aria-label="Elsewhere"><a href="https://substack.com/@suffsyed">Substack ↗</a><a href="https://x.com/suff_syed">X ↗</a><a href="https://www.linkedin.com/in/suffsyed/">LinkedIn ↗</a><a href="#top">Back to top ↑</a></nav></footer></div>
 <div class="outside-caption"><span>SUFF SYED / NOTES FROM THE FRONTIER</span><span>Independent writing · No tracking</span></div>
 <dialog id="artwork-dialog" aria-labelledby="artwork-title"><div class="dialog-head"><h2 id="artwork-title">A closer look.</h2><button class="close" data-close-dialog aria-label="Close artwork">×</button></div>
@@ -110,7 +109,7 @@ def layout_writing(title, description, body, path, current, cover, kind, page_as
 <link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">
 <script type="module" src="/assets/app.js"></script>{page_assets}
 </head><body id="top" class="{kind} writing-frame">
-<a class="skip" href="#main">Skip to content</a>{writing_header(current=current, motion=kind == "archive")}
+<a class="skip" href="#main">Skip to content</a>{writing_header(current=current)}
 <div class="sheet"><main id="main" tabindex="-1">{body}</main></div>{writing_footer()}
 <dialog id="artwork-dialog" aria-labelledby="artwork-title"><div class="dialog-head"><h2 id="artwork-title">A closer look.</h2><button class="close" data-close-dialog aria-label="Close artwork">×</button></div>
 <figure><img id="artwork-image" alt=""><figcaption id="artwork-caption"></figcaption></figure>

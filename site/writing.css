@@ -13,7 +13,6 @@
 }
 .writing-frame .sheet { padding-top: 120px; padding-bottom: 80px; background: var(--site-ground); background-image: var(--grain); }
 .writing-frame .site-header, .writing-frame .site-footer { line-height: 1.45; }
-.writing-frame .site-header button:hover { color: inherit; }
 .writing-frame .skip { position: fixed; }
 .writing-frame:is(.essay, .archive) { --font-display: var(--font-body); --font-ui: var(--font-body); --sans: var(--font-body); }
 .writing-frame:is(.essay, .archive) .sheet {
@@ -83,7 +82,7 @@
   .essay .reading-lens { top: auto; max-height: 70dvh; }
 }
 @media (max-width: 700px) {
-  .writing-frame .sheet { --page-gutter: 16px; padding: 104px 16px 56px; }
+  .writing-frame .sheet { --page-gutter: 16px; padding: max(104px, calc(var(--nav-clearance) + 8px)) 16px 56px; }
   .arrival-field { height: 80px; margin-bottom: 24px; }
   .arrival-field .photo-geometry { width: 390px; top: -146px; right: -90px; }
   .archive .arrival-field { height: 40px; margin-bottom: 16px; }

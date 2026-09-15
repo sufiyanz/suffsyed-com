@@ -13,9 +13,13 @@ three generous original essay illustrations on home, all twenty at gallery
 scale in `/futurememo/`, and full-ratio frontispieces on every essay arrival.
 The compact fixed navigation, exact autograph, pale editorial plane, Instrument
 Sans / DM Mono hierarchy and dark forest footer form a shared writing-first
-frame. Light(works) is no longer a homepage scene or primary navigation item;
-its direct route, 22 photographs and full-view behavior remain intact without
-shared-navigation promotion. The composition applies the
+frame. Light(works) is no longer a homepage scene; its 22 photographs and
+full-view behavior remain intact. The shared main navigation is exactly
+**Future (Memo)** (`/futurememo/`), **Light (works)** (`/lightworks/`) and
+**About (Me)** (`/about-me/`), including the preserved renderers. The first link
+always opens the complete archive, not a homepage fragment. Primary footer
+labels match; the memo description remains in the site-notes disclosure.
+The composition applies the
 published [Frontend Design Review: Creative Frontend Design](https://raw.githubusercontent.com/microsoft/skills/main/.github/skills/frontend-design-review/SKILL.md)
 workflow: explicit observatory concept, asymmetry, scale contrast and matte
 material craft. Blink informed the spatial hierarchy, not the artwork or code;
@@ -47,17 +51,24 @@ and controls. The page budget is at most two visible scenes, two WAAPI carrier
 tracks and three native followers sharing one SVG clock; no JavaScript frame
 callbacks, geometry reads, storage or network requests. IntersectionObserver,
 document visibility and page lifecycle events pause **both** WAAPI and native
-SVG timelines without losing manual pause. Reduced/forced/print media remove
+SVG timelines. Reduced/forced/print media remove
 native intervals and restore canonical static path positions; returning to
-ordinary media preserves the pause choice and starts fresh cycles on resume.
-A compact Pause/Resume control only
-appears when enhancement is available. Reduced motion, forced colors, print
-and no-JS retain complete static content; no dead motion control is shown.
+ordinary media starts fresh cycles on resume. Decorative motion initializes
+independently of navigation controls, once per document; the requested Pause
+button is absent from the markup, with no replacement settings UI or divider.
+Reduced motion, forced colors, print and no-JS retain complete static content.
 The module is initialized once per document and survives bfcache restoration.
 There is no preloader, scroll interception, new app host or runtime model call.
 The compact navigation stays fixed while reading. Safe-area insets and native
 scroll padding keep section headings and keyboard targets clear, without
-scroll-state JavaScript or hide/reveal behavior.
+scroll-state JavaScript or hide/reveal behavior. At 540px and narrower, the
+header has two calm rows with the complete labels at 12px and 48px touch
+targets. Shared row-height/count tokens determine its height and clearances.
+Articles use an opaque full-width top band (56px rows) so the longer navigation
+cannot float over the centered prose; the mobile reader toolbar sticks directly
+below that band, and source offsets account for both.
+On phones the home diagram and its existing content flow gain the same extra
+row space, so the unchanged moving geometry stays clear of navigation.
 
 Regular **Instrument Sans** supplies the deliberate grotesk hierarchy; the
 existing **DM Mono** supplies small technical annotations. A 24KB static
@@ -99,11 +110,16 @@ pixels, exact paused frames, offscreen/visibility/page lifecycle suspension and
 a sampled frame budget (p95 below 50ms in headless WebKit; no site JS frame loop).
 Headless visibility is explicitly emulated; offscreen suspension uses real scroll.
 It saves desktop/phone compositions, motion frames and machine-readable evidence.
+`tools/test_navigation.py --url http://127.0.0.1:8774 --output /absolute/path`
+checks the three exact destinations, active states, header/touch bounds,
+article bands and sticky tools, native source focus and Back at seven widths.
+`tools/test_foundation.py --motion-only --output /absolute/path` isolates actual
+moving/frozen pixels and the frame budget without rerunning the gallery suite.
 `tools/test_path_motion.py --url http://127.0.0.1:8774 --output /absolute/path`
-adds 1,455 rendered-marker-to-visible-path samples across full cycles at all
-five widths, with a 1 CSS-pixel ceiling, independent carrier poses, forward
+adds 2,037 rendered-marker-to-visible-path samples across full cycles at all
+seven widths, with a 1 CSS-pixel ceiling, independent carrier poses, forward
 progression, loop seams and fixed-origin alignment. It also inspects native
-SVG clocks, not only `document.getAnimations()`, through pause, offscreen,
+SVG clocks, not only `document.getAnimations()`, through offscreen,
 synthetic hidden events, media round trips, Back and no-JS. Inspection maps:
 `[data-motion-follower]` names the visible route ID, `data-motion-start` records
 its static first vertex, and `[data-motion-anchor]` names an axis path with a

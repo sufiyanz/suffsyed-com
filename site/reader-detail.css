@@ -1,3 +1,11 @@
+.reader-page {
+  --nav-top: 0px; --nav-row-height: 56px;
+  --nav-clearance: calc(var(--nav-height) + env(safe-area-inset-top, 0px) + 32px);
+}
+.essay .site-header {
+  top: 0; left: 0; right: 0; z-index: 7; border-radius: 0; justify-content: space-between;
+  min-height: calc(var(--nav-height) + env(safe-area-inset-top, 0px)); padding: env(safe-area-inset-top, 0px) 24px 0;
+}
 .essay.writing-frame { background: var(--site-paper); }
 .essay.writing-frame .sheet { background: var(--site-paper); background-image: none; padding: 128px 32px 80px; }
 .essay .essay-head { max-width: 640px; padding: 24px 0 0; text-align: center; }
@@ -99,14 +107,12 @@
   .reader-rail-disclosure[open] > summary::-webkit-details-marker { display: none; }
 }
 @media (max-width: 1279px) {
-  .reader-page { --nav-clearance: calc(112px + env(safe-area-inset-top, 0px)); }
-  .essay .site-header {
-    top: 0; left: 0; right: 0; z-index: 7; border-radius: 0; justify-content: space-between;
-    min-height: calc(56px + env(safe-area-inset-top, 0px)); padding: env(safe-area-inset-top, 0px) 24px 0;
+  .reader-page {
+    --nav-clearance: calc(var(--nav-height) + env(safe-area-inset-top, 0px) + 56px);
   }
   .reader-composition { display: block; max-width: 640px; }
   .reader-tools {
-    position: sticky; top: calc(56px + env(safe-area-inset-top, 0px)); z-index: 6;
+    position: sticky; top: calc(var(--nav-height) + env(safe-area-inset-top, 0px)); z-index: 6;
     background: var(--site-paper); border-bottom: 1px solid var(--site-rule); margin-bottom: 32px;
   }
   .reader-tools > summary { display: flex; justify-content: space-between; gap: 16px; list-style: none; }
@@ -126,7 +132,7 @@
   .essay .reading-lens { top: auto; bottom: 16px; right: 16px; width: min(420px, calc(100vw - 32px)); max-height: 70dvh; }
 }
 @media (max-width: 700px) {
-  .essay.writing-frame .sheet { padding: 104px 32px 56px; }
+  .essay.writing-frame .sheet { padding: max(104px, calc(var(--nav-height) + env(safe-area-inset-top, 0px) + 24px)) 32px 56px; }
   .essay .essay-head { padding-top: 20px; }
   .essay .essay-head h1 { font-size: 36px; }
   .essay .essay-artwork { margin-block: 24px 36px; }

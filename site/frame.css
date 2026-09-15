@@ -26,7 +26,10 @@
   --font-technical: "DM Mono", monospace;
   --grain: url("/assets/foundation/grain.png");
   --nav-top: 24px;
-  --nav-clearance: calc(var(--nav-top) + env(safe-area-inset-top, 0px) + 64px);
+  --nav-row-height: 48px;
+  --nav-rows: 1;
+  --nav-height: calc(var(--nav-row-height) * var(--nav-rows));
+  --nav-clearance: calc(var(--nav-top) + env(safe-area-inset-top, 0px) + var(--nav-height) + 16px);
 }
 html { scroll-padding-top: var(--nav-clearance); scroll-behavior: auto; }
 [hidden] { display: none !important; }
@@ -38,18 +41,13 @@ main a, main button, main input, main select, main summary, .site-footer a { scr
   background: var(--site-paper); color: var(--site-ink); border-radius: 2px;
   font-family: var(--font-body);
 }
-.site-header a { display: inline-flex; align-items: center; min-height: 48px; min-width: 44px; text-decoration: none; }
+.site-header a { display: inline-flex; align-items: center; min-height: var(--nav-row-height); min-width: 44px; text-decoration: none; }
 .site-header a:hover { text-decoration: underline; color: inherit; }
 .site-header .site-name { font: 400 22px/1 var(--font-body); letter-spacing: -.045em; }
 .site-header nav { display: flex; gap: 24px; font: 400 13px/1.4 var(--font-technical); }
 .site-header [aria-current] { text-decoration: underline; }
-.site-header a:focus-visible, .motion-toggle:focus-visible, .site-footer a:focus-visible,
+.site-header a:focus-visible, .site-footer a:focus-visible,
 .site-footer summary:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
-.site-header .motion-toggle {
-  appearance: none; min-width: 56px; min-height: 44px; padding: 0 0 0 12px; margin: 0;
-  font: 400 12px/1.4 var(--font-technical); color: inherit; cursor: pointer;
-  background: none; border: 0; border-left: 1px solid var(--site-rule); border-radius: 0;
-}
 .site-footer {
   display: grid; grid-template-columns: 1fr 1fr; gap: 44px; padding: 40px 32px 24px;
   background: var(--site-dark); color: var(--site-dark-text); font-family: var(--font-body);
@@ -58,6 +56,7 @@ main a, main button, main input, main select, main summary, .site-footer a { scr
 .site-footer nav { display: flex; justify-content: space-between; gap: 16px; }
 .site-footer nav a { min-height: 44px; display: flex; align-items: start; font: 400 13px/1.5 var(--font-technical); text-transform: uppercase; text-decoration: none; }
 .site-footer nav a:hover { text-decoration: underline; color: inherit; }
+.site-footer > nav a { text-transform: none; }
 .footer-signature { display: block; width: min(100%, 680px); align-self: end; }
 .footer-signature img { display: block; width: 100%; height: auto; }
 .footer-colophon { margin: 0; align-self: end; justify-self: end; color: var(--site-dark-muted); font: 12px/1.5 var(--font-technical); text-transform: uppercase; }
@@ -81,7 +80,6 @@ main a, main button, main input, main select, main summary, .site-footer a { scr
   }
   .site-header .site-name { font-size: 19px; }
   .site-header nav { gap: 12px; font-size: 12px; }
-  .site-header .motion-toggle { min-width: 54px; padding-left: 8px; }
   .site-footer { display: flex; flex-direction: column; padding: 16px 24px 40px; gap: 32px; }
   .footer-signature { order: -1; width: 100%; margin: 8px 0 0; }
   .footer-note { max-width: 27ch; }
@@ -89,13 +87,18 @@ main a, main button, main input, main select, main summary, .site-footer a { scr
   .site-footer nav a { font-size: 12px; align-items: center; }
   .footer-colophon { align-self: start; margin-top: 12px; }
 }
+@media (max-width: 540px) {
+  :root { --nav-rows: 2; }
+  .site-header { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .site-header .site-name { justify-self: center; }
+  .site-header nav { justify-content: space-between; gap: 4px; }
+  .site-header nav a { white-space: nowrap; }
+}
 @media (max-width: 360px) {
-  .site-header { gap: 8px; padding-inline: 10px; }
-  .site-header nav { gap: 8px; }
+  .site-header { padding-inline: 10px; }
   .site-header .site-name { font-size: 17px; }
 }
 @media (prefers-reduced-motion: reduce), (forced-colors: active) {
-  .motion-toggle { display: none !important; }
   [data-motion-track] { transform: none !important; }
 }
 @media (forced-colors: active) {

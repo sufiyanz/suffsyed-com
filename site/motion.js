@@ -1,15 +1,14 @@
 // Two visible carriers (WAAPI) and three ribbon followers (one native SVG clock).
 // No frame loop, DOM geometry reads, storage, or network work.
-const toggle = document.querySelector("[data-motion-toggle]");
+const root = document.documentElement;
 const fields = [...document.querySelectorAll("[data-motion-scene]")];
-if (toggle && fields.length && !toggle.dataset.initialized &&
+if (fields.length && !root.dataset.motionInitialized &&
     "IntersectionObserver" in window && typeof Element.prototype.animate === "function" &&
     typeof SVGSVGElement.prototype.pauseAnimations === "function") {
-  toggle.dataset.initialized = "true";
+  root.dataset.motionInitialized = "true";
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const forced = matchMedia("(forced-colors: active)");
   const print = matchMedia("print");
-  let manualPause = false;
   let away = false;
   const scenes = fields.map(field => {
     const svg = field.querySelector("svg");
@@ -39,10 +38,6 @@ if (toggle && fields.length && !toggle.dataset.initialized &&
   }
   function sync() {
     const staticMode = reduced.matches || forced.matches || print.matches;
-    toggle.hidden = staticMode;
-    toggle.setAttribute("aria-pressed", String(manualPause));
-    toggle.setAttribute("aria-label", manualPause ? "Resume decorative motion" : "Pause decorative motion");
-    toggle.querySelector("[data-motion-label]").textContent = manualPause ? "Resume" : "Pause";
     let active = 0;
     for (const scene of scenes) {
       scene.svg.pauseAnimations();
@@ -51,7 +46,7 @@ if (toggle && fields.length && !toggle.dataset.initialized &&
         scene.animations = [];
         staticFollowers(scene);
       }
-      const running = !staticMode && !manualPause && !away && !document.hidden && scene.visible && active < 2;
+      const running = !staticMode && !away && !document.hidden && scene.visible && active < 2;
       if (running) {
         active++;
         if (!scene.animations.length) {
@@ -81,7 +76,6 @@ if (toggle && fields.length && !toggle.dataset.initialized &&
     sync();
   }, {threshold: 0});
   scenes.forEach(scene => observer.observe(scene.field));
-  toggle.addEventListener("click", () => { manualPause = !manualPause; sync(); });
   document.addEventListener("visibilitychange", sync);
   for (const query of [reduced, forced, print]) query.addEventListener("change", sync);
   window.addEventListener("pagehide", () => { away = true; sync(); });
