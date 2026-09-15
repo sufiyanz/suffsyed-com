@@ -8,8 +8,10 @@ runtime dependency on Squarespace.
 
 ## Sage observatory / writing gallery
 
-The approved sage observatory now leads into an artwork-first exhibition:
-three generous original essay illustrations on home, all twenty at gallery
+The approved sage observatory now opens with a direct Gallery entrance:
+an integrated autograph masthead, introduction and exact role credit on the
+sage/grain field, followed by one generous original artwork and its complete
+linked essay title. Three further illustrations remain below; all twenty are at gallery
 scale in `/futurememo/`, and full-ratio frontispieces on every essay arrival.
 The compact fixed navigation, exact autograph, pale editorial plane, Instrument
 Sans / DM Mono hierarchy and dark forest footer form a shared writing-first
@@ -25,8 +27,10 @@ workflow: explicit observatory concept, asymmetry, scale contrast and matte
 material craft. Blink informed the spatial hierarchy, not the artwork or code;
 no proprietary fonts, branded diagrams, animation or scroll mechanics are copied.
 
-`tools/foundation_home.py` renders the homepage; `site/foundation.css` owns its
-composition. `tools/writing_frame.py` and `site/frame.css` share the navigation,
+`tools/foundation_home.py` renders the homepage; `site/gallery-home.css` scopes
+the chosen cover, transparent masthead and single painted surface to that page.
+`site/foundation.css` retains the shared fields and lower composition.
+`tools/writing_frame.py` and `site/frame.css` share the navigation,
 footer and material tokens; `site/writing.css` carries these through the index
 and article arrivals while retaining Newsreader for long reading. Support-page
 content is unchanged. All artwork is still, uncropped, untinted and displayed
@@ -59,7 +63,7 @@ button is absent from the markup, with no replacement settings UI or divider.
 Reduced motion, forced colors, print and no-JS retain complete static content.
 The module is initialized once per document and survives bfcache restoration.
 There is no preloader, scroll interception, new app host or runtime model call.
-The compact navigation stays fixed while reading. Safe-area insets and native
+Non-homepage navigation stays fixed while reading. Safe-area insets and native
 scroll padding keep section headings and keyboard targets clear, without
 scroll-state JavaScript or hide/reveal behavior. At 540px and narrower, the
 header has two calm rows with the complete labels at 12px and 48px touch
@@ -67,8 +71,22 @@ targets. Shared row-height/count tokens determine its height and clearances.
 Articles use an opaque full-width top band (56px rows) so the longer navigation
 cannot float over the centered prose; the mobile reader toolbar sticks directly
 below that band, and source offsets account for both.
-On phones the home diagram and its existing content flow gain the same extra
-row space, so the unchanged moving geometry stays clear of navigation.
+The homepage alone has an integrated, left-aligned autograph masthead. It is a
+transparent, document-positioned header over reserved cover padding, and scrolls
+away with the opening. One continuous cover surface paints the sage/grain wash
+behind both masthead and introduction/artwork; there is no independent header
+background, pinned strip or transition. Other-page persistent headers are unchanged.
+The opening has one autograph and no separate text-name logo, card or hero
+wireform. The original closing autograph and lower ideas scene remain.
+
+`render_foundation()` and `archive_page()` receive the same ordered `rows` from
+`content/corpus.json`. The cover feature is `rows[0]`, exactly the first rendered
+archive entry, with its original image/description, complete title and URL.
+This is an editorial ordering contract, **not independently verified chronology**:
+all `publicationDate` values are null, and `migrationLastmod` is never used to
+infer one. The UI says **Featured essay**. If the lead is also one of the curated
+lower selections, it is excluded there and the next eligible archive entry fills
+the slot, without duplicates. No sample slug controls the feature.
 
 Regular **Instrument Sans** supplies the deliberate grotesk hierarchy; the
 existing **DM Mono** supplies small technical annotations. A 24KB static
@@ -113,6 +131,7 @@ It saves desktop/phone compositions, motion frames and machine-readable evidence
 `tools/test_navigation.py --url http://127.0.0.1:8774 --output /absolute/path`
 checks the three exact destinations, active states, header/touch bounds,
 article bands and sticky tools, native source focus and Back at seven widths.
+Use `--home-only` for a homepage-only navigation change.
 `tools/test_foundation.py --motion-only --output /absolute/path` isolates actual
 moving/frozen pixels and the frame budget without rerunning the gallery suite.
 `tools/test_path_motion.py --url http://127.0.0.1:8774 --output /absolute/path`
@@ -128,6 +147,12 @@ The older `test_home.py`, cover, hierarchy, signature and playground browser
 suites describe the preserved interactive composition, **not** acceptance
 criteria for this writing-gallery iteration. Static checks still exercise
 its renderer, original reading plates, all essays, links and source assets.
+The retained ribbon is now exercised in an in-memory browser fixture, not a
+published route or a restored homepage hero. Live checks still exercise the
+lower homepage ideas and archive origins with the unchanged motion controller.
+`tools/test_gallery_entrance.py --output /absolute/path` verifies the real archive
+lead, role credit, original image ratios/resolution, responsive caption and
+natural header scrolling/focus behavior without rerunning unrelated reader suites.
 
 ## Source-linked article reader
 

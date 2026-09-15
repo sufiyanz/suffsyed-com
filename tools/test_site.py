@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 from corpus import content_digest, flat_text, reading_plate, tokens
 from build_site import journal_home_page
 from foundation_art import orbit, ribbon
-from foundation_home import DESCRIPTION, IDENTITY, SELECTED_ESSAYS
+from foundation_home import DESCRIPTION, IDENTITY, SELECTED_ESSAYS, render_foundation
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs"
@@ -37,21 +37,31 @@ class JournalTests(unittest.TestCase):
 
     def test_foundation_identity_and_writing_gallery(self):
         home = self.pages[OUT / "index.html"]
-        self.assertEqual(home.h1.get_text(strip=True), "Suff Syed")
+        self.assertEqual(home.h1.get_text(strip=True), DESCRIPTION)
         self.assertEqual(len(home.select("h1")), 1)
         self.assertEqual(home.select_one(".cover-role").get_text(), IDENTITY)
         self.assertEqual(home.select_one(".cover-description").get_text(), DESCRIPTION)
         self.assertEqual([a["href"] for a in home.select(".site-header nav a")],
                          ["/futurememo/", "/lightworks/", "/about-me/"])
         self.assertEqual([link["href"] for link in home.select('link[rel="stylesheet"]')],
-                         ["/assets/foundation.css", "/assets/frame.css"])
+                         ["/assets/foundation.css", "/assets/frame.css", "/assets/gallery-home.css"])
         self.assertFalse(home.select("canvas, dialog, iframe, form"))
         self.assertEqual([script["src"] for script in home.select("script")], ["/assets/motion.js"])
         self.assertFalse(home.select("button, [data-motion-toggle]"))
         self.assertFalse(home.select("h1 a, h1 button"))
         self.assertEqual(len(home.select("main > section")), 3)
-        self.assertEqual(len(home.select("svg.line-study")), 2)
-        self.assertEqual(len(home.select(".hero-geometry")), 1)
+        self.assertEqual(len(home.select("svg.line-study")), 1)
+        self.assertFalse(home.select(".hero-geometry, .hero-field, .editorial-plane, .site-name"))
+        self.assertEqual(len(home.select(".gallery-masthead .cover-signature")), 1)
+        self.assertFalse(home.select(".gallery-cover .cover-signature"))
+        lead = DATA["essays"][0]
+        feature = home.select_one(".featured-essay")
+        self.assertEqual(feature["data-featured-slug"], lead["slug"])
+        self.assertEqual(feature.h2.get_text(), lead["title"])
+        self.assertEqual(feature.img["src"], lead["cover"])
+        self.assertEqual(feature.select_one(".exhibition-label").get_text(), "Featured essay")
+        self.assertEqual(feature.a["href"], f'/futurememo/{lead["slug"]}/')
+        self.assertEqual(feature.img["alt"], json.loads((ROOT / "content/cover-descriptions.json").read_text())[lead["slug"]])
         for svg in home.select("svg.line-study"):
             self.assertEqual(svg["aria-hidden"], "true")
             self.assertEqual(svg["focusable"], "false")
@@ -71,7 +81,7 @@ class JournalTests(unittest.TestCase):
                 self.assertTrue((OUT / source.split()[0].lstrip("/")).is_file())
         self.assertFalse(home.select(".photo-pair, #photography"))
         self.assertFalse(home.select('main a[href^="/lightworks/"]'))
-        self.assertEqual(len(home.select("[data-motion-scene]")), 2)
+        self.assertEqual(len(home.select("[data-motion-scene]")), 1)
         archive = self.pages[OUT / "futurememo/index.html"]
         for entry, row in zip(archive.select(".archive-entry"), DATA["essays"]):
             self.assertEqual(entry.select_one(".archive-art")["href"], f'/futurememo/{row["slug"]}/')
@@ -80,11 +90,13 @@ class JournalTests(unittest.TestCase):
 
     def test_motion_routes_and_anchors_are_explicit(self):
         home = self.pages[OUT / "index.html"]
-        followers = home.select("[data-motion-follower]")
+        self.assertFalse(home.select("[data-motion-follower]"))
+        fixture = BeautifulSoup(ribbon("fixture-ribbon"), "html.parser")
+        followers = fixture.select("[data-motion-follower]")
         self.assertEqual(len(followers), 3)
-        self.assertEqual(len(home.select("[data-motion-route]")), 9)
+        self.assertEqual(len(fixture.select("[data-motion-route]")), 9)
         for follower in followers:
-            route = home.find(id=follower["data-motion-follower"])
+            route = fixture.find(id=follower["data-motion-follower"])
             self.assertEqual(route["data-motion-route"], "closed")
             self.assertTrue(route["d"].endswith(" Z"))
             self.assertIs(route.parent, follower.parent)
@@ -101,6 +113,24 @@ class JournalTests(unittest.TestCase):
         repeated = BeautifulSoup(ribbon("first") + ribbon("second") + orbit("third") + orbit("fourth"), "html.parser")
         ids = [node["id"] for node in repeated.select("[id]")]
         self.assertEqual(len(ids), len(set(ids)))
+
+    def test_gallery_feature_follows_archive_order_without_dates(self):
+        rows = []
+        for source in DATA["essays"]:
+            page = self.pages[OUT / "futurememo" / source["slug"] / "index.html"]
+            rows.append({**source, "url": f'/futurememo/{source["slug"]}/',
+                         "coverAlt": page.select_one(".essay-artwork img")["alt"]})
+        for slug in (rows[0]["slug"], SELECTED_ESSAYS[0], SELECTED_ESSAYS[1]):
+            ordered = sorted(rows, key=lambda row: row["slug"] != slug)
+            page = BeautifulSoup(render_foundation(ordered, lambda src, alt, **kw: "<img>"), "html.parser")
+            self.assertEqual(page.select_one(".featured-essay")["data-featured-slug"], slug)
+            following = [a["href"] for a in page.select(".writing-list .exhibition-art")]
+            self.assertEqual(len(following), 3)
+            self.assertEqual(len(set(following)), 3)
+            self.assertNotIn(f"/futurememo/{slug}/", following)
+        self.assertTrue(all(row["publicationDate"] is None for row in rows))
+        with self.assertRaisesRegex(ValueError, "archive lead"):
+            render_foundation([], lambda *args, **kwargs: "")
 
     def test_preserved_journal_cover_and_internal_header(self):
         home = self.journal_home

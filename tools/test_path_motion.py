@@ -4,12 +4,23 @@ import json
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
+from foundation_art import ribbon
 
 WIDTHS = (320, 390, 820, 1024, 1280, 1440, 1600)
 ARTICLE = "/futurememo/qubit-teams-the-future-built-by-two-people-using-ai/"
 PROBE = """window.pathFrames = 0;
 const request = window.requestAnimationFrame;
 window.requestAnimationFrame = callback => {window.pathFrames++; return request(callback);};"""
+
+
+def wireform_fixture():
+    return f'''<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retained wireform test fixture</title>
+<link rel="stylesheet" href="/assets/foundation.css"><link rel="stylesheet" href="/assets/frame.css">
+<script type="module" src="/assets/motion.js"></script></head><body class="foundation"><main>
+<section class="cover"><div class="hero-field motion-field" data-motion-scene>{ribbon("fixture-ribbon")}</div></section>
+<div class="writing-plane--2" style="height:100vh;margin-top:100vh"></div>
+</main></body></html>'''
 
 GEOMETRY = """({cycle}) => {
   const svg = document.querySelector('.hero-geometry');
@@ -125,15 +136,19 @@ def main():
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     evidence = {"widths": {}, "hiddenCoverage": "Synthetic visibility event; headless WebKit has no native hidden tab."}
+    fixture_url = args.url + "/__test_wireform__/"
+    fixture = wireform_fixture()
+    evidence["wireformCoverage"] = "In-memory intercepted fixture; not a published route or homepage element."
     with sync_playwright() as p:
         browser = p.webkit.launch()
         for width in WIDTHS:
             context = browser.new_context(viewport={"width": width, "height": 900}, reduced_motion="no-preference")
             context.add_init_script(PROBE)
+            context.route(fixture_url, lambda route: route.fulfill(status=200, content_type="text/html", body=fixture))
             page = context.new_page()
             errors = []
             page.on("pageerror", lambda error: errors.append(str(error)))
-            page.goto(args.url, wait_until="networkidle")
+            page.goto(fixture_url, wait_until="networkidle")
             page.wait_for_timeout(100)
             assert page.locator("[data-motion-toggle], .motion-toggle").count() == 0
             assert page.locator("html").get_attribute("data-motion-initialized") == "true"
@@ -204,6 +219,9 @@ def main():
             assert page.locator("[data-motion-scene], [data-motion-toggle]").count() == 0
             for route, selector in (("/", ".idea-field"), ("/futurememo/", ".arrival-field")):
                 page.goto(args.url + route, wait_until="networkidle")
+                if route == "/":
+                    assert page.locator(".hero-field, .hero-geometry, [data-motion-follower]").count() == 0
+                    assert page.locator("[data-motion-scene]").count() == 1
                 page.locator(selector).evaluate("el=>el.scrollIntoView({block:'center'})")
                 page.wait_for_function("selector=>document.querySelector(selector).dataset.motionState==='running'", arg=selector, polling=50)
                 hold_geometry(page)
@@ -225,15 +243,19 @@ def main():
             assert not errors, errors
             context.close()
             context = browser.new_context(viewport={"width": width, "height": 900}, java_script_enabled=False)
+            context.route(fixture_url, lambda route: route.fulfill(status=200, content_type="text/html", body=fixture))
             page = context.new_page()
-            page.goto(args.url, wait_until="networkidle")
+            page.goto(fixture_url, wait_until="networkidle")
             assert page.locator("[data-motion-toggle]").count() == 0
             assert page.locator("html").get_attribute("data-motion-initialized") is None
             before = page.evaluate(GEOMETRY, {"cycle": False})
             aligned(before, cycle=False)
             page.wait_for_timeout(250)
             assert page.evaluate(GEOMETRY, {"cycle": False}) == before
-            assert max(a["error"] for a in page.evaluate(ANCHORS)) <= 1
+            page.goto(args.url, wait_until="networkidle")
+            assert page.locator(".hero-geometry, [data-motion-follower]").count() == 0
+            anchors = page.evaluate(ANCHORS)
+            assert anchors and max(a["error"] for a in anchors) <= 1
             context.close()
         browser.close()
     (args.output / "after-alignment.json").write_text(json.dumps(evidence, indent=2) + "\n")

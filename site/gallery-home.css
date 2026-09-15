@@ -1,0 +1,70 @@
+.gallery-home {
+  --nav-top: 0px;
+  --nav-rows: 1;
+  --masthead-padding: 40px;
+  --gallery-gutter: 7vw;
+  --gallery-left: max(var(--gallery-gutter), env(safe-area-inset-left, 0px));
+  --gallery-right: max(var(--gallery-gutter), env(safe-area-inset-right, 0px));
+  --gallery-header-height: calc(var(--masthead-padding) + env(safe-area-inset-top, 0px) + var(--nav-height));
+  --nav-clearance: 16px;
+  --gallery-wash: radial-gradient(ellipse 85vw 780px at 21vw 0, var(--site-light), var(--site-light-fade) 65%);
+}
+.gallery-home .gallery-cover {
+  background-color: var(--site-ground);
+  background-image: var(--grain), var(--gallery-wash);
+}
+.gallery-home .gallery-masthead {
+  position: absolute; inset: auto; top: 0; z-index: 7; background: none;
+  display: flex; align-items: center; justify-content: start; gap: 56px;
+  width: 100%; padding: calc(var(--masthead-padding) + env(safe-area-inset-top, 0px)) var(--gallery-right) 0 var(--gallery-left); border-radius: 0;
+}
+.gallery-masthead .site-autograph { width: 104px; flex: 0 0 104px; }
+.gallery-masthead .signature-ink { width: 100%; }
+.gallery-home .gallery-masthead nav { gap: 36px; }
+.gallery-home .gallery-cover {
+  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr;
+  min-height: 100svh; padding: calc(var(--gallery-header-height) + 44px) var(--gallery-right) 56px var(--gallery-left);
+  gap: 44px; align-items: center;
+  background-repeat: repeat, no-repeat;
+}
+.cover-introduction { max-width: 1050px; }
+.gallery-cover .cover-description {
+  width: auto; margin: 0; font-size: clamp(38px, 3.6vw, 52px);
+  line-height: 1.08; letter-spacing: -.045em;
+}
+.gallery-cover .cover-role { max-width: none; margin: 20px 0 0; padding: 0; font-size: 15px; line-height: 1.5; }
+.featured-essay {
+  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr);
+  gap: 80px; align-items: end;
+}
+.featured-art { display: block; width: 100%; max-width: 672px; }
+.featured-art img { width: 100%; height: auto; }
+.featured-essay figcaption { max-width: 330px; padding-bottom: 4px; }
+.featured-essay h2 { font-size: 32px; line-height: 1.12; letter-spacing: -.025em; margin: 16px 0 20px; }
+.featured-essay h2 a { text-decoration: none; }
+.featured-essay h2 a:hover { text-decoration: underline; }
+.featured-essay .text-link { min-height: 48px; gap: 12px; }
+@media (max-width: 1100px) {
+  .gallery-home { --gallery-gutter: 6vw; }
+  .featured-essay { gap: 48px; }
+  .featured-essay h2 { font-size: 28px; }
+}
+@media (max-width: 700px) {
+  .gallery-home { --nav-rows: 2; --masthead-padding: 24px; --gallery-gutter: 24px; }
+  .gallery-home .gallery-masthead { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .gallery-masthead .site-autograph { width: 88px; justify-self: start; }
+  .gallery-home .gallery-masthead nav { justify-content: space-between; gap: 4px; }
+  .gallery-home .gallery-cover { min-height: 0; padding-block: calc(var(--gallery-header-height) + 32px) 40px; gap: 32px; }
+  .gallery-cover .cover-description { font-size: clamp(28px, 8.7vw, 34px); line-height: 1.06; }
+  .gallery-cover .cover-role { margin-top: 24px; font-size: 14px; }
+  .featured-essay { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .featured-essay figcaption { max-width: none; }
+  .featured-essay h2 { font-size: 27px; margin: 12px 0; }
+}
+@media (forced-colors: active) {
+  .gallery-home .gallery-masthead, .gallery-home .gallery-cover { background-image: none; }
+}
+@media print {
+  .gallery-home .gallery-cover { min-height: 0; padding: 0; background-image: none; }
+  .featured-essay { break-inside: avoid; }
+}

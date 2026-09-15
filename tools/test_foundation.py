@@ -66,7 +66,7 @@ def main():
                 assert page.goto(args.url + route, wait_until="networkidle").status == 200
                 page.evaluate("document.fonts.ready")
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), (width, route)
-                assert page.locator(".site-header").evaluate("el => getComputedStyle(el).position") == "fixed"
+                assert page.locator(".site-header").evaluate("el => getComputedStyle(el).position") == ("absolute" if name == "home" else "fixed")
                 assert page.locator("[data-motion-toggle]").count() == 0
                 assert page.evaluate("document.getAnimations().length") == 0
                 collisions = page.evaluate("""() => {
@@ -89,7 +89,7 @@ def main():
                 for link in page.locator(".site-header a").all():
                     box = link.bounding_box()
                     assert box["height"] >= 44 and box["width"] >= 44
-                selectors = ".exhibition-art img" if name == "home" else ".archive-art img" if name == "archive" else ".essay-artwork img"
+                selectors = ".featured-art img, .exhibition-art img" if name == "home" else ".archive-art img" if name == "archive" else ".essay-artwork img"
                 images = page.locator(selectors).all()
                 if name == "archive":
                     assert not page.locator(".archive-discovery").evaluate("el => el.open")
@@ -152,9 +152,10 @@ def main():
         page = context.new_page()
         page.goto(args.url, wait_until="networkidle")
         page.evaluate("document.fonts.ready")
-        field = page.locator(".hero-field")
+        field = page.locator(".idea-field")
+        field.evaluate("el => el.scrollIntoView({block:'center'})")
         assert page.locator("[data-motion-toggle]").count() == 0
-        page.wait_for_function("document.querySelector('.hero-field').dataset.motionState === 'running'")
+        page.wait_for_function("document.querySelector('.idea-field').dataset.motionState === 'running'")
         a = field.screenshot()
         page.wait_for_timeout(1100)
         b = field.screenshot()
@@ -164,7 +165,7 @@ def main():
         (args.output / "motion-b.png").write_bytes(b)
         evidence["motion"]["changedPixels"] = changed
         assert page.evaluate("document.getAnimations().filter(a => a.playState === 'running').length") <= 2
-        assert page.locator("animateMotion").count() == 3
+        assert page.locator("animateMotion, .hero-field").count() == 0
         page.evaluate("""Object.defineProperty(document, 'hidden', {configurable:true, value:true});
           document.dispatchEvent(new Event('visibilitychange'));""")
         page.wait_for_timeout(100)
@@ -181,7 +182,7 @@ def main():
         times = page.evaluate("document.getAnimations().map(a => a.currentTime)")
         page.wait_for_timeout(400)
         assert page.evaluate("document.getAnimations().map(a => a.currentTime)") == times
-        page.evaluate("scrollTo(0,0)")
+        field.evaluate("el => el.scrollIntoView({block:'center'})")
         page.wait_for_timeout(250)
         assert page.evaluate("document.getAnimations().some(a => a.playState === 'running')")
         # Headless WebKit has no foreground tabs; exercise the visibility event contract explicitly.
@@ -220,7 +221,7 @@ def main():
         ordered = sorted(samples)
         evidence["motion"].update({"rafSamples": len(samples), "p95FrameMs": ordered[int(len(ordered)*.95)],
                                    "maxFrameMs": max(samples), "jsFrameCallbacks": 0, "maxScenes": 2,
-                                   "maxCarrierTracks": 2, "maxNativeFollowers": 3,
+                                   "maxCarrierTracks": 2,                                    "maxNativeFollowers": 0,
                                    "visibilityCheck": "emulated hidden event; real IntersectionObserver scroll",
                                    "hiddenPixelDifference": 0})
         assert len(samples) >= 40 and ordered[int(len(ordered)*.95)] < 50, evidence["motion"]
@@ -232,11 +233,13 @@ def main():
             page.goto(args.url, wait_until="networkidle")
             assert page.locator("[data-motion-toggle]").count() == 0
             header = page.locator(".site-header").bounding_box()
-            assert header["height"] == (96 if width <= 540 else 48)
+            assert header["height"] == (120 if width <= 700 else 88)
             assert header["x"] + header["width"] <= width
             page.locator(".writing-list h3 a").first.focus()
-            assert page.locator(".writing-list h3 a").first.bounding_box()["y"] >= header["y"] + header["height"]
-            assert page.locator(".site-header").bounding_box() == header
+            assert page.locator(".writing-list h3 a").first.bounding_box()["y"] >= 0
+            moved = page.locator(".site-header").bounding_box()
+            assert abs(moved["y"] + page.evaluate("scrollY")) < 1
+            assert moved["y"] + moved["height"] <= 0
             context.close()
 
         for width in widths:

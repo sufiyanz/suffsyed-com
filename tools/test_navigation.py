@@ -44,6 +44,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://127.0.0.1:8774")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--home-only", action="store_true", help="Focus homepage navigation without rerunning the article reader.")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     report, errors = {"headers": [], "readers": []}, []
@@ -55,6 +56,8 @@ def main():
         routes = [("/", "home", None), ("/futurememo/", "archive", DESTINATIONS[0]),
                   (ARTICLE, "article", DESTINATIONS[0]), ("/lightworks/", "photography", DESTINATIONS[1]),
                   ("/about-me/", "about", DESTINATIONS[2]), ("/methods/", "methods", None)]
+        if args.home_only:
+            routes = routes[:1]
         for width in WIDTHS:
             page.set_viewport_size({"width": width, "height": 844 if width < 700 else 1000})
             for route, name, active in routes:
@@ -138,20 +141,23 @@ def main():
             page.locator(".site-header nav a").first.click()
             page.wait_for_url(args.url + "/futurememo/", wait_until="networkidle")
             assert page.locator(".archive-entry").count() == 20
-            for route in ("/lightworks/", "/about-me/", ARTICLE):
+            static_routes = ("/lightworks/", "/about-me/") if args.home_only else ("/lightworks/", "/about-me/", ARTICLE)
+            for route in static_routes:
                 page.goto(args.url + route, wait_until="networkidle")
                 header_bounds(page)
-            assert page.locator("#reader-tools").is_hidden()
-            open_details(page, "#ai-reading-guide")
-            link = page.locator("[data-guide-anchor]").nth(2)
-            target = link.get_attribute("href")[1:]
-            click_native(page, link)
-            assert_anchor(page, target)
+            if not args.home_only:
+                assert page.locator("#reader-tools").is_hidden()
+                open_details(page, "#ai-reading-guide")
+                link = page.locator("[data-guide-anchor]").nth(2)
+                target = link.get_attribute("href")[1:]
+                click_native(page, link)
+                assert_anchor(page, target)
             context.close()
         browser.close()
     assert not errors, errors
     (args.output / "acceptance.json").write_text(json.dumps(report, indent=2) + "\n")
-    print("PASS: exact canonical navigation/active states; seven widths; opaque article band, toolbar/source clearance, Back, photography and no-JS.")
+    scope = "homepage, canonical destinations, photography and no-JS" if args.home_only else "opaque article band, toolbar/source clearance, Back, photography and no-JS"
+    print(f"PASS: exact canonical navigation/active states; seven widths; {scope}.")
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
-"""The sage observatory and an exhibition of original essay illustrations."""
+"""An art-led gallery entrance following the archive's ordered essay sequence."""
 from html import escape
 
-from foundation_art import orbit, ribbon
-from writing_frame import footer, header
+from foundation_art import orbit
+from writing_frame import footer, primary_links
 
 
 SELECTED_ESSAYS = (
@@ -15,10 +15,20 @@ DESCRIPTION = "Essays on intelligence, creative work, and what remains human."
 
 
 def render_foundation(rows, image):
+    if not rows:
+        raise ValueError("The gallery entrance requires an archive lead.")
+    lead = rows[0]
     by_slug = {row["slug"]: row for row in rows}
+    selected = []
+    seen = {lead["slug"]}
+    for row in [by_slug[slug] for slug in SELECTED_ESSAYS] + rows:
+        if row["slug"] not in seen:
+            selected.append(row)
+            seen.add(row["slug"])
+        if len(selected) == len(SELECTED_ESSAYS):
+            break
     writing = []
-    for index, slug in enumerate(SELECTED_ESSAYS):
-        row = by_slug[slug]
+    for index, row in enumerate(selected):
         first_sentence = row["description"].split(". ", 1)[0]
         excerpt = first_sentence if first_sentence.endswith(".") else first_sentence + "."
         sizes = ("(max-width: 700px) calc(100vw - 32px), "
@@ -35,7 +45,7 @@ def render_foundation(rows, image):
 </div>
 </li>''')
     return f'''<!doctype html>
-<html lang="en">
+<html lang="en" class="gallery-home">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -46,7 +56,7 @@ def render_foundation(rows, image):
 <meta property="og:description" content="{DESCRIPTION}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://suffsyed.com/">
-<meta property="og:image" content="https://suffsyed.com{by_slug[SELECTED_ESSAYS[0]]["cover"]}">
+<meta property="og:image" content="https://suffsyed.com{escape(lead["cover"])}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="alternate" type="application/rss+xml" title="future(memo)" href="/futurememo/rss.xml">
@@ -54,22 +64,30 @@ def render_foundation(rows, image):
 <link rel="preload" href="/assets/fonts/dm-mono-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/foundation.css">
 <link rel="stylesheet" href="/assets/frame.css">
+<link rel="stylesheet" href="/assets/gallery-home.css">
 <script type="module" src="/assets/motion.js"></script>
 </head>
 <body id="top" class="foundation">
 <a class="skip" href="#main">Skip to content</a>
-{header()}
-<main id="main" tabindex="-1">
-<section class="cover technical-surface" aria-labelledby="cover-title">
-<div class="hero-field motion-field" data-motion-scene>{ribbon("home-ribbon")}</div>
-<p class="cover-role">{IDENTITY}</p>
-<div class="editorial-plane">
-<h1 id="cover-title"><span class="sr-only">Suff Syed</span><span class="signature-ink">
+<header class="site-header gallery-masthead">
+<a class="site-autograph" href="/" aria-label="Suff Syed, home"><span class="signature-ink">
 <img class="cover-signature" src="/assets/suff-syed-signature.svg" width="350" height="148" alt="" fetchpriority="high">
-</span></h1>
-<p class="cover-description">{DESCRIPTION}</p>
-<a class="text-link" href="#writing">Explore the writing <span aria-hidden="true">↗</span></a>
+</span></a>
+<nav aria-label="Main navigation">{primary_links()}</nav>
+</header>
+<main id="main" tabindex="-1">
+<section class="cover gallery-cover technical-surface" aria-labelledby="cover-title">
+<div class="cover-introduction">
+<h1 class="cover-description" id="cover-title">{DESCRIPTION}</h1>
+<p class="cover-role">{IDENTITY}</p>
 </div>
+<figure class="featured-essay" data-featured-slug="{escape(lead["slug"])}">
+<a class="featured-art" href="{escape(lead["url"])}" aria-label="Read {escape(lead["title"])}">{image(lead["cover"], lead["coverAlt"], lazy=False, sizes="(max-width: 700px) calc(100vw - 48px), (max-width: 1100px) calc(55vw - 30px), (max-width: 1344px) calc(53.75vw - 50px), 672px")}</a>
+<figcaption><p class="exhibition-label">Featured essay</p>
+<h2><a href="{escape(lead["url"])}">{escape(lead["title"])}</a></h2>
+<a class="text-link" href="{escape(lead["url"])}">Read this essay <span aria-hidden="true">↗</span></a>
+</figcaption>
+</figure>
 </section>
 <section class="writing technical-surface" id="writing" aria-labelledby="writing-title">
 <header class="chapter-heading"><h2 id="writing-title">[ Selected writing ]</h2>
